@@ -14,6 +14,10 @@ defineProps({
     canRegister: {
         type: Boolean,
     },
+    recommendedArtworks: {
+        type: Array,
+        default: () => [],
+    },
 });
 
 const page = usePage();
@@ -104,6 +108,15 @@ const paintingItems = [
                 </div>
             </div>
         </section>
+
+        <!-- Recommended Section -->
+        <HomeCarousel 
+            v-if="recommendedArtworks && recommendedArtworks.length > 0" 
+            title="Recommended for You" 
+            id="recommended" 
+            :items="recommendedArtworks" 
+            class="mb-12"
+        />
 
         <!-- Category Carousels -->
         <HomeCarousel title="Canvas" id="canvas" :items="canvasItems" />

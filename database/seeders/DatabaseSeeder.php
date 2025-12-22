@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         $this->call(LegacyDataSeeder::class);
+        $this->call(InterestSeeder::class);
 
         // Dummy data commented out to preserve strict legacy import
         /*

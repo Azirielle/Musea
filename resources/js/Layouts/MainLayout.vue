@@ -2,7 +2,6 @@
 import { ref, onMounted, onUnmounted, computed } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
-import AuthenticationModal from '@/Components/AuthenticationModal.vue';
 
 const page = usePage();
 const user = page.props.auth.user;
@@ -12,7 +11,6 @@ const cartCount = computed(() => cart.items.reduce((acc, item) => acc + item.qua
 const isScrolled = ref(false);
 const isSearchActive = ref(false);
 const isProfileOpen = ref(false);
-const isAuthModalOpen = ref(false);
 const searchInput = ref(null);
 
 const handleScroll = () => {
@@ -89,9 +87,9 @@ onUnmounted(() => {
                         </div>
                     </template>
                     <template v-else>
-                         <a href="#" @click.prevent="isAuthModalOpen = true" class="icon-link icon-user" title="Login">
+                         <Link href="/login" class="icon-link icon-user" title="Login">
                             <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="5"></circle><path d="M3 21c0-4.97 4.03-7 9-7s9 2.03 9 7"></path></svg>
-                         </a>
+                         </Link>
                     </template>
                 </div>
             </div>
@@ -115,8 +113,6 @@ onUnmounted(() => {
         <footer>
             <!-- Footer content -->
         </footer>
-
-        <AuthenticationModal :show="isAuthModalOpen" @close="isAuthModalOpen = false" />
     </div>
 </template>
 

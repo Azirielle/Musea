@@ -28,7 +28,7 @@ class RegisteredUserController extends Controller
      *
      * @throws \Illuminate\Validation\ValidationException
      */
-    public function store(Request $request): RedirectResponse
+    public function store(Request $request): RedirectResponse|\Symfony\Component\HttpFoundation\Response
     {
         $request->validate([
             'first_name' => 'required|string|max:100',
@@ -50,6 +50,6 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
-        return redirect()->route('home')->with('success', 'Sign up completed!');
+        return Inertia::location(route('onboarding.index'));
     }
 }

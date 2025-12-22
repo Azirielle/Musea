@@ -1,5 +1,5 @@
 <script setup>
-import { Head, Link, usePage } from '@inertiajs/vue3';
+import { Head, Link, usePage, router } from '@inertiajs/vue3';
 import MainLayout from '@/Layouts/MainLayout.vue';
 import { useCart } from '@/composables/useCart';
 import { computed } from 'vue';
@@ -13,8 +13,7 @@ const total = computed(() => {
 
 const handleCheckout = () => {
     if (!page.props.auth.user) {
-        alert('You must be logged in to proceed to checkout.');
-        // Optionally redirect to login: router.get(route('login'));
+        router.get(route('login'));
         return;
     }
     

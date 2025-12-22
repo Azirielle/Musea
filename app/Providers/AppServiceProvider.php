@@ -21,5 +21,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Vite::prefetch(concurrency: 3);
+
+        \Illuminate\Support\Facades\Auth::provider('legacy_eloquent', function ($app, array $config) {
+            return new \App\Auth\LegacyEloquentUserProvider($app['hash'], $config['model']);
+        });
     }
 }

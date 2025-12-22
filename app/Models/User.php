@@ -24,6 +24,8 @@ class User extends Authenticatable
         'password',
         'address',
         'contact_number',
+        'avatar_path',
+        'is_onboarded',
     ];
 
     /**
@@ -46,6 +48,29 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_onboarded' => 'boolean',
         ];
+    }
+
+    /**
+     * The interests that belong to the user.
+     */
+    public function interests(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    {
+        return $this->belongsToMany(Interest::class);
+    }
+
+    /**
+     * Get the user's avatar URL.
+     */
+    public function imageUrl(): string
+    {
+        if ($this->avatar_path && (str_starts_with($this->avatar_path, 'http') || str_starts_with($this->avatar_path, 'https'))) {
+            return $this->avatar_path;
+        }
+
+        return $this->avatar_path
+            ? asset('storage/' . $this->avatar_path)
+            : 'https://ui-avatars.com/api/?name=' . urlencode($this->first_name . ' ' . $this->last_name) . '&color=7F9CF5&background=EBF4FF';
     }
 }
