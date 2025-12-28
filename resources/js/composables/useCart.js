@@ -1,4 +1,5 @@
 import { reactive, watch } from 'vue';
+import Swal from 'sweetalert2';
 
 const cart = reactive({
     items: JSON.parse(localStorage.getItem('musea_cart')) || [],
@@ -16,7 +17,23 @@ export function useCart() {
         } else {
             cart.items.push({ ...artwork, quantity: 1 });
         }
-        alert(`${artwork.title} added to cart!`);
+
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            didOpen: (toast) => {
+                toast.addEventListener('mouseenter', Swal.stopTimer)
+                toast.addEventListener('mouseleave', Swal.resumeTimer)
+            }
+        });
+
+        Toast.fire({
+            icon: 'success',
+            title: `${artwork.title} added to cart!`
+        });
     };
 
     const removeFromCart = (artworkId) => {

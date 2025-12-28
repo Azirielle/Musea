@@ -4,7 +4,9 @@
     "type": "module",
     "scripts": {
         "build": "vite build",
-        "dev": "vite"
+        "dev": "vite",
+        "serve": "php artisan serve",
+        "serve:admin": "php artisan serve --port=8001"
     },
     "devDependencies": {
         "@inertiajs/vue3": "^2.0.0",
@@ -21,6 +23,7 @@
         "vue": "^3.4.0"
     },
     "dependencies": {
-        "chart.js": "^4.5.1"
+        "chart.js": "^4.5.1",
+        "sweetalert2": "^11.26.17"
     }
 }

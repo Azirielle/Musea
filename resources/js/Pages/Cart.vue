@@ -17,21 +17,20 @@ const handleCheckout = () => {
         return;
     }
     
-    // Proceed to checkout logic (not implemented yet)
-    alert('Proceeding to checkout...');
+    router.visit(route('checkout.index'));
 };
 </script>
 
 <template>
     <Head title="Your Cart" />
     <MainLayout>
-        <div class="pt-24 pb-12 px-6 bg-[#FAF7F2] min-h-screen">
+        <div class="pt-24 pb-12 px-6 bg-canvas min-h-screen">
             <div class="max-w-4xl mx-auto">
-                <h1 class="text-4xl font-bold text-[#1A1A1A] mb-8">Shopping Cart</h1>
+                <h1 class="text-4xl font-bold text-ink mb-8">Shopping Cart</h1>
 
-                <div v-if="cart.items.length === 0" class="text-center py-20 bg-white rounded-xl shadow-sm">
-                    <p class="text-xl text-gray-500 mb-6">Your cart is empty.</p>
-                    <Link :href="route('shop.index')" class="bg-[#CBA35C] text-white px-6 py-3 rounded-lg hover:bg-[#b08d4b] transition">
+                <div v-if="cart.items.length === 0" class="text-center py-20 bg-paper rounded-xl shadow-sm border border-divider">
+                    <p class="text-xl text-ink-light mb-6">Your cart is empty.</p>
+                    <Link :href="route('shop.index')" class="bg-accent text-white px-6 py-3 rounded-lg hover:bg-black transition">
                         Browse Artworks
                     </Link>
                 </div>
@@ -45,7 +44,7 @@ const handleCheckout = () => {
                             </div>
                             <div class="flex-grow">
                                 <h3 class="font-bold text-[#1A1A1A]">{{ item.title }}</h3>
-                                <p class="text-sm text-gray-500">${{ item.price }}</p>
+                                <p class="text-sm text-gray-500">₱{{ item.price }}</p>
                             </div>
                             <div class="flex items-center gap-3">
                                 <button @click="updateQuantity(item.id, item.quantity - 1)" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center">-</button>
@@ -69,7 +68,7 @@ const handleCheckout = () => {
                         <h2 class="text-xl font-bold mb-4">Summary</h2>
                         <div class="flex justify-between mb-2 text-gray-600">
                             <span>Subtotal</span>
-                            <span>${{ total }}</span>
+                            <span>₱{{ total }}</span>
                         </div>
                         <div class="flex justify-between mb-6 text-gray-600">
                             <span>Shipping</span>
@@ -77,7 +76,7 @@ const handleCheckout = () => {
                         </div>
                         <div class="border-t pt-4 flex justify-between font-bold text-lg mb-6">
                             <span>Total</span>
-                            <span>${{ total }}</span>
+                            <span>₱{{ total }}</span>
                         </div>
                         
                         <button 

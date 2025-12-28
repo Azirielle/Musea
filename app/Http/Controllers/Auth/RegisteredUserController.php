@@ -50,6 +50,8 @@ class RegisteredUserController extends Controller
 
         Auth::login($user);
 
+        $user->notify(new \App\Notifications\WelcomeNotification());
+
         return Inertia::location(route('onboarding.index'));
     }
 }

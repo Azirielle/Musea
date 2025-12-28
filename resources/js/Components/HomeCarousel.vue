@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted, computed } from 'vue';
+import { ref, onMounted, onUnmounted, computed, nextTick } from 'vue';
 import { Link } from '@inertiajs/vue3';
 
 const props = defineProps({
@@ -9,8 +9,16 @@ const props = defineProps({
 });
 
 const currentSlide = ref(0);
-const windowWidth = ref(1200); // Default
+const windowWidth = ref(1200);
+const isResetting = ref(false);
 let intervalId = null;
+
+// Duplicate items to create infinite loop illusion
+const displayItems = computed(() => {
+    // If we have enough items, duplicate. If very few (1?), maybe not needed? 
+    // Assuming at least a few items.
+    return [...props.items, ...props.items];
+});
 
 const itemsToShow = computed(() => {
     if (windowWidth.value < 520) return 1;
@@ -18,49 +26,46 @@ const itemsToShow = computed(() => {
     return 5;
 });
 
-// Calculate width percentage and gap compensation
-// 5 items: (100% - 4*12px) / 5 ... Gap is 12px
+// Gap is 12px
 const slideStyle = computed(() => {
-    if (itemsToShow.value === 1) return { width: '80%' };
+    if (itemsToShow.value === 1) return { width: '80%' }; // Original logic
     return { width: `calc((100% - ${(itemsToShow.value - 1) * 12}px) / ${itemsToShow.value})` };
 });
 
 const trackTransform = computed(() => {
-    // We move by one slide width + gap
-    // Slide Width % = 100 / itemsToShow roughly, but let's be precise with pixels/calc
-    // Easier approach: Move by 100% / itemsToShow + gap proportion?
-    
-    // Let's use the same formula: -currentSlide * (SlideWidth + Gap)
-    // SlideWidth = (100% - (items * gap)) / items ??? No, too complex string
-    
-    // Simplest: just assume equal distribution.
-    // If 5 items: move 20% + gap adjustment.
-    
-    let percent = 0;
     let gap = 12; // px
     
-    if (itemsToShow.value === 5) percent = 20;
-    else if (itemsToShow.value === 2) percent = 50;
-    else percent = 80; // Mobile single view often centered or just 100%
-    
     if (itemsToShow.value === 1) {
-        // For mobile, maybe just 80% width + gap?
-        return `translateX(calc(-${currentSlide.value} * (80% + 12px)))`;
+         return `translateX(calc(-${currentSlide.value} * (80% + 12px)))`;
     }
-    
-    return `translateX(calc(-${currentSlide.value} * (${100 / itemsToShow.value}% + ${gap / itemsToShow.value}px)))`; 
-    // Actually simpler: calc(-Index * (100% / Items + Gap)) ?
-    // Let's stick to the previous calc which was working for desktop: 
-    // calc(-${currentSlide} * (20% + 2.4px)) -> 2.4 is 12/5.
-    
     return `translateX(calc(-${currentSlide.value} * ((100% + 12px) / ${itemsToShow.value})))`;
 });
 
-
 const next = () => {
-    if (currentSlide.value < props.items.length - 1) {
+    if (currentSlide.value < displayItems.value.length - itemsToShow.value) {
         currentSlide.value++;
+        
+        // Check if we reached the start of the duplicated set (which matches start of original set)
+        // Original set length is props.items.length.
+        // If currentSlide == props.items.length, we are visually at the start (0).
+        if (currentSlide.value === props.items.length) {
+            // Wait for transition to finish (500ms), then reset silently
+             resetTimer(); // Reset timer so we don't auto-advance while resetting
+             setTimeout(() => {
+                isResetting.value = true;
+                currentSlide.value = 0;
+                // Force layout/tick
+                nextTick(() => {
+                     // Small delay to ensure CSS applied without transition
+                     setTimeout(() => {
+                        isResetting.value = false;
+                     }, 50);
+                });
+             }, 500);
+             return; // Don't reset timer again in main path immediately
+        }
     } else {
+        // Should not happen with above logic, but safety:
         currentSlide.value = 0;
     }
     resetTimer();
@@ -70,12 +75,28 @@ const prev = () => {
     if (currentSlide.value > 0) {
         currentSlide.value--;
     } else {
-        currentSlide.value = props.items.length - 1;
+        // We are at 0. We want to go to props.items.length - 1 (end of first set)
+        // But visually we want to appear to come from left?
+        // Actually, if we are at 0, we can silently jump to props.items.length (which is same visual),
+        // THEN animate to props.items.length - 1.
+        
+        isResetting.value = true;
+        currentSlide.value = props.items.length;
+        
+        nextTick(() => {
+            setTimeout(() => {
+                isResetting.value = false;
+                currentSlide.value--;
+            }, 50);
+        });
+        resetTimer();
+        return;
     }
     resetTimer();
 };
 
 const startTimer = () => {
+    stopTimer();
     intervalId = setInterval(next, 3000);
 };
 
@@ -85,7 +106,12 @@ const stopTimer = () => {
 
 const resetTimer = () => {
     stopTimer();
-    startTimer();
+    // Only restart if not hovering? The mouseleave handles restart usually.
+    // If called from click, we should restart.
+    // However, if mouse is over, hover will stop it anyway.
+    if (!document.querySelector(`#${props.id}:hover`)) {
+         startTimer();
+    }
 };
 
 const updateWidth = () => {
@@ -113,16 +139,18 @@ onUnmounted(() => {
             
             <div class="category-viewport overflow-hidden mx-12 rounded-xl">
                 <div 
-                    class="category-track flex gap-[12px] transition-transform duration-500 ease-out py-4"
+                    class="category-track flex gap-[12px] py-4"
+                    :class="{ 'transition-transform duration-500 ease-out': !isResetting }"
                     :style="{ transform: trackTransform }"
                 >
                     <div 
-                        v-for="(item, index) in items" 
+                        v-for="(item, index) in displayItems" 
                         :key="index" 
-                        class="category-slide flex-none bg-white rounded-xl border-2 border-[#CBA35C]/10 overflow-hidden hover:-translate-y-1 hover:shadow-lg transition duration-300"
+                        class="category-slide flex-none bg-paper rounded-xl border border-divider overflow-hidden hover:-translate-y-1 hover:shadow-lg transition duration-300"
                         :style="slideStyle"
                     >
                         <div class="cat-overlay flex flex-col h-full">
+
                             <div class="img-container h-[200px] md:h-[260px] bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center p-4">
                                 <img :src="item.image" :alt="item.title" class="max-w-full max-h-full object-contain drop-shadow-sm">
                             </div>
@@ -132,7 +160,7 @@ onUnmounted(() => {
                                     <p class="text-xs text-gray-500 mb-2">{{ item.artist }} • ₱{{ item.price }}</p>
                                 </div>
                                 <div class="slide-actions flex justify-center gap-2 mt-2">
-                                    <Link :href="route('shop.show', { artwork: 1 })" class="btn-ghost border border-[#1A1A1A] text-[#1A1A1A] px-3 py-1 rounded text-xs hover:bg-[#1A1A1A] hover:text-white transition uppercase tracking-wide">View</Link>
+                                    <Link :href="route('shop.show', { artwork: item.id || 1 })" class="btn-ghost border border-ink text-ink px-3 py-1 rounded text-xs hover:bg-ink hover:text-white transition uppercase tracking-wide">View</Link>
                                 </div>
                             </div>
                         </div>
@@ -180,7 +208,7 @@ onUnmounted(() => {
     transform: translateX(-50%);
     width: 60px;
     height: 3px;
-    background: linear-gradient(90deg, #CBA35C, transparent);
+    background: linear-gradient(90deg, #18181B, transparent);
     border-radius: 2px;
 }
 </style>

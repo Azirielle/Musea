@@ -7,9 +7,10 @@ import MainLayout from '@/Layouts/MainLayout.vue';
     <Head title="About Us" />
     <MainLayout>
         <!-- Hero Section -->
-        <div class="bg-gradient-to-br from-[#F7F1E3] to-[#EEE6D9] py-16 px-6 text-center">
-             <h1 class="text-4xl md:text-5xl font-bold text-[#1A1A1A] mb-3">About Musea</h1>
-             <p class="text-xl text-[#2E2E2E]">Celebrating craftsmanship and creativity</p>
+        <!-- Hero Section -->
+        <div class="bg-canvas border-b border-divider py-16 px-6 text-center">
+             <h1 class="text-4xl md:text-5xl font-bold text-ink mb-3">About Musea</h1>
+             <p class="text-xl text-ink-light">Celebrating craftsmanship and creativity</p>
         </div>
 
         <div class="max-w-6xl mx-auto px-6 py-12">
@@ -36,28 +37,53 @@ import MainLayout from '@/Layouts/MainLayout.vue';
                 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                     <!-- Value 1 -->
-                    <div class="bg-[#F7F1E3] rounded-xl p-8 text-center hover:-translate-y-1 transition duration-300">
-                        <h5 class="text-xl font-bold text-[#CBA35C] mb-3">Authenticity</h5>
+                    <div class="bg-paper border border-divider rounded-xl p-8 text-center hover:-translate-y-1 transition duration-300">
+                        <h5 class="text-xl font-bold text-ink mb-3">Authenticity</h5>
                         <p class="text-gray-700 leading-relaxed">
                             We celebrate genuine craftsmanship, ensuring every item is made with love and traditional techniques passed down through generations.
                         </p>
                     </div>
 
                     <!-- Value 2 -->
-                    <div class="bg-[#F7F1E3] rounded-xl p-8 text-center hover:-translate-y-1 transition duration-300">
-                        <h5 class="text-xl font-bold text-[#CBA35C] mb-3">Quality</h5>
+                    <div class="bg-paper border border-divider rounded-xl p-8 text-center hover:-translate-y-1 transition duration-300">
+                        <h5 class="text-xl font-bold text-ink mb-3">Quality</h5>
                         <p class="text-gray-700 leading-relaxed">
                             Each product in our collection meets the highest standards of durability and aesthetic excellence, crafted to last a lifetime.
                         </p>
                     </div>
 
                     <!-- Value 3 -->
-                    <div class="bg-[#F7F1E3] rounded-xl p-8 text-center hover:-translate-y-1 transition duration-300">
-                        <h5 class="text-xl font-bold text-[#CBA35C] mb-3">Community</h5>
+                    <div class="bg-paper border border-divider rounded-xl p-8 text-center hover:-translate-y-1 transition duration-300">
+                        <h5 class="text-xl font-bold text-ink mb-3">Community</h5>
                         <p class="text-gray-700 leading-relaxed">
                             We foster connections between artisans and enthusiasts, building a supportive network that values creativity and cultural heritage.
                         </p>
                     </div>
+                </div>
+            </div>
+
+            <!-- Terms & Privacy -->
+            <div class="mt-16 grid grid-cols-1 md:grid-cols-2 gap-12">
+                <div id="terms" class="bg-paper border border-divider rounded-xl p-8">
+                    <h3 class="text-2xl font-bold text-ink mb-4">Terms of Service</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed mb-4">
+                        By accessing using Musea, you agree to be bound by these terms. All artwork purchases are final unless damaged in transit. 
+                        We reserve the right to modify services at any time.
+                    </p>
+                    <p class="text-gray-600 text-sm leading-relaxed">
+                        Content on this site is protected by copyright. Reproduction of artist work without permission is prohibited.
+                    </p>
+                </div>
+                
+                <div id="privacy" class="bg-paper border border-divider rounded-xl p-8">
+                    <h3 class="text-2xl font-bold text-ink mb-4">Privacy Policy</h3>
+                    <p class="text-gray-600 text-sm leading-relaxed mb-4">
+                        We value your privacy. We strictly collect only necessary information to process orders and improve your experience. 
+                        We do not sell your data to third parties.
+                    </p>
+                    <p class="text-gray-600 text-sm leading-relaxed">
+                        Secure payments are processed by Stripe. Your credit card details are never stored on our servers.
+                    </p>
                 </div>
             </div>
 

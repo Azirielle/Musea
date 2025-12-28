@@ -33,6 +33,22 @@ const defaultAvatars = [
     'https://api.dicebear.com/7.x/avataaars/svg?seed=Milo',
     'https://api.dicebear.com/7.x/avataaars/svg?seed=Lily',
     'https://api.dicebear.com/7.x/avataaars/svg?seed=Leo',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Bella',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Max',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Sophie',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Charlie',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Luna',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Oscar',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Ruby',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Toby',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Daisy',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Oliver',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Chloe',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Noah',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Maya',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Ethan',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Ava',
+    'https://api.dicebear.com/7.x/avataaars/svg?seed=Lucas',
 ];
 
 const handleFileChange = (e) => {
@@ -86,7 +102,7 @@ const nextStep = () => {
 
 <template>
     <Head title="Welcome to Musea" />
-    <div class="min-h-screen bg-[#FDFBF7] flex flex-col items-center justify-center p-6 font-sans text-[#1A1A1A]">
+    <div class="min-h-screen bg-canvas flex flex-col items-center justify-center p-6 font-sans text-ink">
         
         <!-- Progress Indicators -->
         <div class="flex gap-2 mb-8">
@@ -94,7 +110,7 @@ const nextStep = () => {
                 v-for="s in 3" 
                 :key="s"
                 class="h-2 w-12 rounded-full transition-all duration-500"
-                :class="s <= step ? 'bg-[#CBA35C]' : 'bg-gray-200'"
+                :class="s <= step ? 'bg-accent' : 'bg-gray-200'"
             ></div>
         </div>
 
@@ -112,7 +128,7 @@ const nextStep = () => {
                 <div v-if="step === 1" class="text-center w-full">
                     <div class="flex justify-center mb-6">
                          <!-- Logo Placeholder or Icon -->
-                        <div class="w-20 h-20 bg-[#CBA35C] rounded-full flex items-center justify-center text-white text-3xl font-serif font-bold">
+                        <div class="w-20 h-20 bg-accent rounded-full flex items-center justify-center text-white text-3xl font-serif font-bold">
                             M
                         </div>
                     </div>
@@ -120,7 +136,7 @@ const nextStep = () => {
                     <p class="text-gray-500 text-lg mb-8 max-w-md mx-auto">
                         Discover a world where art meets passion. Let's personalize your journey to find pieces that speak to your soul.
                     </p>
-                    <PrimaryButton @click="nextStep" class="px-8 py-3 text-lg bg-[#CBA35C] hover:bg-[#B89350] rounded-full">
+                    <PrimaryButton @click="nextStep" class="px-8 py-3 text-lg bg-accent hover:bg-black rounded-full">
                         Get Started
                     </PrimaryButton>
                 </div>
@@ -142,7 +158,7 @@ const nextStep = () => {
                     <form @submit.prevent="submitProfile" class="flex flex-col items-center">
                         <!-- Avatar Upload -->
                         <div class="relative group mb-8 cursor-pointer" @click="$refs.fileInput.click()">
-                            <div class="w-28 h-28 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border-2 border-dashed border-[#CBA35C] group-hover:border-solid transition-all">
+                            <div class="w-28 h-28 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border-2 border-dashed border-accent group-hover:border-solid transition-all">
                                 <img 
                                     v-if="avatarPreview" 
                                     :src="avatarPreview" 
@@ -172,7 +188,7 @@ const nextStep = () => {
                                     :key="index"
                                     @click="selectDefaultAvatar(avatar)"
                                     class="w-12 h-12 rounded-full cursor-pointer border-2 transition-all hover:scale-110"
-                                    :class="profileForm.default_avatar === avatar ? 'border-[#CBA35C] ring-2 ring-[#CBA35C] ring-offset-2' : 'border-transparent hover:border-gray-200'"
+                                    :class="profileForm.default_avatar === avatar ? 'border-accent ring-2 ring-accent ring-offset-2' : 'border-transparent hover:border-gray-200'"
                                 >
                                     <img :src="avatar" alt="Default Avatar" class="w-full h-full rounded-full" />
                                 </div>
@@ -205,7 +221,7 @@ const nextStep = () => {
                         </div>
 
                         <PrimaryButton 
-                            class="w-full justify-center py-3 bg-[#CBA35C] hover:bg-[#B89350]"
+                            class="w-full justify-center py-3 bg-accent hover:bg-black"
                             :class="{ 'opacity-25': profileForm.processing }"
                             :disabled="profileForm.processing"
                         >
@@ -234,17 +250,17 @@ const nextStep = () => {
                                 @click="toggleInterest(interest.id)"
                                 class="cursor-pointer rounded-xl border-2 p-4 flex flex-col items-center justify-center transition-all duration-200 h-32"
                                 :class="interestsForm.interests.includes(interest.id) 
-                                    ? 'border-[#CBA35C] bg-[#CBA35C]/5 shadow-md scale-105' 
+                                    ? 'border-accent bg-accent/5 shadow-md scale-105' 
                                     : 'border-gray-100 bg-gray-50 hover:border-gray-300'"
                             >
-                                <span class="text-lg font-medium" :class="interestsForm.interests.includes(interest.id) ? 'text-[#CBA35C]' : 'text-gray-600'">
+                                <span class="text-lg font-medium" :class="interestsForm.interests.includes(interest.id) ? 'text-accent' : 'text-gray-600'">
                                     {{ interest.name }}
                                 </span>
                             </div>
                         </div>
 
                          <PrimaryButton 
-                            class="w-full justify-center py-3 bg-[#CBA35C] hover:bg-[#B89350]"
+                            class="w-full justify-center py-3 bg-accent hover:bg-black"
                             :class="{ 'opacity-25': interestsForm.processing }"
                             :disabled="interestsForm.processing"
                         >

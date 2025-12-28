@@ -12,6 +12,19 @@ export default {
 
     theme: {
         extend: {
+            colors: {
+                canvas: '#FAFAFA',
+                paper: '#FFFFFF',
+                ink: {
+                    DEFAULT: '#27272A', // Zinc 800
+                    light: '#71717A',   // Zinc 500
+                },
+                accent: {
+                    DEFAULT: '#18181B', // Zinc 900
+                    hover: '#27272A',
+                },
+                divider: '#E4E4E7', // Zinc 200
+            },
             fontFamily: {
                 sans: ['Figtree', ...defaultTheme.fontFamily.sans],
             },

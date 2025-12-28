@@ -32,7 +32,7 @@ const { addToCart } = useCart();
 <template>
     <Head title="Shop Artworks" />
     <MainLayout>
-        <div class="pt-24 pb-12 px-6 bg-[#FAF7F2]">
+        <div class="pb-12 px-6 bg-canvas">
             <div class="max-w-7xl mx-auto">
                 <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
                     <h1 class="text-4xl font-bold text-[#1A1A1A]">Shop Artworks</h1>
@@ -43,9 +43,9 @@ const { addToCart } = useCart();
                             @input="handleSearch"
                             type="text" 
                             placeholder="Search artworks..." 
-                            class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#CBA35C] w-full md:w-64"
+                            class="px-4 py-2 border border-divider rounded-lg focus:outline-none focus:border-accent w-full md:w-64"
                         >
-                        <select v-model="category" @change="handleSearch" class="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-[#CBA35C]">
+                        <select v-model="category" @change="handleSearch" class="px-4 py-2 border border-divider rounded-lg focus:outline-none focus:border-accent">
                             <option value="">All Categories</option>
                             <option value="Painting">Painting</option>
                             <option value="Sculpture">Sculpture</option>
@@ -71,7 +71,7 @@ const { addToCart } = useCart();
                                 >
                                 
                                 <div v-if="$page.props.auth.user" class="absolute bottom-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-sm font-bold text-[#1A1A1A]">
-                                    ${{ artwork.price }}
+                                    ₱{{ artwork.price }}
                                 </div>
                             </div>
                             
@@ -80,7 +80,7 @@ const { addToCart } = useCart();
                                     <h3 class="font-bold text-lg text-[#1A1A1A] truncate">{{ artwork.title }}</h3>
                                     <p class="text-sm text-gray-500 mb-2">{{ artwork.artist ? artwork.artist.first_name + ' ' + artwork.artist.last_name : 'Unknown Artist' }}</p>
                                     <div class="flex justify-between items-center">
-                                        <span class="text-xs bg-[#F7F1E3] px-2 py-1 rounded text-[#8c7a5a]">{{ artwork.category }}</span>
+                                        <span class="text-xs bg-zinc-100 px-2 py-1 rounded text-ink-light">{{ artwork.category }}</span>
                                         <span v-if="artwork.stock > 0" class="text-xs text-green-600 font-medium">In Stock</span>
                                         <span v-else class="text-xs text-red-500 font-medium">Sold Out</span>
                                     </div>
@@ -91,7 +91,7 @@ const { addToCart } = useCart();
                         <!-- Add to Cart (Overlay on hover for desktop, or visible) -->
                         <button 
                             @click.prevent="addToCart(artwork)"
-                            class="absolute top-4 right-4 bg-[#CBA35C] text-white p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-[#b08d4b]"
+                            class="absolute top-4 right-4 bg-accent text-white p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-black"
                             title="Add to Cart"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -109,7 +109,7 @@ const { addToCart } = useCart();
                             :href="link.url" 
                             v-html="link.label"
                             class="px-4 py-2 rounded-lg border text-sm font-medium transition"
-                            :class="{'bg-[#CBA35C] text-white border-[#CBA35C]': link.active, 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300': !link.active}"
+                            :class="{'bg-accent text-white border-accent': link.active, 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300': !link.active}"
                         />
                         <span v-else v-html="link.label" class="px-4 py-2 text-gray-400 text-sm"></span>
                      </template>

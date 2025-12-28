@@ -39,7 +39,7 @@ const submit = () => {
                     <TextInput
                         id="first_name"
                         type="text"
-                        class="mt-1 block w-full border-gray-300 focus:border-[#CBA35C] focus:ring-[#CBA35C] rounded-lg"
+                        class="mt-1 block w-full border-divider focus:border-accent focus:ring-accent rounded-lg"
                         v-model="form.first_name"
                         required
                         autofocus
@@ -52,7 +52,7 @@ const submit = () => {
                     <TextInput
                         id="last_name"
                         type="text"
-                        class="mt-1 block w-full border-gray-300 focus:border-[#CBA35C] focus:ring-[#CBA35C] rounded-lg"
+                        class="mt-1 block w-full border-divider focus:border-accent focus:ring-accent rounded-lg"
                         v-model="form.last_name"
                         required
                         autocomplete="family-name"
@@ -66,7 +66,7 @@ const submit = () => {
                 <TextInput
                     id="email"
                     type="email"
-                    class="mt-1 block w-full border-gray-300 focus:border-[#CBA35C] focus:ring-[#CBA35C] rounded-lg"
+                    class="mt-1 block w-full border-divider focus:border-accent focus:ring-accent rounded-lg"
                     v-model="form.email"
                     required
                     autocomplete="username"
@@ -79,7 +79,7 @@ const submit = () => {
                 <TextInput
                     id="address"
                     type="text"
-                    class="mt-1 block w-full border-gray-300 focus:border-[#CBA35C] focus:ring-[#CBA35C] rounded-lg"
+                    class="mt-1 block w-full border-divider focus:border-accent focus:ring-accent rounded-lg"
                     v-model="form.address"
                     autocomplete="street-address"
                 />
@@ -91,7 +91,7 @@ const submit = () => {
                 <TextInput
                     id="contact_number"
                     type="text"
-                    class="mt-1 block w-full border-gray-300 focus:border-[#CBA35C] focus:ring-[#CBA35C] rounded-lg"
+                    class="mt-1 block w-full border-divider focus:border-accent focus:ring-accent rounded-lg"
                     v-model="form.contact_number"
                     autocomplete="tel"
                 />
@@ -103,7 +103,7 @@ const submit = () => {
                 <TextInput
                     id="password"
                     type="password"
-                    class="mt-1 block w-full border-gray-300 focus:border-[#CBA35C] focus:ring-[#CBA35C] rounded-lg"
+                    class="mt-1 block w-full border-divider focus:border-accent focus:ring-accent rounded-lg"
                     v-model="form.password"
                     required
                     autocomplete="new-password"

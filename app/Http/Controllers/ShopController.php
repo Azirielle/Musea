@@ -30,9 +30,12 @@ class ShopController extends Controller
 
     public function show(\App\Models\Artwork $artwork)
     {
-        $artwork->load('artist');
+        $artwork->load(['artist', 'reviews.user']);
+
         return \Inertia\Inertia::render('Shop/Show', [
-            'artwork' => $artwork
+            'artwork' => $artwork,
+            'isFollowing' => auth()->check() ? auth()->user()->following()->where('following_id', $artwork->artist_id)->exists() : false,
+            'isLiked' => auth()->check() ? auth()->user()->likes()->where('artwork_id', $artwork->id)->exists() : false,
         ]);
     }
 }

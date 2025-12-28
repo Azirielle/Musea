@@ -74,7 +74,7 @@ const paintingItems = [
 <template>
     <Head title="Home" />
     <SuccessModal :show="showSuccessModal" :message="successMessage" @close="closeSuccessModal" />
-    <MainLayout>
+    <MainLayout :withHeaderPadding="false">
         <!-- Hero Section -->
         <section class="hero bg-gradient-to-br from-[#faf0e1] to-white relative py-16 md:py-24 overflow-hidden">
              <!-- Background Texture/Gradient Overlay -->
@@ -95,15 +95,35 @@ const paintingItems = [
                     <p class="text-lg text-gray-700 leading-relaxed max-w-lg ml-auto mb-6">
                         A study of morning light and texture — created to explore the subtle transition of color at dawn and captured on archival canvas to retain vibrancy.
                     </p>
-                    <span class="block text-3xl font-extrabold text-[#CBA35C] mb-6 drop-shadow-sm">₱10,499.00</span>
+                    <span class="block text-3xl font-extrabold text-accent mb-6 drop-shadow-sm">₱10,499.00</span>
                     
                     <div class="flex gap-4 justify-center md:justify-end">
-                        <Link :href="route('shop.index')" class="bg-transparent border-2 border-[#CBA35C] text-[#CBA35C] px-6 py-3 rounded-xl font-bold hover:bg-[#CBA35C]/10 transition">
-                            View Details
-                        </Link>
-                         <button class="bg-gradient-to-br from-[#CBA35C] to-[#B89350] text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:shadow-xl hover:-translate-y-0.5 transition">
-                            Add to Cart
-                        </button>
+                        <!-- Guest: Login / Register -->
+                        <template v-if="!$page.props.auth.user">
+                            <Link :href="route('login')" class="bg-transparent border-2 border-accent text-accent px-6 py-3 rounded-xl font-bold hover:bg-zinc-50 transition">
+                                Log In
+                            </Link>
+                            <Link :href="route('register')" class="bg-accent text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-black transition">
+                                Get Started
+                            </Link>
+                        </template>
+
+                        <!-- User: Not Onboarded -->
+                        <template v-else-if="!$page.props.auth.user.is_onboarded">
+                            <Link :href="route('onboarding.index')" class="bg-accent text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-black transition animate-pulse">
+                                Personalize Feed
+                            </Link>
+                        </template>
+
+                        <!-- User: Onboarded -->
+                        <template v-else>
+                            <Link :href="route('shop.show', 1)" class="bg-transparent border-2 border-accent text-accent px-6 py-3 rounded-xl font-bold hover:bg-zinc-50 transition">
+                                View Details
+                            </Link>
+                            <Link :href="route('shop.index')" class="bg-accent text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-black transition">
+                                Browse Shop
+                            </Link>
+                        </template>
                     </div>
                 </div>
             </div>
@@ -124,66 +144,53 @@ const paintingItems = [
         <HomeCarousel title="Painting" id="painting" :items="paintingItems" />
 
         <!-- Featured Crafts Section -->
-        <section class="section py-20 px-6 bg-[#FAF7F2] relative">
+        <section class="section py-20 px-6 bg-canvas relative">
             <h2 class="section-title text-center text-4xl font-extrabold text-[#1A1A1A] mb-12 relative inline-block w-full">
                 Featured Crafts
-                <span class="absolute bottom-[-12px] left-1/2 -translate-x-1/2 w-20 h-1 bg-gradient-to-r from-transparent via-[#CBA35C] to-transparent rounded-full"></span>
+                <span class="absolute bottom-[-12px] left-1/2 -translate-x-1/2 w-20 h-1 bg-accent rounded-full"></span>
             </h2>
 
             <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
                 <!-- Craft 1 -->
-                <div class="craft bg-gradient-to-br from-white to-[#fefefe] rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-2 transition duration-300 border border-[#CBA35C]/10 flex flex-col">
+                <div class="craft bg-paper rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-2 transition duration-300 border border-divider flex flex-col">
                     <div class="thumb p-6 bg-white flex items-center justify-center flex-1">
                         <img src="/images/team/painted-vase.png" alt="Painted Vase" class="max-h-[300px] object-contain">
                     </div>
                     <div class="meta p-5 text-center bg-white border-t border-gray-100">
                         <h3 class="text-xl font-bold text-[#1A1A1A] mb-1">Painted Vase</h3>
                         <p class="text-gray-500 text-sm mb-2">by Sophie Hart</p>
-                        <p class="text-2xl font-bold text-[#CBA35C]">₱4,200</p>
+                        <p class="text-2xl font-bold text-accent">₱4,200</p>
                     </div>
                 </div>
 
                 <!-- Craft 2 -->
-                <div class="craft bg-gradient-to-br from-white to-[#fefefe] rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-2 transition duration-300 border border-[#CBA35C]/10 flex flex-col">
+                <div class="craft bg-paper rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-2 transition duration-300 border border-divider flex flex-col">
                     <div class="thumb p-6 bg-white flex items-center justify-center flex-1">
                         <img src="/images/team/wooden-sculpture.png" alt="Wooden Sculpture" class="max-h-[300px] object-contain">
                     </div>
                     <div class="meta p-5 text-center bg-white border-t border-gray-100">
                         <h3 class="text-xl font-bold text-[#1A1A1A] mb-1">Wooden Sculpture</h3>
                         <p class="text-gray-500 text-sm mb-2">by Mark Lloyd</p>
-                        <p class="text-2xl font-bold text-[#CBA35C]">₱7,000</p>
+                        <p class="text-2xl font-bold text-accent">₱7,000</p>
                     </div>
                 </div>
 
                 <!-- Craft 3 -->
-                <div class="craft bg-gradient-to-br from-white to-[#fefefe] rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-2 transition duration-300 border border-[#CBA35C]/10 flex flex-col">
+                <div class="craft bg-paper rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-2 transition duration-300 border border-divider flex flex-col">
                     <div class="thumb p-6 bg-white flex items-center justify-center flex-1">
                         <img src="/images/team/hand-woven-basket.png" alt="Handwoven Basket" class="max-h-[300px] object-contain">
                     </div>
                     <div class="meta p-5 text-center bg-white border-t border-gray-100">
                         <h3 class="text-xl font-bold text-[#1A1A1A] mb-1">Handwoven Basket</h3>
                         <p class="text-gray-500 text-sm mb-2">by Riley Park</p>
-                        <p class="text-2xl font-bold text-[#CBA35C]">₱4,750</p>
+                        <p class="text-2xl font-bold text-accent">₱4,750</p>
                     </div>
                 </div>
             </div>
         </section>
 
         <!-- About Section (Partial) -->
-        <section class="about max-w-6xl mx-auto my-20 p-8 md:p-12 bg-white rounded-3xl shadow-lg flex flex-col md:flex-row items-center gap-12 border border-gray-100">
-             <div class="md:w-1/2">
-                <img src="/images/team/MainPicture/MarkLloyd.png" alt="About Musea" class="rounded-2xl shadow-xl transform rotate-2 hover:rotate-0 transition duration-500">
-             </div>
-             <div class="md:w-1/2 text-left">
-                <h2 class="text-3xl md:text-4xl font-extrabold text-[#1A1A1A] mb-6">About Musea</h2>
-                <p class="text-gray-600 text-lg leading-relaxed mb-6">
-                    We are a curated marketplace for unique, handcrafted art. From canvas prints to sculptures, our goal is to connect you with independent artists who pour their soul into every piece.
-                </p>
-                <Link :href="route('pages.about')" class="inline-block text-[#CBA35C] font-bold text-lg hover:underline">
-                    Read our story &rarr;
-                </Link>
-             </div>
-        </section>
+
 
     </MainLayout>
 </template>
