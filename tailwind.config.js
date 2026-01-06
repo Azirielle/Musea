@@ -23,6 +23,11 @@ export default {
                     DEFAULT: '#18181B', // Zinc 900
                     hover: '#27272A',
                 },
+                grape: {
+                    DEFAULT: '#7209B7',
+                    hover: '#5a0791',
+                },
+                charcoal: '#1A1C22',
                 divider: '#E4E4E7', // Zinc 200
             },
             fontFamily: {

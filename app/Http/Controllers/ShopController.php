@@ -20,11 +20,26 @@ class ShopController extends Controller
             $query->where('category', $request->input('category'));
         }
 
+        if ($request->has('price_range')) {
+            $range = $request->input('price_range');
+            switch ($range) {
+                case '0-5000':
+                    $query->where('price', '<', 5000);
+                    break;
+                case '5000-20000':
+                    $query->whereBetween('price', [5000, 20000]);
+                    break;
+                case '20000-plus':
+                    $query->where('price', '>', 20000);
+                    break;
+            }
+        }
+
         $artworks = $query->paginate(12)->withQueryString();
 
         return \Inertia\Inertia::render('Shop/Index', [
             'artworks' => $artworks,
-            'filters' => $request->only(['search', 'category'])
+            'filters' => $request->only(['search', 'category', 'price_range'])
         ]);
     }
 

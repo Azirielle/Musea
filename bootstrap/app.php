@@ -19,7 +19,12 @@ return Application::configure(basePath: dirname(__DIR__))
                     'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
                 ]);
 
-        //
+        $middleware->redirectGuestsTo(function (\Illuminate\Http\Request $request) {
+            if ($request->is('admin/*') || $request->getPort() == 8001) {
+                return route('admin.login');
+            }
+            return route('login');
+        });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

@@ -15,6 +15,12 @@ class Artwork extends Model
         'stock',
         'status',
         'image_url',
+        'is_staff_pick',
+    ];
+
+    protected $casts = [
+        'is_staff_pick' => 'boolean',
+        'price' => 'decimal:2',
     ];
 
     public function artist()

@@ -28,6 +28,7 @@ class User extends Authenticatable
         'is_onboarded',
         'status',
         'balance',
+        'is_featured',
     ];
 
     /**
@@ -51,6 +52,7 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'is_onboarded' => 'boolean',
+            'is_featured' => 'boolean',
         ];
     }
 

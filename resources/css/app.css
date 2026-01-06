@@ -5,3 +5,17 @@
 html {
     scrollbar-gutter: stable;
 }
+
+body {
+    background: linear-gradient(135deg, #E0EAFC 0%, #CFDEF3 100%) fixed;
+    color: #1A1C22;
+    min-height: 100vh;
+}
+
+.glass {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.07);
+}

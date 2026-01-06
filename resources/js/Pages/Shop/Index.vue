@@ -65,11 +65,21 @@ const { addToCart } = useCart();
                         <Link :href="route('shop.show', artwork.id)" class="block bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition duration-300">
                             <div class="aspect-square bg-gray-200 overflow-hidden relative">
                                 <img 
-                                    :src="artwork.image_url || '/images/placeholder-art.jpg'" 
+                                    :src="artwork.image_url || 'https://placehold.co/800x600/f3f4f6/1a1a1a?text=Musea+Artwork'" 
                                     :alt="artwork.title" 
-                                    class="w-full h-full object-cover transition duration-500 group-hover:scale-105"
+                                    loading="lazy"
+                                    decoding="async"
+                                    class="w-full h-full object-cover transition duration-500 group-hover:scale-105 will-change-transform"
+                                    :class="{'grayscale opacity-60': artwork.stock <= 0}"
+                                    @error="$event.target.src = 'https://placehold.co/800x600/f3f4f6/1a1a1a?text=Musea+Artwork'"
                                 >
                                 
+                                <div v-if="artwork.stock <= 0" class="absolute inset-0 flex items-center justify-center bg-black/5">
+                                    <span class="bg-white/90 backdrop-blur px-6 py-2 rounded-full text-sm font-black tracking-widest text-[#1A1A1A] shadow-xl border border-zinc-200 uppercase">
+                                        Sold Out
+                                    </span>
+                                </div>
+
                                 <div v-if="$page.props.auth.user" class="absolute bottom-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-sm font-bold text-[#1A1A1A]">
                                     ₱{{ artwork.price }}
                                 </div>
@@ -90,6 +100,7 @@ const { addToCart } = useCart();
                         
                         <!-- Add to Cart (Overlay on hover for desktop, or visible) -->
                         <button 
+                            v-if="artwork.stock > 0"
                             @click.prevent="addToCart(artwork)"
                             class="absolute top-4 right-4 bg-accent text-white p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-black"
                             title="Add to Cart"

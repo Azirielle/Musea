@@ -21,6 +21,11 @@ class EnsureAdminPort
             if ($request->is('/')) {
                 return redirect()->route('admin.dashboard');
             }
+
+            // Redirect standard user auth routes to admin login to prevent confusion
+            if ($request->is('login') || $request->is('register') || $request->is('forgot-password')) {
+                return redirect()->route('admin.login');
+            }
         }
 
         return $next($request);

@@ -1,200 +1,72 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
 import MainLayout from '@/Layouts/MainLayout.vue';
-import HomeCarousel from '@/Components/HomeCarousel.vue';
+import HeroSection from '@/Components/Home/HeroSection.vue';
+import MasonryGrid from '@/Components/MasonryGrid.vue';
+import DiscoverySection from '@/Components/Home/DiscoverySection.vue';
+import CommunitySection from '@/Components/Home/CommunitySection.vue';
+import TrustBar from '@/Components/Home/TrustBar.vue';
 
-import SuccessModal from '@/Components/SuccessModal.vue';
-import { usePage } from '@inertiajs/vue3';
-import { ref, watch, onMounted } from 'vue';
-
-defineProps({
-    canLogin: {
-        type: Boolean,
-    },
-    canRegister: {
-        type: Boolean,
-    },
+const props = defineProps({
+    canLogin: Boolean,
+    canRegister: Boolean,
     recommendedArtworks: {
         type: Array,
-        default: () => [],
+        default: () => []
+    },
+    featuredArtists: {
+        type: Array,
+        default: () => []
+    },
+    staffPicks: {
+        type: Array,
+        default: () => []
+    },
+    categories: {
+        type: Array,
+        default: () => []
     },
 });
-
-const page = usePage();
-const showSuccessModal = ref(false);
-const successMessage = ref('');
-
-onMounted(() => {
-    // Check if there's a flash message on mount (e.g. after redirect)
-    if (page.props.flash.success) {
-        successMessage.value = page.props.flash.success;
-        showSuccessModal.value = true;
-    }
-});
-
-// Watch for changes in flash messages (optional if we only care about initial load after redirect, but good for SPA nav)
-watch(() => page.props.flash.success, (newMessage) => {
-    if (newMessage) {
-        successMessage.value = newMessage;
-        showSuccessModal.value = true;
-    }
-});
-
-const closeSuccessModal = () => {
-    showSuccessModal.value = false;
-    // Clear the flash message so it doesn't reappear on reload/nav if not desired? 
-    // Usually inertia handles clearing on next request, but local state toggle is enough.
-};
-
-const canvasItems = [
-    { title: 'Red Buds on Blue Floral', artist: 'Ken Tan', price: '4,200', image: '/images/team/Canvas/canvas1.png' },
-    { title: 'Blue Diagonals with Black Drips', artist: 'Maya Ortiz', price: '6,000', image: '/images/team/Canvas/canvas2.png' },
-    { title: 'Dark Rainbow Swirl Abstract', artist: 'Liam Becker', price: '3,000', image: '/images/team/Canvas/canvas3.png' },
-    { title: 'Blue Brushstroke Texture', artist: 'Naomi Fields', price: '7,000', image: '/images/team/Canvas/canvas4.png' },
-    { title: 'Tree Branches with Colorful Leaves', artist: 'Aria Chen', price: '4,750', image: '/images/team/Canvas/canvas5.png' },
-];
-
-const drawingItems = [
-    { title: 'Bird Studies on Kraft Paper', artist: 'Avery Lane', price: '2,000', image: '/images/team/Drawings/birmingham-museums-trust-KfRUve5NtO8-unsplash.png' },
-    { title: 'Woman Resting on Bed, Ink', artist: 'Quinn Harper', price: '3,000', image: '/images/team/Drawings/birmingham-museums-trust-x2g6ZnLO0_E-unsplash.png' },
-    { title: 'Vase of Mixed Flowers on Black', artist: 'Noah Voss', price: '3,750', image: '/images/team/Drawings/europeana-5TK1F5VfdIk-unsplash.png' },
-    { title: 'Botanical Bouquet with Lilies', artist: 'Iris Bennett', price: '2,750', image: '/images/team/Drawings/europeana-SMWPYQhVRuY-unsplash.png' },
-    { title: 'Crowd of Cartoon Faces', artist: 'Riley Park', price: '4,000', image: '/images/team/Drawings/leeann-cline-I2RnOO8ojQ4-unsplash.png' },
-];
-
-const paintingItems = [
-    { title: 'Baroque Ceiling with Angels', artist: 'Lucia Moretti', price: '1,500', image: '/images/team/Paintings/adrianna-geo-1rBg5YSi00c-unsplash.jpg' },
-    { title: 'Castle on Rocky Cliff', artist: 'Graham Wells', price: '2,250', image: '/images/team/Paintings/birmingham-museums-trust-sJr8LDyEf7k-unsplash.jpg' },
-    { title: 'Woodland Path with Trees', artist: 'Clara Benton', price: '1,250', image: '/images/team/Paintings/birmingham-museums-trust-zWE5pOLWkio-unsplash.jpg' },
-    { title: 'Girl in White Picking Flowers', artist: 'Sophie Hart', price: '3,500', image: '/images/team/Paintings/europeana-VsnDYMWollM-unsplash.jpg' },
-    { title: 'Still Life with Flowers', artist: 'Jonas Reed', price: '2,500', image: '/images/team/Paintings/europeana-YIfFVwDcgu8-unsplash.jpg' },
-];
 </script>
 
 <template>
     <Head title="Home" />
-    <SuccessModal :show="showSuccessModal" :message="successMessage" @close="closeSuccessModal" />
-    <MainLayout :withHeaderPadding="false">
-        <!-- Hero Section -->
-        <section class="hero bg-gradient-to-br from-[#faf0e1] to-white relative py-16 md:py-24 overflow-hidden">
-             <!-- Background Texture/Gradient Overlay -->
-            <div class="absolute inset-0 pointer-events-none opacity-50 bg-[radial-gradient(circle_at_80%_20%,_rgba(203,163,92,0.15)_0%,_transparent_50%)]"></div>
-            
-            <div class="max-w-7xl mx-auto px-6 grid grid-cols-1 md:grid-cols-2 gap-12 items-center relative z-10">
-                <div class="hero-img">
-                    <img 
-                        src="/images/team/MainPicture/MarkLloyd.png" 
-                        alt="Start of a New Day" 
-                        class="w-full rounded-2xl shadow-2xl border-4 border-white/80 transform hover:scale-[1.02] transition duration-500"
-                    >
+    
+    <!-- Use withHeaderPadding="false" so the Hero image bleeds to the top, 
+         assuming the header is transparent or overlays nicely. 
+         If standard behavior is preferred, remove the prop. -->
+    <MainLayout :with-header-padding="false">
+        
+        <HeroSection />
+
+        <div class="py-20 px-6" id="feed">
+            <div class="max-w-7xl mx-auto glass p-8 md:p-12 rounded-[2rem]">
+                <div class="text-center mb-16">
+                    <span v-if="$page.props.auth.user" class="text-grape text-xs font-bold tracking-[0.2em] uppercase mb-4 block">Curated for {{ $page.props.auth.user.first_name }}</span>
+                    <span v-else class="text-grape text-xs font-bold tracking-[0.2em] uppercase mb-4 block">Trending Now</span>
+                    
+                    <h2 class="text-4xl md:text-6xl font-black text-charcoal">Your Daily Feed</h2>
                 </div>
                 
-                <div class="hero-details text-center md:text-right">
-                    <h1 class="text-4xl md:text-6xl font-extrabold text-[#1A1A1A] mb-4 tracking-tight drop-shadow-sm">Canvas Print — 'Sunrise'</h1>
-                    <p class="text-lg text-gray-500 font-semibold uppercase tracking-wide mb-4">by Mark Lloyd</p>
-                    <p class="text-lg text-gray-700 leading-relaxed max-w-lg ml-auto mb-6">
-                        A study of morning light and texture — created to explore the subtle transition of color at dawn and captured on archival canvas to retain vibrancy.
-                    </p>
-                    <span class="block text-3xl font-extrabold text-accent mb-6 drop-shadow-sm">₱10,499.00</span>
-                    
-                    <div class="flex gap-4 justify-center md:justify-end">
-                        <!-- Guest: Login / Register -->
-                        <template v-if="!$page.props.auth.user">
-                            <Link :href="route('login')" class="bg-transparent border-2 border-accent text-accent px-6 py-3 rounded-xl font-bold hover:bg-zinc-50 transition">
-                                Log In
-                            </Link>
-                            <Link :href="route('register')" class="bg-accent text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-black transition">
-                                Get Started
-                            </Link>
-                        </template>
+                <MasonryGrid :artworks="recommendedArtworks" />
+                
+                <div v-if="recommendedArtworks.length === 0" class="text-center py-12">
+                    <p class="text-charcoal/60 mb-8 font-medium">No artworks found. Start following artists to see their latest work!</p>
+                    <Link href="/shop" class="px-8 py-3 bg-grape text-white rounded-full font-bold shadow-lg shadow-grape/20 hover:scale-105 transition-transform">Browse All</Link>
+                </div>
 
-                        <!-- User: Not Onboarded -->
-                        <template v-else-if="!$page.props.auth.user.is_onboarded">
-                            <Link :href="route('onboarding.index')" class="bg-accent text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-black transition animate-pulse">
-                                Personalize Feed
-                            </Link>
-                        </template>
-
-                        <!-- User: Onboarded -->
-                        <template v-else>
-                            <Link :href="route('shop.show', 1)" class="bg-transparent border-2 border-accent text-accent px-6 py-3 rounded-xl font-bold hover:bg-zinc-50 transition">
-                                View Details
-                            </Link>
-                            <Link :href="route('shop.index')" class="bg-accent text-white px-8 py-3 rounded-xl font-bold shadow-lg hover:bg-black transition">
-                                Browse Shop
-                            </Link>
-                        </template>
-                    </div>
+                <div v-if="!$page.props.auth.user" class="mt-16 text-center">
+                    <p class="text-charcoal/50 mb-6 font-medium">Join Musea to get a personalized feed based on your taste.</p>
+                    <Link href="/register" class="px-10 py-4 glass border-white/40 text-charcoal rounded-full font-bold hover:bg-white/40 transition-all inline-block hover:scale-105">Create Account</Link>
                 </div>
             </div>
-        </section>
+        </div>
 
-        <!-- Recommended Section -->
-        <HomeCarousel 
-            v-if="recommendedArtworks && recommendedArtworks.length > 0" 
-            title="Recommended for You" 
-            id="recommended" 
-            :items="recommendedArtworks" 
-            class="mb-12"
-        />
-
-        <!-- Category Carousels -->
-        <HomeCarousel title="Canvas" id="canvas" :items="canvasItems" />
-        <HomeCarousel title="Drawings" id="drawings" :items="drawingItems" />
-        <HomeCarousel title="Painting" id="painting" :items="paintingItems" />
-
-        <!-- Featured Crafts Section -->
-        <section class="section py-20 px-6 bg-canvas relative">
-            <h2 class="section-title text-center text-4xl font-extrabold text-[#1A1A1A] mb-12 relative inline-block w-full">
-                Featured Crafts
-                <span class="absolute bottom-[-12px] left-1/2 -translate-x-1/2 w-20 h-1 bg-accent rounded-full"></span>
-            </h2>
-
-            <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
-                <!-- Craft 1 -->
-                <div class="craft bg-paper rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-2 transition duration-300 border border-divider flex flex-col">
-                    <div class="thumb p-6 bg-white flex items-center justify-center flex-1">
-                        <img src="/images/team/painted-vase.png" alt="Painted Vase" class="max-h-[300px] object-contain">
-                    </div>
-                    <div class="meta p-5 text-center bg-white border-t border-gray-100">
-                        <h3 class="text-xl font-bold text-[#1A1A1A] mb-1">Painted Vase</h3>
-                        <p class="text-gray-500 text-sm mb-2">by Sophie Hart</p>
-                        <p class="text-2xl font-bold text-accent">₱4,200</p>
-                    </div>
-                </div>
-
-                <!-- Craft 2 -->
-                <div class="craft bg-paper rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-2 transition duration-300 border border-divider flex flex-col">
-                    <div class="thumb p-6 bg-white flex items-center justify-center flex-1">
-                        <img src="/images/team/wooden-sculpture.png" alt="Wooden Sculpture" class="max-h-[300px] object-contain">
-                    </div>
-                    <div class="meta p-5 text-center bg-white border-t border-gray-100">
-                        <h3 class="text-xl font-bold text-[#1A1A1A] mb-1">Wooden Sculpture</h3>
-                        <p class="text-gray-500 text-sm mb-2">by Mark Lloyd</p>
-                        <p class="text-2xl font-bold text-accent">₱7,000</p>
-                    </div>
-                </div>
-
-                <!-- Craft 3 -->
-                <div class="craft bg-paper rounded-2xl overflow-hidden shadow-sm hover:shadow-2xl hover:-translate-y-2 transition duration-300 border border-divider flex flex-col">
-                    <div class="thumb p-6 bg-white flex items-center justify-center flex-1">
-                        <img src="/images/team/hand-woven-basket.png" alt="Handwoven Basket" class="max-h-[300px] object-contain">
-                    </div>
-                    <div class="meta p-5 text-center bg-white border-t border-gray-100">
-                        <h3 class="text-xl font-bold text-[#1A1A1A] mb-1">Handwoven Basket</h3>
-                        <p class="text-gray-500 text-sm mb-2">by Riley Park</p>
-                        <p class="text-2xl font-bold text-accent">₱4,750</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- About Section (Partial) -->
-
-
+        <DiscoverySection :categories="categories" />
+        
+        <CommunitySection :artists="featuredArtists" :staff-picks="staffPicks" />
+        
+        <TrustBar />
+        
     </MainLayout>
 </template>
-
-<style scoped>
-/* Scoped styles can handle specific legacy tweaks if needed, but Tailwind classes above handle most. */
-</style>

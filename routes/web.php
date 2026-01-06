@@ -16,42 +16,113 @@ use App\Http\Controllers\Admin\TransactionController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SettingController;
 
+use Illuminate\Support\Str;
+
 Route::get('/', function () {
     $recommendedArtworks = [];
     if (auth()->check() && auth()->user()->is_onboarded) {
         $interests = auth()->user()->interests->pluck('name');
         if ($interests->isNotEmpty()) {
-            // Assuming Artwork model exists and has 'category' field matching Interest name
-            // If Artwork model is not imported, we use full path or add import.
-            // Let's use full path for safety in closure: \App\Models\Artwork
-            // Fetch recommended artworks based on user interests
-            // Note: 'category' in Artwork is a string. 'name' in Interest is a string.
-            // We ensure matching is case-insensitive if possible, but for simplicity we rely on exact or approximate matching.
-            $recommendedArtworks = \App\Models\Artwork::whereIn('category', $interests)
-                ->orWhere(function ($query) use ($interests) {
+            $recommendedArtworks = \App\Models\Artwork::where('stock', '>', 0)
+                ->where(function ($query) use ($interests) {
                     foreach ($interests as $interest) {
                         $query->orWhere('category', 'LIKE', "%{$interest}%");
                     }
                 })
-                ->inRandomOrder()
-                ->take(8)
-                ->get()
-                ->map(function ($artwork) {
-                    return [
-                        'id' => $artwork->id,
-                        'title' => $artwork->title,
-                        'artist' => $artwork->artist ? $artwork->artist->first_name . ' ' . $artwork->artist->last_name : 'Musea Artist',
-                        'price' => number_format($artwork->price, 0),
-                        'image' => $artwork->image_url ?? '/images/placeholder-art.jpg',
-                    ];
-                });
+                ->get();
+
+            // Value Filter: Separate High & Low value to prevent crowding
+            $highValue = $recommendedArtworks->where('price', '>=', 10000);
+            $lowValue = $recommendedArtworks->where('price', '<', 10000);
+
+            // Interleave logic: take 1 High, 2 Low, etc. to mix aesthetic
+            $sorted = collect([]);
+            while ($highValue->isNotEmpty() || $lowValue->isNotEmpty()) {
+                if ($highValue->isNotEmpty())
+                    $sorted->push($highValue->shift());
+                if ($lowValue->isNotEmpty())
+                    $sorted->push($lowValue->shift());
+                if ($lowValue->isNotEmpty())
+                    $sorted->push($lowValue->shift());
+            }
+
+            $recommendedArtworks = $sorted->take(12)->map(function ($artwork) {
+                return [
+                    'id' => $artwork->id,
+                    'title' => $artwork->title,
+                    'artist' => $artwork->artist ? $artwork->artist->first_name . ' ' . $artwork->artist->last_name : 'Musea Artist',
+                    'price' => number_format((float) $artwork->price, 0),
+                    'image' => $artwork->image_url ?? 'https://placehold.co/800x600/f3f4f6/1a1a1a?text=Musea+Artwork',
+                    'category' => $artwork->category,
+                    'stock' => $artwork->stock
+                ];
+            })->values();
         }
     }
+
+    // Fetch Featured Artists (Meet the Community)
+    $featuredArtists = \App\Models\User::where('is_featured', true)
+        ->take(8)
+        ->with('artworks')
+        ->get()
+        ->map(function ($artist) {
+            $bestSeller = $artist->artworks->sortByDesc('price')->first();
+            return [
+                'id' => $artist->id,
+                'name' => $artist->first_name, // Using first name to match design
+                'location' => $artist->address ? Str::words($artist->address, 2, '') : 'Musea',
+                'image' => $artist->imageUrl(),
+                'bestSeller' => $bestSeller ? [
+                    'title' => $bestSeller->title,
+                    'image' => $bestSeller->image_url,
+                ] : null,
+            ];
+        });
+
+    // Fetch Staff Picks
+    $staffPicks = \App\Models\Artwork::where('is_staff_pick', true)
+        ->where('stock', '>', 0)
+        ->with('artist')
+        ->take(2)
+        ->get()
+        ->map(function ($artwork) {
+            return [
+                'id' => $artwork->id,
+                'title' => $artwork->title,
+                'artist' => $artwork->artist ? $artwork->artist->first_name : 'Musea Artist',
+                'image' => $artwork->image_url,
+                'price' => number_format((float) $artwork->price, 0),
+                'stock' => $artwork->stock,
+            ];
+        });
+
+    // Fetch Categories (Shop by Medium)
+    $categories = \App\Models\Artwork::select('category', \Illuminate\Support\Facades\DB::raw('count(*) as count'))
+        ->where('status', 'active')
+        ->groupBy('category')
+        ->get()
+        ->map(function ($item) {
+            // Fallback images based on category or generic
+            $bgImages = [
+                'Painting' => 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?auto=format&fit=crop&q=80&w=400',
+                'Sculpture' => 'https://images.unsplash.com/photo-1554188248-986adbb73be4?auto=format&fit=crop&q=80&w=400',
+                'Digital' => 'https://images.unsplash.com/photo-1547891654-e66ed7ebb968?auto=format&fit=crop&q=80&w=400',
+                'Photography' => 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&q=80&w=400',
+            ];
+            return [
+                'name' => $item->category,
+                'count' => $item->count,
+                'image' => $bgImages[$item->category] ?? 'https://placehold.co/400x300/333/FFF?text=' . $item->category,
+            ];
+        });
 
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
         'recommendedArtworks' => $recommendedArtworks,
+        'featuredArtists' => $featuredArtists,
+        'staffPicks' => $staffPicks,
+        'categories' => $categories,
     ]);
 })->name('home');
 
@@ -64,6 +135,10 @@ Route::post('/contact', [PageController::class, 'submitContact'])->name('contact
 Route::get('/cart', function () {
     return Inertia::render('Cart');
 })->name('cart.index');
+
+Route::get('/journal', [\App\Http\Controllers\JournalController::class, 'index'])->name('journal.index');
+Route::get('/journal/{post}', [\App\Http\Controllers\JournalController::class, 'show'])->name('journal.show');
+
 
 // Dashboard route removed as per request
 // Route::get('/dashboard', function () {
@@ -106,7 +181,14 @@ Route::middleware('auth')->group(function () {
     })->name('notifications.read');
 });
 
-Route::middleware(['auth', \App\Http\Middleware\EnsureAdminPort::class])->prefix('admin')->name('admin.')->group(function () {
+// Admin Authentication Routes
+Route::middleware('guest:admin')->prefix('admin')->group(function () {
+    Route::get('login', [\App\Http\Controllers\Admin\Auth\AdminAuthController::class, 'create'])->name('admin.login');
+    Route::post('login', [\App\Http\Controllers\Admin\Auth\AdminAuthController::class, 'store']);
+});
+
+Route::middleware('auth:admin')->prefix('admin')->name('admin.')->group(function () {
+    Route::post('logout', [\App\Http\Controllers\Admin\Auth\AdminAuthController::class, 'destroy'])->name('logout');
     Route::get('/', [AdminController::class, 'index'])->name('dashboard');
 
     // User Management
