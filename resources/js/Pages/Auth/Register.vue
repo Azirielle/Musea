@@ -75,24 +75,27 @@ const submit = () => {
             </div>
 
             <div class="mt-4">
-                <InputLabel for="address" value="Address (Optional)" />
+                <InputLabel for="address" value="Address" />
                 <TextInput
                     id="address"
                     type="text"
                     class="mt-1 block w-full border-divider focus:border-accent focus:ring-accent rounded-lg"
                     v-model="form.address"
+                    required
                     autocomplete="street-address"
                 />
                 <InputError class="mt-2" :message="form.errors.address" />
             </div>
 
-             <div class="mt-4">
-                <InputLabel for="contact_number" value="Phone (Optional)" />
+            <div class="mt-4">
+                <InputLabel for="contact_number" value="Phone (+639xxxxxxxxx)" />
                 <TextInput
                     id="contact_number"
                     type="text"
                     class="mt-1 block w-full border-divider focus:border-accent focus:ring-accent rounded-lg"
                     v-model="form.contact_number"
+                    required
+                    placeholder="+639xxxxxxxxx"
                     autocomplete="tel"
                 />
                 <InputError class="mt-2" :message="form.errors.contact_number" />

@@ -35,6 +35,8 @@ class RegisteredUserController extends Controller
             'last_name' => 'required|string|max:100',
             'email' => 'required|string|lowercase|email|max:255|unique:' . User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'address' => 'required|string|max:255',
+            'contact_number' => ['required', 'string', 'regex:/^\+639\d{9}$/'], // strict +639xxxxxxxxx format
         ]);
 
         $user = User::create([
