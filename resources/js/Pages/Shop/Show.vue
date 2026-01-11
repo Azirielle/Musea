@@ -1,6 +1,7 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
 import MainLayout from '@/Layouts/MainLayout.vue';
+import UserBadge from '@/Components/UserBadge.vue';
 
 const props = defineProps({
     artwork: Object,
@@ -80,12 +81,31 @@ const handleReviewImage = (e) => {
 
 import { useCart } from '@/composables/useCart';
 const { addToCart } = useCart();
+
+// Back navigation logic
+const urlParams = new URLSearchParams(window.location.search);
+const fromSource = urlParams.get('from');
+
+const backRoute = fromSource === 'messages' ? 'messages.index' : 'shop.index';
+const backLabel = fromSource === 'messages' ? 'Back to Inbox' : 'Back to Collective';
 </script>
 
 <template>
     <Head :title="artwork.title" />
     <MainLayout>
-        <div class="pt-24 pb-12 px-6 bg-canvas min-h-screen flex items-center">
+        <div class="pt-24 pb-12 px-6 bg-canvas min-h-screen">
+            <div class="max-w-6xl mx-auto mb-6">
+                <Link 
+                    :href="route(backRoute)" 
+                    class="inline-flex items-center gap-2 text-sm font-bold text-ink-light hover:text-accent transition-colors group"
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 transform group-hover:-translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7" />
+                    </svg>
+                    {{ backLabel }}
+                </Link>
+            </div>
+            
             <div class="max-w-6xl mx-auto w-full bg-paper rounded-2xl shadow-sm border border-divider overflow-hidden">
                 <div class="grid grid-cols-1 md:grid-cols-2">
                     <div class="bg-zinc-50 relative overflow-hidden group">
@@ -119,21 +139,33 @@ const { addToCart } = useCart();
                         <div class="relative mb-8">
                             <div :class="{ 'blur-sm opacity-50 select-none': !$page.props.auth.user }">
                                 <div class="flex items-center gap-4 mb-8 pb-8 border-b border-gray-100">
-                                     <div class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center text-lg font-bold text-gray-500">
-                                        {{ artwork.artist.first_name[0] }}
-                                     </div>
-                                     <div>
+                                    <Link :href="route('artists.show', artwork.artist_id)" class="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center text-lg font-bold text-gray-500 overflow-hidden">
+                                        <img v-if="artwork.artist.avatar" :src="artwork.artist.avatar" class="w-full h-full object-cover" />
+                                        <span v-else>{{ artwork.artist.first_name[0] }}</span>
+                                    </Link>
+                                    <div>
                                         <p class="text-sm text-gray-500">Created by</p>
-                                        <p class="font-bold text-[#1A1A1A]">{{ artwork.artist.first_name }} {{ artwork.artist.last_name }}</p>
-                                     </div>
+                                        <Link :href="route('artists.show', artwork.artist_id)" class="font-bold text-[#1A1A1A] hover:text-accent transition-colors flex items-center gap-1">
+                                            {{ artwork.artist.first_name }} {{ artwork.artist.last_name }}
+                                            <UserBadge :role="artwork.artist.role" :is-verified="!!artwork.artist.is_verified" />
+                                        </Link>
+                                    </div>
                                      <button 
                                         v-if="$page.props.auth.user && $page.props.auth.user.id !== artwork.artist.id"
                                         @click="toggleFollow" 
-                                        class="ml-auto px-4 py-1.5 rounded-full text-xs font-bold border transition-colors"
+                                        class="ml-auto px-4 py-1.5 rounded-full text-xs font-bold border transition-colors mr-2"
                                         :class="following ? 'bg-gray-100 text-gray-800 border-gray-300' : 'bg-black text-white border-black hover:bg-gray-800'"
                                     >
                                         {{ following ? 'Following' : 'Follow' }}
                                     </button>
+                                    <Link 
+                                        v-if="$page.props.auth.user && $page.props.auth.user.id !== artwork.artist.id"
+                                        :href="route('messages.start', artwork.id)"
+                                        class="px-4 py-1.5 rounded-full text-xs font-bold border border-divider hover:bg-canvas transition-colors flex items-center gap-1.5"
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                        Message
+                                    </Link>
                                 </div>
 
                                 <p class="text-gray-600 leading-relaxed text-lg">
@@ -210,7 +242,10 @@ const { addToCart } = useCart();
                         </div>
                         <div>
                             <div class="flex items-center gap-2 mb-1">
-                                <span class="font-bold">{{ review.user.first_name }}</span>
+                                <span class="font-bold flex items-center gap-1">
+                                    {{ review.user.first_name }}
+                                    <UserBadge :role="review.user.role" :is-verified="!!review.user.is_verified" />
+                                </span>
                                 <div class="text-yellow-400 text-sm">
                                     <span v-for="n in 5" :key="n">{{ n <= review.rating ? '★' : '☆' }}</span>
                                 </div>

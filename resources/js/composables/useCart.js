@@ -13,10 +13,26 @@ export function useCart() {
     const addToCart = (artwork) => {
         const existing = cart.items.find(item => item.id === artwork.id);
         if (existing) {
-            existing.quantity++;
-        } else {
-            cart.items.push({ ...artwork, quantity: 1 });
+            Swal.fire({
+                icon: 'info',
+                title: 'Artwork already in cart',
+                text: 'This unique artwork is already in your cart (limit 1 per customer).',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000
+            });
+            return;
         }
+
+        // Normalize image URL (handle 'image' vs 'image_url')
+        const imageUrl = artwork.image_url || artwork.image || '/images/placeholder-art.jpg';
+
+        cart.items.push({
+            ...artwork,
+            image_url: imageUrl,
+            quantity: 1
+        });
 
         const Toast = Swal.mixin({
             toast: true,

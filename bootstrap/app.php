@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\HandleInertiaRequests::class,
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
             \App\Http\Middleware\EnsureAdminPort::class,
+            \App\Http\Middleware\CheckMaintenanceMode::class,
         ])->alias([
                     'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
                 ]);

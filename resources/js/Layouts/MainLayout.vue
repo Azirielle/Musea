@@ -1,8 +1,9 @@
 <script setup>
 import { ref, onMounted, onUnmounted, computed } from 'vue';
-import { Link, usePage } from '@inertiajs/vue3';
+import { Link, usePage, router } from '@inertiajs/vue3';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import Footer from '@/Components/Footer.vue';
+import SplashScreen from '@/Components/SplashScreen.vue';
 
 const props = defineProps({
     withHeaderPadding: {
@@ -17,32 +18,114 @@ import { useCart } from '@/composables/useCart';
 const { cart } = useCart();
 const cartCount = computed(() => cart.items.reduce((acc, item) => acc + item.quantity, 0));
 const isScrolled = ref(false);
-const isScrolledUp = ref(true);
-const lastScrollY = ref(0);
 const isSearchActive = ref(false);
+const searchQuery = ref('');
 const isProfileOpen = ref(false);
 const searchInput = ref(null);
+const recentSearches = ref([]);
+
+// Load recent searches from local storage
+onMounted(() => {
+    const saved = localStorage.getItem('musea_recent_searches');
+    if (saved) {
+        recentSearches.value = JSON.parse(saved);
+    }
+    window.addEventListener('keydown', handleEsc);
+});
+
+onUnmounted(() => {
+    window.removeEventListener('keydown', handleEsc);
+});
+
+const handleEsc = (e) => {
+    if (e.key === 'Escape' && isSearchActive.value) {
+        dismissSearch();
+    }
+};
+
+const saveSearch = (query) => {
+    if (!query || !query.trim()) return;
+    const trimmed = query.trim();
+    let updated = [trimmed, ...recentSearches.value.filter(s => s !== trimmed)];
+    updated = updated.slice(0, 5); // Keep last 5
+    recentSearches.value = updated;
+    localStorage.setItem('musea_recent_searches', JSON.stringify(updated));
+};
+
+const dismissSearch = () => {
+    isSearchActive.value = false;
+    showSuggestions.value = false;
+    searchQuery.value = '';
+};
 
 const handleScroll = () => {
-    const currentScrollY = window.scrollY;
-    isScrolled.value = currentScrollY > 50;
-    isScrolledUp.value = currentScrollY < lastScrollY.value || currentScrollY < 50;
-    lastScrollY.value = currentScrollY;
+    isScrolled.value = window.scrollY > 50;
+};
+
+const handleSearch = (customQuery = null) => {
+    const finalQuery = customQuery || searchQuery.value;
+    if (finalQuery && finalQuery.trim()) {
+        saveSearch(finalQuery);
+        router.visit(route('shop.index', { query: finalQuery.trim() }));
+        dismissSearch();
+    }
+};
+
+const suggestions = ref({ artworks: [], artists: [] });
+const showSuggestions = ref(false);
+const isLoading = ref(false);
+let searchTimeout;
+
+// Custom Debounce Implementation
+const handleInput = () => {
+    showSuggestions.value = true;
+    isLoading.value = true;
+    clearTimeout(searchTimeout);
+    
+    if (!searchQuery.value.trim()) {
+        suggestions.value = { artworks: [], artists: [] };
+        isLoading.value = false;
+        return;
+    }
+
+    searchTimeout = setTimeout(async () => {
+        try {
+            const res = await axios.get(route('shop.suggestions', { query: searchQuery.value }));
+            suggestions.value = res.data;
+        } catch (error) {
+            console.error(error);
+        } finally {
+            isLoading.value = false;
+        }
+    }, 300);
+};
+
+// Simple Click Outside Directive
+const vClickOutside = {
+  mounted(el, binding) {
+    el.clickOutsideEvent = function(event) {
+      if (!(el === event.target || el.contains(event.target))) {
+        binding.value(event, el);
+      }
+    };
+    document.body.addEventListener('click', el.clickOutsideEvent);
+  },
+  unmounted(el) {
+    document.body.removeEventListener('click', el.clickOutsideEvent);
+  },
 };
 
 const toggleSearch = () => {
     isSearchActive.value = !isSearchActive.value;
     if (isSearchActive.value) {
         setTimeout(() => searchInput.value?.focus(), 100);
+    } else {
+        showSuggestions.value = false;
     }
 };
 
 const toggleProfile = () => {
     isProfileOpen.value = !isProfileOpen.value;
-};
-
-const closeSearch = (e) => {
-    // handled by click outside directive or simple logic if needed
 };
 
 onMounted(() => {
@@ -55,119 +138,276 @@ onUnmounted(() => {
 </script>
 
 <template>
-    <div class="min-h-screen">
-        <!-- Compact Glass Top Bar -->
-        <header :class="{ 'scrolled shadow-lg': isScrolled }" class="topbar fixed top-0 left-0 w-full z-[100] glass border-b border-white/20 transition-all duration-300">
-            <div class="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
-                <Link href="/" class="brand-small" aria-label="Home">
-                    <img src="/images/logo/Musea.png" alt="Musea logo" class="h-10 w-auto opacity-90 hover:opacity-100 transition-opacity" />
+    <div class="min-h-screen bg-canvas">
+        <SplashScreen />
+        <header 
+            class="fixed top-0 left-0 w-full z-[100] transition-all duration-500"
+            :class="[
+                isScrolled ? 'bg-white/80 backdrop-blur-xl border-b border-divider shadow-sm py-2' : 'bg-transparent py-4'
+            ]"
+        >
+            <div class="max-w-[1400px] mx-auto px-6 md:px-12 flex items-center justify-between">
+                <!-- Brand / Logo -->
+                <Link href="/" class="relative z-10 flex items-center group">
+                    <img 
+                        src="/images/logo/Musea.png" 
+                        alt="Musea" 
+                        class="h-10 md:h-12 w-auto transition-transform duration-500 group-hover:scale-105"
+                        :class="{ 'invert brightness-0': !isScrolled && !props.withHeaderPadding }"
+                    />
                 </Link>
 
-                <div class="header-icons flex items-center gap-6">
-                    <!-- Search remains at top -->
-                    <div class="search-container relative">
-                        <div class="search-input-wrapper flex items-center" :class="{ active: isSearchActive }">
-                            <input 
-                                type="text" 
-                                placeholder="Search artworks..." 
-                                ref="searchInput"
-                                class="bg-white/40 border-white/30 text-charcoal placeholder-charcoal/50 rounded-full py-1.5 px-4 text-sm focus:bg-white/60 focus:ring-grape focus:border-grape transition-all w-full"
-                                @focus="isSearchActive = true"
-                                @blur="setTimeout(() => isSearchActive = false, 200)"
-                            />
-                        </div>
-                        <button @click="toggleSearch" class="p-2 transition-colors hover:text-grape" :class="{ 'text-grape': isSearchActive }">
-                            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <!-- Navigation Desktop -->
+                <nav class="hidden lg:flex items-center gap-10">
+                    <div class="relative group">
+                        <button class="flex items-center gap-1.5 text-sm font-semibold tracking-wide hover:text-accent transition-colors py-2" :class="[!isScrolled && !props.withHeaderPadding ? 'text-white' : 'text-ink']">
+                            Explore
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 transition-transform duration-300 group-hover:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                         </button>
+                        <div class="absolute top-full left-1/2 -translate-x-1/2 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-300 transform group-hover:translate-y-0 translate-y-2">
+                            <div class="bg-white border border-divider shadow-2xl rounded-2xl p-2 min-w-[220px] backdrop-blur-xl">
+                                <Link v-for="cat in ['Painting', 'Digital', 'Sculpture', 'Photography', 'Mixed Media']" :key="cat" :href="`/shop?category=${cat}`" class="block px-4 py-2.5 text-sm text-ink-light hover:text-accent hover:bg-canvas rounded-xl transition-all">
+                                    {{ cat }}
+                                </Link>
+                                <div class="h-px bg-divider my-2 mx-2"></div>
+                                <Link href="/shop" class="block px-4 py-2.5 text-sm font-bold text-accent hover:bg-canvas rounded-xl transition-all">
+                                    View Collection
+                                </Link>
+                            </div>
+                        </div>
                     </div>
+                    <Link href="/journal" class="text-sm font-semibold tracking-wide hover:text-accent transition-colors" :class="[!isScrolled && !props.withHeaderPadding ? 'text-white' : 'text-ink']">Journal</Link>
+                    <Link href="/about" class="text-sm font-semibold tracking-wide hover:text-accent transition-colors" :class="[!isScrolled && !props.withHeaderPadding ? 'text-white' : 'text-ink']">About</Link>
+                </nav>
 
-                    <Link href="/cart" class="relative p-2 transition-colors hover:text-grape group">
-                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"></path><path d="M3 6h18"></path><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
-                        <span v-if="cartCount > 0" class="absolute -top-1 -right-1 bg-grape text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center animate-pulse">{{ cartCount }}</span>
-                    </Link>
+                <!-- Actions -->
+                <div class="flex items-center gap-2 md:gap-5">
+                    <!-- Search -->
+                        <div class="relative hidden md:block" v-click-outside="() => showSuggestions = false">
+                        <button 
+                            @click="toggleSearch" 
+                            class="p-2.5 rounded-full transition-all duration-300 hover:bg-black/5"
+                            :class="[!isScrolled && !props.withHeaderPadding ? 'text-white hover:bg-white/10' : 'text-ink']"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                        </button>
+                        
+                        <transition
+                            enter-active-class="transition duration-300 ease-out"
+                            enter-from-class="opacity-0"
+                            leave-active-class="transition duration-200 ease-in"
+                            leave-from-class="opacity-100"
+                            leave-to-class="opacity-0"
+                        >
+                            <div v-show="isSearchActive" @click="dismissSearch" class="fixed inset-0 bg-ink/20 backdrop-blur-sm z-40"></div>
+                        </transition>
 
-                    <template v-if="user">
-                        <div class="profile-menu-container relative">
-                            <button @click="toggleProfile" class="w-9 h-9 rounded-full overflow-hidden border-2 border-white/50 hover:border-grape transition-all duration-300 shadow-sm">
-                                <img 
-                                    :src="user.avatar_path && user.avatar_path.startsWith('http') ? user.avatar_path : (user.avatar_path ? `/storage/${user.avatar_path}` : `https://ui-avatars.com/api/?name=${user.first_name}+${user.last_name}&color=7209b7&background=EBF4FF`)" 
-                                    alt="Profile" 
-                                    class="w-full h-full object-cover"
-                                />
-                            </button>
-                            
-                            <transition
-                                enter-active-class="transition ease-out duration-200"
-                                enter-from-class="transform opacity-0 scale-95 translate-y-2"
-                                enter-to-class="transform opacity-100 scale-100 translate-y-0"
-                                leave-active-class="transition ease-in duration-75"
-                                leave-from-class="transform opacity-100 scale-100 translate-y-0"
-                                leave-to-class="transform opacity-0 scale-95 translate-y-2"
-                            >
-                                <div v-show="isProfileOpen" class="absolute right-0 mt-3 w-64 glass rounded-2xl shadow-2xl ring-1 ring-white/30 py-2 z-50 origin-top-right overflow-hidden">
-                                    <div class="px-5 py-4 border-b border-white/20">
-                                        <p class="text-[10px] text-charcoal/60 uppercase tracking-widest font-bold mb-1">User Profile</p>
-                                        <p class="text-sm font-bold text-charcoal truncate">{{ user.first_name }} {{ user.last_name }}</p>
-                                        <p class="text-xs text-charcoal/50 truncate">{{ user.email }}</p>
+                        <transition
+                            enter-active-class="transition duration-300 ease-out"
+                            enter-from-class="opacity-0 translate-y-2 scale-95"
+                            enter-to-class="opacity-100 translate-y-0 scale-100"
+                            leave-active-class="transition duration-200 ease-in"
+                            leave-from-class="opacity-100 translate-y-0 scale-100"
+                            leave-to-class="opacity-0 translate-y-2 scale-95"
+                        >
+                            <div v-show="isSearchActive" class="absolute right-0 top-full mt-4 w-[400px] bg-white border border-divider shadow-2xl rounded-3xl p-6 z-50 overflow-hidden">
+                                <div class="flex items-center gap-3 bg-canvas px-4 py-3 rounded-2xl border border-divider focus-within:border-accent transition-all mb-4">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4 text-ink-light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                                    <input 
+                                        type="text" 
+                                        placeholder="Search masterpieces, artists..." 
+                                        ref="searchInput"
+                                        v-model="searchQuery"
+                                        class="bg-transparent border-none focus:ring-0 text-sm w-full p-0 placeholder:text-ink-light/50"
+                                        @input="handleInput"
+                                        @focus="showSuggestions = true"
+                                        @keyup.enter="handleSearch"
+                                    />
+                                </div>
+                                
+                                <!-- Suggestions Results -->
+                                <div v-if="showSuggestions && (suggestions.artworks.length > 0 || suggestions.artists.length > 0)" class="mt-4 space-y-4 max-h-[300px] overflow-y-auto custom-scrollbar">
+                                    <div v-if="suggestions.artists.length > 0">
+                                        <p class="text-[10px] font-bold uppercase tracking-widest text-ink-light/60 mb-2 px-1">Artists</p>
+                                        <div class="space-y-2">
+                                            <Link 
+                                                v-for="artist in suggestions.artists" 
+                                                :key="artist.id" 
+                                                :href="route('artists.show', artist.id)"
+                                                class="flex items-center gap-3 p-2 hover:bg-canvas rounded-xl transition-colors"
+                                            >
+                                                <img :src="artist.avatar" class="w-8 h-8 rounded-full object-cover">
+                                                <span class="text-sm font-bold text-ink">{{ artist.name }}</span>
+                                            </Link>
+                                        </div>
                                     </div>
-                                    
-                                    <div class="py-1">
-                                        <Link href="/profile" class="flex items-center gap-3 px-5 py-3 text-sm text-charcoal hover:bg-white/40 transition-colors">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-                                            My Profile
-                                        </Link>
-                                        <Link :href="route('orders.index')" class="flex items-center gap-3 px-5 py-3 text-sm text-charcoal hover:bg-white/40 transition-colors">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
-                                            My Orders
-                                        </Link>
-                                    </div>
-                                    
-                                    <div class="border-t border-white/20 py-1">
-                                        <Link href="/logout" method="post" as="button" class="flex w-full items-center gap-3 px-5 py-3 text-sm text-red-600 hover:bg-red-50/30 transition-colors">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                                            Sign Out
-                                        </Link>
+
+                                    <div v-if="suggestions.artworks.length > 0">
+                                        <p class="text-[10px] font-bold uppercase tracking-widest text-ink-light/60 mb-2 px-1">Artworks</p>
+                                        <div class="space-y-2">
+                                            <Link 
+                                                v-for="artwork in suggestions.artworks" 
+                                                :key="artwork.id" 
+                                                :href="route('shop.show', artwork.id)"
+                                                class="flex items-center gap-3 p-2 hover:bg-canvas rounded-xl transition-colors group/item"
+                                            >
+                                                <img :src="artwork.image_url" class="w-10 h-10 rounded-lg object-cover">
+                                                <div class="flex-1 min-w-0">
+                                                    <p class="text-sm font-bold text-ink truncate group-hover/item:text-accent">{{ artwork.title }}</p>
+                                                    <p class="text-xs text-ink-light">₱{{ artwork.price }}</p>
+                                                </div>
+                                            </Link>
+                                        </div>
                                     </div>
                                 </div>
-                            </transition>
-                        </div>
-                    </template>
-                    <template v-else>
-                         <Link href="/login" class="p-2 transition-colors hover:text-grape" title="Login">
-                            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                         </Link>
-                    </template>
+
+                                <!-- Default Tags and History when no input -->
+                                <div v-else-if="!searchQuery" class="space-y-6">
+                                    <div v-if="recentSearches.length > 0">
+                                        <p class="text-[10px] font-bold uppercase tracking-widest text-ink-light/60 mb-3 px-1">Recent Searches</p>
+                                        <div class="flex flex-col gap-2">
+                                            <button 
+                                                v-for="s in recentSearches" 
+                                                :key="s" 
+                                                @click="handleSearch(s)"
+                                                class="flex items-center gap-3 p-2 hover:bg-canvas rounded-xl transition-colors text-left"
+                                            >
+                                                <svg class="w-4 h-4 text-ink-light/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                                <span class="text-sm font-medium text-ink">{{ s }}</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <p class="text-[10px] font-bold uppercase tracking-widest text-ink-light/60 mb-3 px-1">Discover more</p>
+                                        <div class="flex flex-wrap gap-2">
+                                            <button 
+                                                v-for="tag in ['Painting', 'Digital', 'Sculpture', 'Photography', 'Mixed Media', 'Drawing']" 
+                                                :key="tag" 
+                                                @click="handleSearch(tag)"
+                                                class="px-4 py-2 bg-zinc-50 hover:bg-ink hover:text-white rounded-full text-xs font-bold transition-all border border-divider"
+                                            >
+                                                {{ tag }}
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div v-else-if="searchQuery && !suggestions.artworks.length && !suggestions.artists.length && !isLoading" class="mt-4 text-center py-4">
+                                     <p class="text-sm text-ink-light italic">No matches found.</p>
+                                </div>
+                            </div>
+                        </transition>
+                    </div>
+
+                    <!-- Cart -->
+                    <Link 
+                        href="/cart" 
+                        class="p-2.5 rounded-full relative transition-all duration-300 hover:bg-black/5"
+                        :class="[!isScrolled && !props.withHeaderPadding ? 'text-white hover:bg-white/10' : 'text-ink']"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+                        <span v-if="cartCount > 0" class="absolute -top-1 -right-1 bg-accent text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center ring-2" :class="[!isScrolled && !props.withHeaderPadding ? 'ring-transparent' : 'ring-white']">
+                            {{ cartCount }}
+                        </span>
+                    </Link>
+
+                    <!-- Auth -->
+                    <div v-if="user" class="relative" v-click-outside="() => isProfileOpen = false">
+                        <button @click="toggleProfile" class="relative h-9 w-9 rounded-full border-2 border-divider hover:border-accent transition-all duration-300 group">
+                            <img 
+                                :src="user.avatar_path && user.avatar_path.startsWith('http') ? user.avatar_path : (user.avatar_path ? `/storage/${user.avatar_path}` : `https://ui-avatars.com/api/?name=${user.first_name}+${user.last_name}&color=7F9CF5&background=EBF4FF`)" 
+                                alt="Profile" 
+                                class="w-full h-full object-cover rounded-full"
+                            />
+                            <div v-if="$page.props.auth.unreadCount > 0" class="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center ring-2 ring-white z-10">
+                                {{ $page.props.auth.unreadCount }}
+                            </div>
+                        </button>
+                        
+                        <transition
+                            enter-active-class="transition duration-200 ease-out"
+                            enter-from-class="opacity-0 translate-y-2 scale-95"
+                            enter-to-class="opacity-100 translate-y-0 scale-100"
+                            leave-active-class="transition duration-150 ease-in"
+                            leave-from-class="opacity-100 translate-y-0 scale-100"
+                            leave-to-class="opacity-0 translate-y-2 scale-95"
+                        >
+                            <div v-show="isProfileOpen" class="absolute right-0 mt-4 w-64 bg-white border border-divider shadow-2xl rounded-2xl py-2 z-50">
+                                <div class="px-5 py-4 border-b border-divider/50">
+                                    <p class="text-[10px] font-bold uppercase tracking-widest text-ink-light/60 mb-1">Account</p>
+                                    <p class="text-sm font-bold text-ink truncate">{{ user.first_name }} {{ user.last_name }}</p>
+                                </div>
+                                <div class="py-1">
+                                    <Link v-for="link in [
+                                        { href: '/profile', label: 'My Profile', icon: 'M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z' },
+                                        { href: route('orders.index'), label: 'Orders', icon: 'M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z' },
+                                        { href: route('dashboard.artworks.index'), label: 'My Gallery', icon: 'M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z' },
+                                        { href: route('profile.favorites'), label: 'My Favorites', icon: 'M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z' },
+                                        { href: route('messages.index'), label: 'Inbox', icon: 'M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z' }
+                                    ]" :key="link.label" :href="link.href" class="flex items-center gap-3 px-5 py-2.5 text-sm text-ink-light hover:text-accent hover:bg-canvas transition-all">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" :d="link.icon"></path></svg>
+                                        {{ link.label }}
+                                    </Link>
+
+                                    <div class="h-px bg-divider my-2 mx-2"></div>
+                                    <div class="px-5 py-2 text-[10px] font-bold uppercase tracking-widest text-ink-light/60">
+                                        Notifications
+                                    </div>
+                                    <div v-if="$page.props.auth.notifications.length === 0" class="px-5 py-2 text-xs text-ink-light italic">
+                                        No new notifications
+                                    </div>
+                                    <template v-else>
+                                        <Link 
+                                            v-for="notification in $page.props.auth.notifications" 
+                                            :key="notification.id"
+                                            :href="route('notifications.read', notification.id)"
+                                            method="post"
+                                            :data="{ redirect_to: notification.data.action_url }"
+                                            as="button"
+                                            class="flex w-full text-left flex-col gap-0.5 px-5 py-2 hover:bg-canvas border-b border-divider/50 last:border-0 transition-colors"
+                                        >
+                                            <span class="font-bold text-xs text-ink">{{ notification.data.title }}</span>
+                                            <span class="text-[10px] text-ink-light truncate">{{ notification.data.message }}</span>
+                                        </Link>
+                                    </template>
+                                </div>
+                                <div class="border-t border-divider/50 py-1 mt-1">
+                                    <Link href="/logout" method="post" as="button" class="flex w-full items-center gap-3 px-5 py-2.5 text-sm text-red-500 hover:bg-red-50 transition-all font-medium">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                                        Sign Out
+                                    </Link>
+                                </div>
+                            </div>
+                        </transition>
+                    </div>
+                    <Link 
+                        v-else 
+                        href="/login" 
+                        class="p-2.5 rounded-full transition-all duration-300 hover:bg-black/5"
+                        :class="[!isScrolled && !props.withHeaderPadding ? 'text-white hover:bg-white/10' : 'text-ink']"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    </Link>
+
+                    <!-- Sell Button -->
+                    <!-- Sell Button -->
+                    <Link 
+                        v-if="user && user.role === 'artist'"
+                        :href="route('dashboard.artworks.create')" 
+                        class="hidden md:flex items-center gap-2 px-6 py-2.5 rounded-full text-xs font-bold tracking-widest uppercase transition-all duration-500 transform hover:-translate-y-0.5 active:scale-95 shadow-lg shadow-ink/10"
+                        :class="[
+                            !isScrolled && !props.withHeaderPadding 
+                                ? 'bg-white text-ink hover:bg-canvas' 
+                                : 'bg-ink text-white hover:bg-ink-light'
+                        ]"
+                    >
+                        <span>Sell Art</span>
+                    </Link>
                 </div>
             </div>
         </header>
 
-        <!-- Floating Bottom Navigation Dock -->
-        <nav class="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] transition-transform duration-500" :class="{ 'translate-y-24': isScrolled && !isScrolledUp }">
-            <div class="glass px-6 py-3 rounded-full border border-white/30 shadow-[0_8px_32px_0_rgba(31,38,135,0.15)] flex items-center gap-8">
-                <Link href="/" class="flex flex-col items-center gap-1 group" :class="{ 'text-grape': $page.url === '/' }">
-                    <svg class="w-5 h-5 transition-transform group-hover:-translate-y-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h3m-10 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-                    <span class="text-[10px] font-bold uppercase tracking-wider">Home</span>
-                </Link>
-                <Link href="/shop" class="flex flex-col items-center gap-1 group" :class="{ 'text-grape': $page.url.startsWith('/shop') }">
-                    <svg class="w-5 h-5 transition-transform group-hover:-translate-y-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
-                    <span class="text-[10px] font-bold uppercase tracking-wider">Shop</span>
-                </Link>
-                <Link href="/journal" class="flex flex-col items-center gap-1 group" :class="{ 'text-grape': $page.url.startsWith('/journal') }">
-                    <svg class="w-5 h-5 transition-transform group-hover:-translate-y-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                    <span class="text-[10px] font-bold uppercase tracking-wider">Journal</span>
-                </Link>
-                <Link href="/artists" class="flex flex-col items-center gap-1 group" :class="{ 'text-grape': $page.url.startsWith('/artists') }">
-                    <svg class="w-5 h-5 transition-transform group-hover:-translate-y-1" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                    <span class="text-[10px] font-bold uppercase tracking-wider">Community</span>
-                </Link>
-                <div class="h-6 w-px bg-white/20"></div>
-                <Link href="/onboarding" class="bg-grape text-white text-[10px] font-black uppercase tracking-[0.2em] px-4 py-2 rounded-full hover:bg-grape/90 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-grape/20">
-                    Sell Art
-                </Link>
-            </div>
-        </nav>
-
-        <main :class="{ 'pt-20': withHeaderPadding }" class="pb-32">
+        <main :class="{ 'pt-[140px]': withHeaderPadding }">
             <slot />
         </main>
         
@@ -176,38 +416,9 @@ onUnmounted(() => {
 </template>
 
 <style scoped>
-/* Paste relevant CSS from header.php here, adapted for Vue (remove .php references logic) */
-/* Main Layout Transitions */
-.view-enter-active, .view-leave-active {
-    transition: opacity 0.5s ease;
-}
-.view-enter-from, .view-leave-to {
-    opacity: 0;
-}
-
-/* Custom search container width transition */
-.search-input-wrapper {
-    width: 0;
-    opacity: 0;
-    overflow: hidden;
-    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-}
-.search-input-wrapper.active {
-    width: 300px;
-    opacity: 1;
-}
-
-/* Base text color override for glass consistency */
-:deep(h1), :deep(h2), :deep(h3), :deep(h4), :deep(h5), :deep(h6), :deep(p), :deep(a), :deep(span) {
-    color: #1A1C22;
-}
-
-@media (max-width: 640px) {
-    nav {
-        width: 90%;
-        bottom: 24px;
-        padding-bottom: env(safe-area-inset-bottom);
-    }
+/* No longer need heavy custom styles as we use Tailwind's power for the layout */
+header.scrolled {
+    backdrop-filter: blur(20px) saturate(180%);
 }
 </style>
 

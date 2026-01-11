@@ -10,13 +10,18 @@ use Inertia\Inertia;
 
 class TransactionController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $commissionRate = Setting::where('key', 'commission_rate')->value('value') ?? 10;
 
-        $orders = Order::with(['user:id,first_name,last_name', 'items.artwork'])
-            ->latest()
-            ->paginate(10)
+        $query = Order::with(['user:id,first_name,last_name', 'items.artwork'])
+            ->latest();
+
+        if ($request->filled('user_id')) {
+            $query->where('user_id', $request->input('user_id'));
+        }
+
+        $orders = $query->paginate(10)
             ->through(function ($order) use ($commissionRate) {
                 return [
                     'id' => $order->id,

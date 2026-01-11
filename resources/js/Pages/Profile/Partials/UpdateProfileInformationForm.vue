@@ -1,5 +1,6 @@
 <script setup>
 import { ref } from 'vue';
+import UserBadge from '@/Components/UserBadge.vue';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
@@ -23,6 +24,7 @@ const form = useForm({
     email: user.email,
     avatar: null,
     default_avatar: null,
+    bio: user.bio,
 });
 
 const fileInput = ref(null);
@@ -106,44 +108,64 @@ const submit = () => {
             class="mt-6 space-y-6"
         >
             <!-- Avatar Section -->
-            <div class="flex flex-col items-center mb-6">
-                 <div class="relative group mb-4 cursor-pointer" @click="$refs.fileInput.click()">
-                    <div class="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border-2 border-dashed border-[#CBA35C] group-hover:border-solid transition-all">
-                        <img 
-                            v-if="avatarPreview" 
-                            :src="avatarPreview" 
-                            class="w-full h-full object-cover" 
-                            alt="Avatar Preview"
+            <div class="space-y-4">
+                <InputLabel value="Selected Identity" />
+                <div class="flex items-center gap-6">
+                    <div class="relative group cursor-pointer" @click="$refs.fileInput.click()">
+                        <div class="w-24 h-24 rounded-full bg-gray-50 flex items-center justify-center overflow-hidden border-2 border-dashed border-[#CBA35C] group-hover:border-solid transition-all shadow-sm">
+                            <img 
+                                v-if="avatarPreview" 
+                                :src="avatarPreview" 
+                                class="w-full h-full object-cover" 
+                                alt="Avatar Preview"
+                            />
+                            <span v-else class="text-gray-400 text-3xl">+</span>
+                        </div>
+                        <div class="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                            <span class="text-white text-[10px] font-bold tracking-widest uppercase">Upload</span>
+                        </div>
+                        <!-- Verification Badge -->
+                        <div class="absolute -bottom-1 -right-1 z-20 bg-white rounded-full p-1 shadow-sm border border-gray-100" v-if="user.role !== 'member' || user.is_verified">
+                             <UserBadge :role="user.role" :is-verified="!!user.is_verified" />
+                        </div>
+
+                        <input 
+                            type="file" 
+                            ref="fileInput" 
+                            class="hidden" 
+                            accept="image/*"
+                            @change="handleFileChange"
                         />
-                        <span v-else class="text-gray-400 text-3xl">+</span>
                     </div>
-                    <div class="absolute inset-0 flex items-center justify-center bg-black/30 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                        <span class="text-white text-[10px] font-bold">UPLOAD</span>
+                    <div class="flex-1">
+                        <p class="text-xs font-bold text-ink mb-1">Custom Portrait</p>
+                        <p class="text-[11px] text-ink-light leading-relaxed">Choose a custom image from your device or select from our curated presets below.</p>
                     </div>
-                    <input 
-                        type="file" 
-                        ref="fileInput" 
-                        class="hidden" 
-                        accept="image/*"
-                        @change="handleFileChange"
-                    />
                 </div>
-                 <!-- Default Avatars -->
-                 <div class="flex flex-wrap justify-center gap-2 mb-4">
-                    <div 
-                        v-for="(avatar, index) in defaultAvatars" 
-                        :key="index"
-                        @click="selectDefaultAvatar(avatar)"
-                        class="w-8 h-8 rounded-full cursor-pointer border hover:scale-110 transition-transform"
-                        :class="form.default_avatar === avatar ? 'border-[#CBA35C] ring-1 ring-[#CBA35C]' : 'border-transparent'"
-                    >
-                        <img :src="avatar" alt="Default" class="w-full h-full rounded-full" />
+
+                <div class="pt-4 border-t border-divider">
+                    <p class="text-[11px] font-bold tracking-widest text-ink-light uppercase mb-4">Preset Identities</p>
+                    <div class="grid grid-cols-4 sm:grid-cols-6 md:grid-cols-8 lg:grid-cols-12 gap-3 max-h-48 overflow-y-auto p-2 scrollbar-hide bg-zinc-50 rounded-xl border border-divider">
+                        <div 
+                            v-for="(avatar, index) in defaultAvatars" 
+                            :key="index"
+                            @click="selectDefaultAvatar(avatar)"
+                            class="relative aspect-square rounded-full cursor-pointer ring-offset-2 transition-all hover:scale-110 active:scale-95 group"
+                        >
+                            <img :src="avatar" alt="Default" class="w-full h-full rounded-full border border-divider group-hover:border-accent" />
+                            <div 
+                                v-if="form.default_avatar === avatar"
+                                class="absolute -top-1 -right-1 bg-accent text-white w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow-sm"
+                            >
+                                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path></svg>
+                            </div>
+                        </div>
                     </div>
-                 </div>
-                 <InputError class="mt-2" :message="form.errors.avatar" />
+                </div>
+                <InputError class="mt-2" :message="form.errors.avatar" />
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
                 <div>
                     <InputLabel for="first_name" value="First Name" />
                     <TextInput
@@ -172,9 +194,8 @@ const submit = () => {
                 </div>
             </div>
 
-            <div>
-                <InputLabel for="email" value="Email" />
-
+            <div class="pt-2">
+                <InputLabel for="email" value="Email Address" />
                 <TextInput
                     id="email"
                     type="email"
@@ -183,8 +204,24 @@ const submit = () => {
                     required
                     autocomplete="username"
                 />
-
                 <InputError class="mt-2" :message="form.errors.email" />
+            </div>
+
+            <div class="pt-2">
+                <div class="flex justify-between">
+                    <InputLabel for="bio" value="Bio" />
+                    <span class="text-[10px] font-bold text-ink-light" :class="{'text-red-500': form.bio?.length > 1000}">
+                        {{ form.bio?.length || 0 }} / 1000
+                    </span>
+                </div>
+                <textarea
+                    id="bio"
+                    class="mt-1 block w-full border-divider focus:border-accent focus:ring-accent rounded-xl shadow-sm text-sm"
+                    v-model="form.bio"
+                    rows="4"
+                    placeholder="Tell us about yourself and your art..."
+                ></textarea>
+                <InputError class="mt-2" :message="form.errors.bio" />
             </div>
 
             <div v-if="mustVerifyEmail && user.email_verified_at === null">

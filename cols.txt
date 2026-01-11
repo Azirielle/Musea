@@ -1,0 +1,1 @@
+id, first_name, last_name, email, password, address, contact_number, avatar_url, email_verified_at, remember_token, created_at, updated_at, avatar_path, is_onboarded, status, balance, is_featured

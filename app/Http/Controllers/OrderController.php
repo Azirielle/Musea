@@ -73,6 +73,9 @@ class OrderController extends Controller
 
                     // Update Artist Balance
                     $artist->increment('balance', $artistShare);
+
+                    // Notify Artist
+                    $artist->notify(new \App\Notifications\FundsReleasedNotification($order));
                 }
             }
 

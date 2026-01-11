@@ -3,6 +3,7 @@ import MainLayout from '@/Layouts/MainLayout.vue';
 import DeleteUserForm from './Partials/DeleteUserForm.vue';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm.vue';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm.vue';
+import VerificationForm from './Partials/VerificationForm.vue';
 import { Head } from '@inertiajs/vue3';
 
 defineProps({
@@ -36,6 +37,10 @@ defineProps({
 
                 <div class="bg-white p-4 shadow-xl rounded-2xl sm:p-8 border border-gray-100">
                     <UpdatePasswordForm class="max-w-xl" />
+                </div>
+
+                <div class="bg-white p-4 shadow-xl rounded-2xl sm:p-8 border border-gray-100">
+                    <VerificationForm class="max-w-xl" />
                 </div>
 
                 <div class="bg-white p-4 shadow-xl rounded-2xl sm:p-8 border border-gray-100">

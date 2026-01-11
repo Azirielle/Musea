@@ -18,6 +18,10 @@ use App\Http\Controllers\Admin\SettingController;
 
 use Illuminate\Support\Str;
 
+Route::get('/maintenance', function () {
+    return Inertia::render('Maintenance');
+})->name('maintenance');
+
 Route::get('/', function () {
     $recommendedArtworks = [];
     if (auth()->check() && auth()->user()->is_onboarded) {
@@ -60,19 +64,40 @@ Route::get('/', function () {
         }
     }
 
+    // Fetch Featured Artwork for Hero
+    $featuredArtwork = \App\Models\Artwork::where('status', 'active')
+        ->where('stock', '>', 0)
+        ->orderBy('price', 'desc')
+        ->with('artist')
+        ->first();
+
+    $featuredArtworkData = $featuredArtwork ? [
+        'title' => $featuredArtwork->title,
+        'artist' => $featuredArtwork->artist ? $featuredArtwork->artist->first_name . ' ' . $featuredArtwork->artist->last_name : 'Musea Artist',
+        'image' => $featuredArtwork->image_url,
+        'link' => route('shop.show', $featuredArtwork->id)
+    ] : null;
+
     // Fetch Featured Artists (Meet the Community)
-    $featuredArtists = \App\Models\User::where('is_featured', true)
-        ->take(8)
+    $featuredArtistsQuery = \App\Models\User::where('is_featured', true);
+    if ($featuredArtistsQuery->count() === 0) {
+        $featuredArtistsQuery = \App\Models\User::whereHas('artworks', function ($query) {
+            $query->where('status', 'active');
+        })->latest();
+    }
+
+    $featuredArtists = $featuredArtistsQuery->take(8)
         ->with('artworks')
         ->get()
         ->map(function ($artist) {
-            $bestSeller = $artist->artworks->sortByDesc('price')->first();
+            $bestSeller = $artist->artworks->where('status', 'active')->sortByDesc('price')->first();
             return [
                 'id' => $artist->id,
-                'name' => $artist->first_name, // Using first name to match design
+                'name' => $artist->first_name,
                 'location' => $artist->address ? Str::words($artist->address, 2, '') : 'Musea',
                 'image' => $artist->imageUrl(),
                 'bestSeller' => $bestSeller ? [
+                    'id' => $bestSeller->id,
                     'title' => $bestSeller->title,
                     'image' => $bestSeller->image_url,
                 ] : null,
@@ -80,9 +105,16 @@ Route::get('/', function () {
         });
 
     // Fetch Staff Picks
-    $staffPicks = \App\Models\Artwork::where('is_staff_pick', true)
-        ->where('stock', '>', 0)
-        ->with('artist')
+    $staffPicksQuery = \App\Models\Artwork::where('is_staff_pick', true)
+        ->where('stock', '>', 0);
+
+    if ($staffPicksQuery->count() === 0) {
+        $staffPicksQuery = \App\Models\Artwork::where('status', 'active')
+            ->where('stock', '>', 0)
+            ->orderBy('price', 'desc');
+    }
+
+    $staffPicks = $staffPicksQuery->with('artist')
         ->take(2)
         ->get()
         ->map(function ($artwork) {
@@ -102,23 +134,24 @@ Route::get('/', function () {
         ->groupBy('category')
         ->get()
         ->map(function ($item) {
-            // Fallback images based on category or generic
             $bgImages = [
                 'Painting' => 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?auto=format&fit=crop&q=80&w=400',
                 'Sculpture' => 'https://images.unsplash.com/photo-1554188248-986adbb73be4?auto=format&fit=crop&q=80&w=400',
                 'Digital' => 'https://images.unsplash.com/photo-1547891654-e66ed7ebb968?auto=format&fit=crop&q=80&w=400',
                 'Photography' => 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&q=80&w=400',
             ];
+            $categoryName = $item->category instanceof \BackedEnum ? $item->category->value : $item->category;
             return [
-                'name' => $item->category,
+                'name' => $categoryName,
                 'count' => $item->count,
-                'image' => $bgImages[$item->category] ?? 'https://placehold.co/400x300/333/FFF?text=' . $item->category,
+                'image' => $bgImages[$categoryName] ?? 'https://placehold.co/400x300/333/FFF?text=' . $categoryName,
             ];
         });
 
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
+        'featuredArtwork' => $featuredArtworkData,
         'recommendedArtworks' => $recommendedArtworks,
         'featuredArtists' => $featuredArtists,
         'staffPicks' => $staffPicks,
@@ -127,8 +160,10 @@ Route::get('/', function () {
 })->name('home');
 
 Route::get('/shop', [ShopController::class, 'index'])->name('shop.index');
+Route::get('/shop/suggestions', [ShopController::class, 'suggestions'])->name('shop.suggestions');
 Route::get('/shop/{artwork}', [ShopController::class, 'show'])->name('shop.show');
 Route::get('/artists', [ArtistController::class, 'index'])->name('artists.index');
+Route::get('/artists/{artist}', [ArtistController::class, 'show'])->name('artists.show');
 Route::get('/about', [PageController::class, 'about'])->name('pages.about');
 Route::get('/contact', [PageController::class, 'contact'])->name('pages.contact');
 Route::post('/contact', [PageController::class, 'submitContact'])->name('contact.submit');
@@ -147,6 +182,7 @@ Route::get('/journal/{post}', [\App\Http\Controllers\JournalController::class, '
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::get('/favorites', [ProfileController::class, 'favorites'])->name('profile.favorites');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
@@ -175,10 +211,29 @@ Route::middleware('auth')->group(function () {
     Route::post('/artworks/{artwork}/review', [\App\Http\Controllers\ReviewController::class, 'store'])->name('artworks.review');
 
     // Notifications
-    Route::post('/notifications/{id}/read', function ($id) {
+    Route::post('/notifications/{id}/read', function (\Illuminate\Http\Request $request, $id) {
         auth()->user()->notifications()->findOrFail($id)->markAsRead();
+
+        if ($url = $request->input('redirect_to')) {
+            return redirect($url);
+        }
+
         return back();
     })->name('notifications.read');
+
+    // Artist Wallet
+    Route::get('/dashboard/wallet', [\App\Http\Controllers\WalletController::class, 'index'])->name('dashboard.wallet');
+    Route::post('/dashboard/wallet/payout-details', [\App\Http\Controllers\WalletController::class, 'updatePayoutDetails'])->name('dashboard.wallet.payout-details');
+    Route::post('/dashboard/wallet/withdraw', [\App\Http\Controllers\WalletController::class, 'withdraw'])->name('dashboard.wallet.withdraw');
+
+    // In-App Messaging
+    Route::get('/messages', [\App\Http\Controllers\MessageController::class, 'index'])->name('messages.index');
+    Route::get('/messages/{conversation}', [\App\Http\Controllers\MessageController::class, 'show'])->name('messages.show');
+    Route::post('/messages/{conversation}', [\App\Http\Controllers\MessageController::class, 'store'])->name('messages.store');
+    Route::get('/messages/start/{artwork}', [\App\Http\Controllers\MessageController::class, 'start'])->name('messages.start');
+
+    // Verification
+    Route::post('/verification', [\App\Http\Controllers\VerificationController::class, 'store'])->name('verification.store');
 });
 
 // Admin Authentication Routes
@@ -194,6 +249,7 @@ Route::middleware('auth:admin')->prefix('admin')->name('admin.')->group(function
     // User Management
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
     Route::post('/users/{user}/toggle', [UserController::class, 'toggleStatus'])->name('users.toggle');
+    Route::post('/users/{user}/featured', [UserController::class, 'toggleFeatured'])->name('users.featured');
 
     // Artwork Approval
     Route::get('/approvals', [AdminArtworkController::class, 'index'])->name('approvals.index');
@@ -215,6 +271,16 @@ Route::middleware('auth:admin')->prefix('admin')->name('admin.')->group(function
     // Coupons
     Route::resource('coupons', \App\Http\Controllers\Admin\CouponController::class)->except(['create', 'edit', 'show']);
     Route::post('coupons/{coupon}/toggle', [\App\Http\Controllers\Admin\CouponController::class, 'toggle'])->name('coupons.toggle');
+
+    // Withdrawals
+    Route::get('/withdrawals', [\App\Http\Controllers\Admin\WithdrawalController::class, 'index'])->name('withdrawals.index');
+    Route::post('/withdrawals/{withdrawalRequest}/approve', [\App\Http\Controllers\Admin\WithdrawalController::class, 'approve'])->name('withdrawals.approve');
+    Route::post('/withdrawals/{withdrawalRequest}/reject', [\App\Http\Controllers\Admin\WithdrawalController::class, 'reject'])->name('withdrawals.reject');
+
+    // Verifications
+    Route::get('/verifications', [\App\Http\Controllers\Admin\VerificationController::class, 'index'])->name('verifications.index');
+    Route::post('/verifications/{user}/approve', [\App\Http\Controllers\Admin\VerificationController::class, 'approve'])->name('verifications.approve');
+    Route::post('/verifications/{user}/reject', [\App\Http\Controllers\Admin\VerificationController::class, 'reject'])->name('verifications.reject');
 });
 
 // Checkout Coupon

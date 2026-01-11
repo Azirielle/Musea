@@ -26,6 +26,10 @@ const props = defineProps({
         type: Array,
         default: () => []
     },
+    featuredArtwork: {
+        type: Object,
+        default: null
+    }
 });
 </script>
 
@@ -37,27 +41,37 @@ const props = defineProps({
          If standard behavior is preferred, remove the prop. -->
     <MainLayout :with-header-padding="false">
         
-        <HeroSection />
+        <HeroSection :featured="featuredArtwork" />
 
-        <div class="py-20 px-6" id="feed">
-            <div class="max-w-7xl mx-auto glass p-8 md:p-12 rounded-[2rem]">
-                <div class="text-center mb-16">
-                    <span v-if="$page.props.auth.user" class="text-grape text-xs font-bold tracking-[0.2em] uppercase mb-4 block">Curated for {{ $page.props.auth.user.first_name }}</span>
-                    <span v-else class="text-grape text-xs font-bold tracking-[0.2em] uppercase mb-4 block">Trending Now</span>
-                    
-                    <h2 class="text-4xl md:text-6xl font-black text-charcoal">Your Daily Feed</h2>
+        <div class="bg-canvas py-32 px-6" id="feed">
+            <div class="max-w-[1400px] mx-auto">
+                <div class="flex flex-col md:flex-row md:items-end justify-between mb-20 gap-8">
+                    <div class="space-y-4">
+                        <div class="inline-flex items-center gap-2 group">
+                            <span class="w-8 h-px bg-accent/30 group-hover:w-12 transition-all duration-500"></span>
+                            <span v-if="$page.props.auth.user" class="text-accent text-[10px] font-black tracking-[0.3em] uppercase">Curated for {{ $page.props.auth.user.first_name }}</span>
+                            <span v-else class="text-accent text-[10px] font-black tracking-[0.3em] uppercase">Trending Now</span>
+                        </div>
+                        <h2 class="text-5xl md:text-7xl font-serif font-bold text-ink leading-tight italic">Your Daily Feed</h2>
+                    </div>
                 </div>
                 
                 <MasonryGrid :artworks="recommendedArtworks" />
                 
-                <div v-if="recommendedArtworks.length === 0" class="text-center py-12">
-                    <p class="text-charcoal/60 mb-8 font-medium">No artworks found. Start following artists to see their latest work!</p>
-                    <Link href="/shop" class="px-8 py-3 bg-grape text-white rounded-full font-bold shadow-lg shadow-grape/20 hover:scale-105 transition-transform">Browse All</Link>
+                <div v-if="recommendedArtworks.length === 0" class="text-center py-32 bg-white/50 backdrop-blur-sm rounded-[3rem] border border-divider/50 mt-12">
+                    <p class="text-ink-light text-lg mb-8 font-light italic">No masterpieces found in your orbit yet.</p>
+                    <Link href="/shop" class="px-12 py-5 bg-ink text-white rounded-full font-bold text-sm tracking-widest hover:bg-accent transition-all duration-500 uppercase">Explore the Gallery</Link>
                 </div>
 
-                <div v-if="!$page.props.auth.user" class="mt-16 text-center">
-                    <p class="text-charcoal/50 mb-6 font-medium">Join Musea to get a personalized feed based on your taste.</p>
-                    <Link href="/register" class="px-10 py-4 glass border-white/40 text-charcoal rounded-full font-bold hover:bg-white/40 transition-all inline-block hover:scale-105">Create Account</Link>
+                <div v-if="!$page.props.auth.user" class="mt-32 text-center p-20 bg-ink text-white rounded-[4rem] overflow-hidden relative group">
+                    <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1547891654-e66ed7ebb968?auto=format&fit=crop&q=80&w=1200')] opacity-10 grayscale group-hover:scale-110 transition-transform duration-1000"></div>
+                    <div class="relative z-10 space-y-8">
+                        <p class="text-white/60 text-sm font-bold tracking-[0.4em] uppercase">Join the Collective</p>
+                        <h3 class="text-4xl md:text-6xl font-serif font-bold italic">A World of Art, Curated for You.</h3>
+                        <div class="pt-6">
+                            <Link href="/register" class="px-12 py-5 bg-white text-ink rounded-full font-bold text-sm tracking-widest hover:bg-accent hover:text-white transition-all duration-500 uppercase block sm:inline-block">Create Your Portfolio</Link>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

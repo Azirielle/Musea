@@ -12,6 +12,16 @@ class User extends Authenticatable
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
+    const ROLE_MEMBER = 'member';
+    const ROLE_VERIFIED_MEMBER = 'verified_member';
+    const ROLE_ARTIST = 'artist';
+
+    const VERIFICATION_NONE = 'none';
+    const VERIFICATION_PENDING = 'pending';
+    const VERIFICATION_APPROVED = 'approved';
+    const VERIFICATION_REJECTED = 'rejected';
+
+
     /**
      * The attributes that are mass assignable.
      *
@@ -29,7 +39,23 @@ class User extends Authenticatable
         'status',
         'balance',
         'is_featured',
+        'bio',
+        'gcash_number',
+        'bank_details',
+        'role',
+        'is_verified',
+        'verification_status',
+        'portfolio_url',
+        'requested_role',
     ];
+
+
+    protected $appends = ['avatar'];
+
+    public function getAvatarAttribute()
+    {
+        return $this->imageUrl();
+    }
 
     /**
      * The attributes that should be hidden for serialization.
@@ -53,7 +79,9 @@ class User extends Authenticatable
             'password' => 'hashed',
             'is_onboarded' => 'boolean',
             'is_featured' => 'boolean',
+            'is_verified' => 'boolean',
         ];
+
     }
 
     /**
@@ -77,12 +105,14 @@ class User extends Authenticatable
      */
     public function imageUrl(): string
     {
-        if ($this->avatar_path && (str_starts_with($this->avatar_path, 'http') || str_starts_with($this->avatar_path, 'https'))) {
-            return $this->avatar_path;
+        $path = $this->avatar_path ?: $this->avatar_url;
+
+        if ($path && (str_starts_with($path, 'http') || str_starts_with($path, 'https'))) {
+            return $path;
         }
 
-        return $this->avatar_path
-            ? asset('storage/' . $this->avatar_path)
+        return $path
+            ? asset('storage/' . $path)
             : 'https://ui-avatars.com/api/?name=' . urlencode($this->first_name . ' ' . $this->last_name) . '&color=7F9CF5&background=EBF4FF';
     }
 
@@ -106,5 +136,35 @@ class User extends Authenticatable
     public function reviews()
     {
         return $this->hasMany(Review::class);
+    }
+
+    public function withdrawalRequests()
+    {
+        return $this->hasMany(WithdrawalRequest::class);
+    }
+
+    public function buyerConversations()
+    {
+        return $this->hasMany(Conversation::class, 'buyer_id');
+    }
+
+    public function artistConversations()
+    {
+        return $this->hasMany(Conversation::class, 'artist_id');
+    }
+
+    public function conversations()
+    {
+        return Conversation::where('buyer_id', $this->id)->orWhere('artist_id', $this->id);
+    }
+
+    public function unreadMessagesCount()
+    {
+        return ChatMessage::whereHas('conversation', function ($query) {
+            $query->where('buyer_id', $this->id)->orWhere('artist_id', $this->id);
+        })
+            ->where('sender_id', '!=', $this->id)
+            ->where('is_read', false)
+            ->count();
     }
 }

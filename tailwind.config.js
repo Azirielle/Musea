@@ -13,25 +13,21 @@ export default {
     theme: {
         extend: {
             colors: {
-                canvas: '#FAFAFA',
+                canvas: '#FDFCFB', // Soft parchment base
                 paper: '#FFFFFF',
                 ink: {
-                    DEFAULT: '#27272A', // Zinc 800
-                    light: '#71717A',   // Zinc 500
+                    DEFAULT: '#1A1A1A', // Deep Charcoal
+                    light: '#626262',   // Muted Grey
                 },
                 accent: {
-                    DEFAULT: '#18181B', // Zinc 900
-                    hover: '#27272A',
+                    DEFAULT: '#8B7355', // Muted Bronze
+                    hover: '#725E45',
                 },
-                grape: {
-                    DEFAULT: '#7209B7',
-                    hover: '#5a0791',
-                },
-                charcoal: '#1A1C22',
-                divider: '#E4E4E7', // Zinc 200
+                divider: '#E8E4E1', // Warm divider
             },
             fontFamily: {
-                sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+                sans: ['Inter', ...defaultTheme.fontFamily.sans],
+                serif: ['Playfair Display', ...defaultTheme.fontFamily.serif],
             },
         },
     },

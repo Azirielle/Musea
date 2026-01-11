@@ -6,10 +6,30 @@ defineProps({
     orders: Object,
 });
 
+import Swal from 'sweetalert2';
+
 const confirmReceipt = (order) => {
-    if (confirm('Are you sure you have received this order? This will release funds to the artist.')) {
-        router.post(route('orders.received', order.id));
-    }
+    Swal.fire({
+        title: 'Confirm Receipt?',
+        text: "Are you sure you have received this order? This will release funds to the artist.",
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#1A1A1A',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Yes, receive it!'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            router.post(route('orders.received', order.id), {}, {
+                onSuccess: () => {
+                    Swal.fire(
+                        'Received!',
+                        'Order marked as received.',
+                        'success'
+                    );
+                }
+            });
+        }
+    });
 };
 </script>
 

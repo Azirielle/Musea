@@ -5,14 +5,42 @@ import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
+import Checkbox from '@/Components/Checkbox.vue';
+import { ref, watch } from 'vue';
 
 const form = useForm({
     title: '',
     description: '',
     category: 'Painting',
+    subcategory: '',
+    ready_to_hang: false,
+    framing: 'Unframed',
+    width: '',
+    height: '',
+    depth: '',
+    unit: 'cm',
     price: '',
     stock: 1,
     image: null,
+});
+
+// Category to Subcategory Mapping
+// Ideally this comes from the backend or the Enum, but for frontend responsiveness we define it here.
+const subcategories = {
+    'Painting': ['Oil', 'Acrylic', 'Watercolor', 'Abstract', 'Portrait'],
+    'Digital': ['3D Render', 'Vector', 'AI Art', 'Pixel Art'],
+    'Sculpture': ['Metal', 'Wood', 'Resin', 'Ceramic'],
+    'Photography': [],
+    'Mixed Media': [],
+    'Drawing': ['Graphite', 'Charcoal'],
+    'Other': []
+};
+
+const availableSubcategories = ref(subcategories['Painting']);
+
+watch(() => form.category, (newCategory) => {
+    availableSubcategories.value = subcategories[newCategory] || [];
+    form.subcategory = ''; // Reset subcategory when category changes
 });
 
 const submit = () => {
@@ -54,26 +82,93 @@ const handleImageUpload = (e) => {
                                 <InputError class="mt-2" :message="form.errors.title" />
                             </div>
 
-                            <!-- Category -->
-                            <div>
-                                <InputLabel for="category" value="Category" />
-                                <select
-                                    id="category"
-                                    class="mt-1 block w-full border-gray-300 focus:border-[#CBA35C] focus:ring-[#CBA35C] rounded-md shadow-sm"
-                                    v-model="form.category"
-                                    required
-                                >
-                                    <option>Painting</option>
-                                    <option>Canvas</option>
-                                    <option>Drawing</option>
-                                    <option>Sculpture</option>
-                                    <option>Vase</option>
-                                    <option>Basket</option>
-                                    <option>Other</option>
-                                </select>
-                                <InputError class="mt-2" :message="form.errors.category" />
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <!-- Category -->
+                                <div>
+                                    <InputLabel for="category" value="Category" />
+                                    <select
+                                        id="category"
+                                        class="mt-1 block w-full border-gray-300 focus:border-[#CBA35C] focus:ring-[#CBA35C] rounded-md shadow-sm"
+                                        v-model="form.category"
+                                        required
+                                    >
+                                        <option v-for="(subs, cat) in subcategories" :key="cat" :value="cat">{{ cat }}</option>
+                                    </select>
+                                    <InputError class="mt-2" :message="form.errors.category" />
+                                </div>
+
+                                <!-- Subcategory -->
+                                <div>
+                                    <InputLabel for="subcategory" value="Medium / Style" />
+                                    <select
+                                        id="subcategory"
+                                        class="mt-1 block w-full border-gray-300 focus:border-[#CBA35C] focus:ring-[#CBA35C] rounded-md shadow-sm disabled:bg-gray-100"
+                                        v-model="form.subcategory"
+                                        :disabled="availableSubcategories.length === 0"
+                                    >
+                                        <option value="" disabled>Select Subcategory</option>
+                                        <option v-for="sub in availableSubcategories" :key="sub" :value="sub">{{ sub }}</option>
+                                    </select>
+                                    <InputError class="mt-2" :message="form.errors.subcategory" />
+                                </div>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <!-- Framing -->
+                                <div>
+                                    <InputLabel for="framing" value="Framing Status" />
+                                    <select
+                                        id="framing"
+                                        class="mt-1 block w-full border-gray-300 focus:border-[#CBA35C] focus:ring-[#CBA35C] rounded-md shadow-sm"
+                                        v-model="form.framing"
+                                    >
+                                        <option>Unframed</option>
+                                        <option>Framed</option>
+                                        <option>Gallery Wrap</option>
+                                    </select>
+                                    <InputError class="mt-2" :message="form.errors.framing" />
+                                </div>
+
+                                <!-- Ready to Hang -->
+                                <div class="flex items-center pt-8">
+                                    <label class="flex items-center">
+                                        <Checkbox name="ready_to_hang" v-model:checked="form.ready_to_hang" />
+                                        <span class="ml-2 text-sm text-gray-600">Ready to Hang?</span>
+                                    </label>
+                                    <InputError class="mt-2" :message="form.errors.ready_to_hang" />
+                                </div>
                             </div>
 
+                            <!-- Dimensions -->
+                            <div>
+                                <h3 class="font-bold text-gray-700 text-sm mb-3 uppercase tracking-wider">Dimensions</h3>
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    <div>
+                                        <InputLabel for="width" value="Width" />
+                                        <TextInput id="width" type="number" step="0.1" class="mt-1 block w-full" v-model="form.width" placeholder="Width" required />
+                                        <InputError class="mt-2" :message="form.errors.width" />
+                                    </div>
+                                    <div>
+                                        <InputLabel for="height" value="Height" />
+                                        <TextInput id="height" type="number" step="0.1" class="mt-1 block w-full" v-model="form.height" placeholder="Height" required />
+                                        <InputError class="mt-2" :message="form.errors.height" />
+                                    </div>
+                                    <div>
+                                        <InputLabel for="depth" value="Depth (Optional)" />
+                                        <TextInput id="depth" type="number" step="0.1" class="mt-1 block w-full" v-model="form.depth" placeholder="Depth" />
+                                        <InputError class="mt-2" :message="form.errors.depth" />
+                                    </div>
+                                    <div>
+                                        <InputLabel for="unit" value="Unit" />
+                                        <select id="unit" class="mt-1 block w-full border-gray-300 focus:border-[#CBA35C] focus:ring-[#CBA35C] rounded-md shadow-sm" v-model="form.unit">
+                                            <option value="cm">cm</option>
+                                            <option value="in">inches</option>
+                                        </select>
+                                        <InputError class="mt-2" :message="form.errors.unit" />
+                                    </div>
+                                </div>
+                            </div>
+                            
                              <!-- Price -->
                              <div>
                                 <InputLabel for="price" value="Price (₱)" />

@@ -40,16 +40,19 @@ const handleCheckout = () => {
                     <div class="md:col-span-2 space-y-4">
                         <div v-for="item in cart.items" :key="item.id" class="bg-white p-4 rounded-xl shadow-sm flex gap-4 items-center">
                             <div class="w-24 h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-                                <img :src="item.image_url || '/images/placeholder-art.jpg'" :alt="item.title" class="w-full h-full object-cover">
+                                <img 
+                                    :src="item.image_url || '/images/placeholder-art.jpg'" 
+                                    :alt="item.title" 
+                                    class="w-full h-full object-cover"
+                                    @error="$event.target.src = '/images/placeholder-art.jpg'"
+                                >
                             </div>
                             <div class="flex-grow">
                                 <h3 class="font-bold text-[#1A1A1A]">{{ item.title }}</h3>
                                 <p class="text-sm text-gray-500">₱{{ item.price }}</p>
                             </div>
                             <div class="flex items-center gap-3">
-                                <button @click="updateQuantity(item.id, item.quantity - 1)" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center">-</button>
-                                <span class="font-medium w-4 text-center">{{ item.quantity }}</span>
-                                <button @click="updateQuantity(item.id, item.quantity + 1)" class="w-8 h-8 rounded-full bg-gray-100 hover:bg-gray-200 flex items-center justify-center">+</button>
+                                <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Qty: 1</span>
                             </div>
                             <button @click="removeFromCart(item.id)" class="text-red-500 hover:text-red-700 ml-4">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

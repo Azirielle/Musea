@@ -25,6 +25,34 @@ class ProfileController extends Controller
     }
 
     /**
+     * Display the user's favorite artworks.
+     */
+    public function favorites(Request $request): Response
+    {
+        $favorites = $request->user()->likes()
+            ->with('artist')
+            ->latest('likes.created_at')
+            ->get()
+            ->map(function ($artwork) {
+                return [
+                    'id' => $artwork->id,
+                    'title' => $artwork->title,
+                    'artist' => $artwork->artist ? $artwork->artist->first_name . ' ' . $artwork->artist->last_name : 'Musea Artist',
+                    'price' => number_format((float) $artwork->price, 0),
+                    'image_url' => $artwork->image_url,
+                    'category' => $artwork->category,
+                    'status' => $artwork->status,
+                    'stock' => $artwork->stock,
+                    'is_sold_out' => $artwork->stock <= 0,
+                ];
+            });
+
+        return Inertia::render('Profile/Favorites', [
+            'favorites' => $favorites,
+        ]);
+    }
+
+    /**
      * Update the user's profile information.
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse

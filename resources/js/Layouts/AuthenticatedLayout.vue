@@ -46,14 +46,27 @@ const showingNavigationDropdown = ref(false);
                                 >
                                     My Artworks
                                 </NavLink>
+                                <NavLink
+                                    :href="route('dashboard.wallet')"
+                                    :active="route().current('dashboard.wallet')"
+                                >
+                                    My Wallet
+                                </NavLink>
+                                <NavLink
+                                    :href="route('messages.index')"
+                                    :active="route().current('messages.*')"
+                                >
+                                    Messages
+                                    <span v-if="$page.props.auth.unreadMessagesCount > 0" class="ml-1 px-1.5 py-0.5 text-[10px] bg-accent text-white rounded-full">
+                                        {{ $page.props.auth.unreadMessagesCount }}
+                                    </span>
+                                </NavLink>
                             </div>
                         </div>
 
                         <div class="hidden sm:ms-6 sm:flex sm:items-center">
                             <!-- Notification Bell -->
-                            <div class="relative ms-3">
-                                <NotificationBell />
-                            </div>
+                            <!-- Notification Bell Removed -->
 
                             <!-- Settings Dropdown -->
                             <div class="relative ms-3">
@@ -64,11 +77,16 @@ const showingNavigationDropdown = ref(false);
                                                 type="button"
                                                 class="inline-flex items-center rounded-md border border-transparent bg-paper px-3 py-2 text-sm font-medium leading-4 text-ink-light transition duration-150 ease-in-out hover:text-ink focus:outline-none"
                                             >
-                                            <img
-                                                class="h-8 w-8 rounded-full object-cover me-2"
-                                                :src="$page.props.auth.user.avatar_path || 'https://ui-avatars.com/api/?name=' + $page.props.auth.user.first_name + '+' + $page.props.auth.user.last_name + '&color=7F9CF5&background=EBF4FF'"
-                                                :alt="$page.props.auth.user.first_name"
-                                            />
+                                            <div class="relative h-8 w-8 me-2">
+                                                <img
+                                                    class="h-8 w-8 rounded-full object-cover"
+                                                    :src="$page.props.auth.user.avatar_path || 'https://ui-avatars.com/api/?name=' + $page.props.auth.user.first_name + '+' + $page.props.auth.user.last_name + '&color=7F9CF5&background=EBF4FF'"
+                                                    :alt="$page.props.auth.user.first_name"
+                                                />
+                                                <div v-if="$page.props.auth.unreadCount > 0" class="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center ring-2 ring-white">
+                                                    {{ $page.props.auth.unreadCount }}
+                                                </div>
+                                            </div>
                                             {{ $page.props.auth.user.first_name }}
 
                                             <svg
@@ -93,10 +111,43 @@ const showingNavigationDropdown = ref(false);
                                         >
                                             Profile
                                         </DropdownLink>
+                                        <div class="border-t border-gray-100 dark:border-gray-600"></div>
+                                        <div class="px-4 py-2 text-xs text-gray-400">
+                                            Notifications
+                                        </div>
+                                         <div v-if="$page.props.auth.notifications.length === 0" class="px-4 py-2 text-sm text-gray-500 italic">
+                                            No new notifications
+                                        </div>
+                                        <template v-else>
+                                            <DropdownLink 
+                                                v-for="notification in $page.props.auth.notifications" 
+                                                :key="notification.id"
+                                                :href="route('notifications.read', notification.id)"
+                                                method="post"
+                                                :data="{ redirect_to: notification.data.action_url }"
+                                                as="button"
+                                                class="flex flex-col gap-1 border-b border-gray-50 last:border-0 text-left w-full"
+                                            >
+                                                <span class="font-bold text-xs">{{ notification.data.title }}</span>
+                                                <span class="text-[10px] opacity-80 truncate">{{ notification.data.message }}</span>
+                                            </DropdownLink>
+                                        </template>
+                                        <div class="border-t border-gray-100 dark:border-gray-600"></div>
+                                        
                                         <DropdownLink
                                             :href="route('dashboard.artworks.index')"
                                         >
                                             My Artworks
+                                        </DropdownLink>
+                                        <DropdownLink
+                                            :href="route('dashboard.wallet')"
+                                        >
+                                            My Wallet
+                                        </DropdownLink>
+                                        <DropdownLink
+                                            :href="route('messages.index')"
+                                        >
+                                            Messages
                                         </DropdownLink>
                                         <DropdownLink
                                             :href="route('logout')"
@@ -167,6 +218,18 @@ const showingNavigationDropdown = ref(false);
                             :active="route().current('home')"
                         >
                             Dashboard
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            :href="route('dashboard.wallet')"
+                            :active="route().current('dashboard.wallet')"
+                        >
+                            My Wallet
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink
+                            :href="route('messages.index')"
+                            :active="route().current('messages.*')"
+                        >
+                            Messages
                         </ResponsiveNavLink>
                     </div>
 

@@ -11,16 +11,28 @@ class Artwork extends Model
         'title',
         'description',
         'category',
+        'subcategory',
+        'ready_to_hang',
+        'framing',
         'price',
         'stock',
         'status',
         'image_url',
+        'original_image_url',
         'is_staff_pick',
+        'orientation',
+        'width',
+        'height',
+        'depth',
+        'unit',
     ];
 
     protected $casts = [
         'is_staff_pick' => 'boolean',
+        'ready_to_hang' => 'boolean',
         'price' => 'decimal:2',
+        'category' => \App\Enums\ArtworkCategory::class,
+        'subcategory' => \App\Enums\ArtworkSubcategory::class,
     ];
 
     public function artist()
@@ -30,6 +42,10 @@ class Artwork extends Model
 
     public function getImageUrlAttribute($value)
     {
+        if (!$value) {
+            return '/images/placeholder-art.jpg';
+        }
+
         if (str_starts_with($value, 'http')) {
             return $value;
         }
@@ -37,13 +53,13 @@ class Artwork extends Model
         // Clean up leading slashes
         $value = ltrim($value, '/');
 
-        // If it already starts with storage/, just return it
+        // If it starts with storage/, just return with a leading slash
         if (str_starts_with($value, 'storage/')) {
-            return asset($value);
+            return '/' . $value;
         }
 
-        // Otherwise prepend storage/
-        return asset('storage/' . $value);
+        // Otherwise prepend /storage/
+        return '/storage/' . $value;
     }
 
     public function likes()

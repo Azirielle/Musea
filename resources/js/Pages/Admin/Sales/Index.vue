@@ -18,7 +18,10 @@ const form = useForm({
 const openShipModal = (order) => {
     selectedOrder.value = order;
     form.courier = '';
-    form.tracking_number = '';
+    // Auto-generate tracking number: TRK-{timestamp}-{random}
+    const timestamp = Date.now().toString().slice(-6);
+    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    form.tracking_number = `TRK-${timestamp}-${random}`;
     showModal.value = true;
 };
 

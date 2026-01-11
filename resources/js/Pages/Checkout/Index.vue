@@ -2,7 +2,7 @@
 import { ref, computed } from 'vue';
 import Swal from 'sweetalert2';
 import { Head, Link, usePage } from '@inertiajs/vue3';
-import MainLayout from '@/Layouts/MainLayout.vue';
+import CheckoutLayout from '@/Layouts/CheckoutLayout.vue'; // Changed Layout
 import PaymentSelector from './Partials/PaymentSelector.vue';
 import GCashModal from './Partials/GCashModal.vue';
 import PayPalModal from './Partials/PayPalModal.vue';
@@ -13,15 +13,16 @@ import ContactModal from './Partials/ContactModal.vue';
 import { useCart } from '@/composables/useCart';
 
 const { cart, clearCart } = useCart();
-const page = usePage(); // Fix: usePage() was not imported but used in original template, better to import
+const page = usePage();
 
 const currentStep = ref('selection'); // selection, verification, processing, success
 const selectedPaymentMethod = ref('');
 const showGCashModal = ref(false);
 const showPayPalModal = ref(false);
 const showBankModal = ref(false);
-const showContactModal = ref(false); // New State
+const showContactModal = ref(false);
 const orderId = ref('');
+const showMobileSummary = ref(false); // Mobile toggle state
 
 const contactInfo = ref({
     name: page.props.auth.user.first_name + ' ' + page.props.auth.user.last_name,
@@ -77,11 +78,7 @@ const handlePaymentSelect = (methodId) => {
 import { router } from '@inertiajs/vue3';
 
 const handleContactSave = (newData) => {
-    // Split name into first and last name for the backend
     const nameParts = newData.name.trim().split(' ');
-    const firstName = nameParts.current ? nameParts[0] : newData.name;
-    // Handle cases with multiple names correctly or just simple split
-    // Simple split:
     const fName = nameParts.shift();
     const lName = nameParts.join(' ');
 
@@ -122,7 +119,6 @@ const processPayment = () => {
 
     currentStep.value = 'processing';
 
-    // Prepare data for backend
     const orderData = {
         items: cart.items.map(item => ({
             id: item.id,
@@ -137,14 +133,6 @@ const processPayment = () => {
         coupon_code: appliedCoupon.value
     };
 
-    // Use axios or Inertia form helper. Since we are in a method, axios might be cleaner for non-navigation POST,
-    // but Inertia is standard. Let's use axios if available, or just fetch/router.
-    // Actually, router.post causes navigation. We want to show success modal on SAME page.
-    // So axios is better. Check if axios is available. Usually Laravel + Vue has axios.
-    // If not, use fetch.
-    
-    // We will use axios (assuming it is globally available or we import it).
-    // If not, we fall back to fetch. Let's try axios first, standard in Laravel.
     axios.post(route('checkout.store'), orderData)
         .then(response => {
             orderId.value = response.data.order_id;
@@ -159,17 +147,65 @@ const processPayment = () => {
                 text: error.response?.data?.message || 'Unknown error',
                 confirmButtonColor: '#1A1A1A'
             });
-            currentStep.value = 'selection'; // Go back
+            currentStep.value = 'selection';
         });
 };
 </script>
 
 <template>
     <Head title="Checkout" />
-    <MainLayout :withHeaderPadding="true">
-        <div class="bg-[#FAFAFA] min-h-screen pb-20">
-            <div class="max-w-4xl mx-auto px-6 py-10">
-                <div class="flex items-center gap-2 text-sm text-gray-500 mb-8">
+    <CheckoutLayout>
+        <div class="bg-[#FAFAFA] min-h-screen pb-32 md:pb-20"> <!-- Increased bottom padding for sticky bar -->
+            
+            <!-- Mobile Collapsible Summary -->
+            <div class="md:hidden bg-gray-50 border-b border-gray-200">
+                <button 
+                    @click="showMobileSummary = !showMobileSummary"
+                    class="w-full px-6 py-4 flex items-center justify-between text-sm"
+                >
+                    <div class="flex items-center gap-2 text-accent">
+                        <span class="font-medium">Show order summary</span>
+                        <svg class="w-4 h-4 transition-transform duration-200" :class="{ 'rotate-180': showMobileSummary }" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                    <span class="font-bold text-lg">₱{{ total.toLocaleString() }}</span>
+                </button>
+                
+                <div v-show="showMobileSummary" class="px-6 py-4 border-t border-gray-200 bg-white space-y-4">
+                    <!-- Mobile Cart Items -->
+                    <div class="space-y-4 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                        <div v-for="item in cart.items" :key="item.id" class="flex gap-3">
+                            <div class="w-16 h-16 bg-gray-100 rounded-md overflow-hidden flex-shrink-0 border border-gray-200">
+                                    <img :src="item.image_url || '/images/placeholder-art.jpg'" class="w-full h-full object-cover">
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm font-medium line-clamp-2 text-ink">{{ item.title }}</p>
+                                <p class="text-xs text-ink-light">Qty: {{ item.quantity }}</p>
+                            </div>
+                            <p class="text-sm font-medium">₱{{ (item.price * item.quantity).toLocaleString() }}</p>
+                        </div>
+                    </div>
+
+                    <!-- Mobile Totals -->
+                    <div class="border-t border-gray-100 pt-4 space-y-2 text-sm text-gray-600">
+                        <div class="flex justify-between">
+                            <span>Subtotal</span>
+                            <span>₱{{ subtotal.toLocaleString() }}</span>
+                        </div>
+                        <div class="flex justify-between text-green-600" v-if="discountAmount > 0">
+                            <span>Discount</span>
+                            <span>-₱{{ discountAmount.toLocaleString() }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span>Shipping Fee</span>
+                            <span>₱{{ shipping.toLocaleString() }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="max-w-4xl mx-auto px-6 py-6 md:py-10">
+                <!-- Breadcrumb Mobile Hidden -->
+                <div class="hidden md:flex items-center gap-2 text-sm text-gray-500 mb-8">
                     <Link href="/cart" class="hover:text-black">Cart</Link>
                     <span>/</span>
                     <span class="text-black font-semibold">Checkout</span>
@@ -177,7 +213,7 @@ const processPayment = () => {
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-8 relative">
                     <!-- Left Column: Payment Details -->
-                    <div class="md:col-span-2 space-y-8">
+                    <div class="md:col-span-2 space-y-6">
                         
                         <!-- Contact Info (Editable) -->
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
@@ -187,12 +223,11 @@ const processPayment = () => {
                             </div>
                             <div class="text-gray-600 text-sm space-y-1">
                                 <p class="font-medium text-gray-900">{{ contactInfo.name }}</p>
-                                <!-- <p>{{ contactInfo.email }}</p> -->
                                 <p>{{ contactInfo.phone }}</p>
                             </div>
                         </div>
 
-                         <!-- Payment Method -->
+                            <!-- Payment Method -->
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                             <h2 class="text-lg font-bold mb-6">Payment Method</h2>
                             <PaymentSelector 
@@ -203,8 +238,8 @@ const processPayment = () => {
 
                     </div>
 
-                    <!-- Right Column: Order Summary -->
-                    <div class="md:col-span-1">
+                    <!-- Right Column: Order Summary (Desktop Only) -->
+                    <div class="hidden md:block md:col-span-1">
                         <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 sticky top-32">
                             <h2 class="text-lg font-bold mb-6">Order Summary</h2>
                             
@@ -212,7 +247,7 @@ const processPayment = () => {
                             <div class="space-y-4 mb-6 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
                                 <div v-for="item in cart.items" :key="item.id" class="flex gap-3">
                                     <div class="w-16 h-16 bg-gray-100 rounded-md overflow-hidden flex-shrink-0">
-                                         <img :src="item.image_url || '/images/placeholder-art.jpg'" class="w-full h-full object-cover">
+                                            <img :src="item.image_url || '/images/placeholder-art.jpg'" class="w-full h-full object-cover">
                                     </div>
                                     <div class="flex-1">
                                         <p class="text-sm font-medium line-clamp-2">{{ item.title }}</p>
@@ -281,6 +316,21 @@ const processPayment = () => {
                 </div>
             </div>
         </div>
+        
+        <!-- Sticky Bottom Bar (Mobile Only) -->
+        <div class="md:hidden fixed bottom-0 left-0 w-full bg-white border-t border-gray-200 p-4 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-40 flex items-center gap-4">
+            <div class="flex-1">
+                <p class="text-xs text-gray-500 uppercase font-bold tracking-wide">Total</p>
+                <p class="text-lg font-bold text-gray-900">₱{{ total.toLocaleString() }}</p>
+            </div>
+            <button 
+                @click="proceedToPayment"
+                class="flex-1 bg-[#1A1A1A] text-white font-bold py-3.5 rounded-xl hover:bg-black transition-all shadow-lg active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100"
+                :disabled="!selectedPaymentMethod"
+            >
+                Place Order
+            </button>
+        </div>
 
         <!-- Modals -->
         <ContactModal 
@@ -296,7 +346,7 @@ const processPayment = () => {
         <ProcessingOverlay v-if="currentStep === 'processing'" />
         <SuccessModal v-if="currentStep === 'success'" :orderId="orderId" />
 
-    </MainLayout>
+    </CheckoutLayout>
 </template>
 
 <style scoped>

@@ -10,7 +10,17 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        // Table already exists, handled manually
+        Schema::create('journal_posts', function (Blueprint $table) {
+            $table->id();
+            $table->string('title');
+            $table->string('slug')->unique();
+            $table->text('excerpt')->nullable();
+            $table->longText('content');
+            $table->string('image_url')->nullable();
+            $table->foreignId('author_id')->constrained('users');
+            $table->timestamp('published_at')->nullable();
+            $table->timestamps();
+        });
     }
 
     /**

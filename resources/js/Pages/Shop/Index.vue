@@ -1,130 +1,207 @@
 <script setup>
 import { Head, Link, usePage, router } from '@inertiajs/vue3';
 import MainLayout from '@/Layouts/MainLayout.vue';
+import FilterSidebar from '@/Components/Shop/FilterSidebar.vue';
+import UserBadge from '@/Components/UserBadge.vue';
 import { ref, watch } from 'vue';
+import { useCart } from '@/composables/useCart';
 
 const props = defineProps({
     artworks: Object,
-    filters: Object
+    filters: Object,
+    recommendations: { type: Array, default: () => [] },
+    artists: { type: Array, default: () => [] },
 });
 
-const search = ref(props.filters.search || '');
-const category = ref(props.filters.category || '');
+const { addToCart } = useCart();
 
-// Debounce search
-let timeout;
-const handleSearch = () => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => {
-        router.get('/shop', { search: search.value, category: category.value }, { preserveState: true, replace: true });
-    }, 300);
+
+// Filters State
+const currentFilters = ref({ ...props.filters });
+const sidebarContainer = ref(null);
+
+
+// Sorting
+const sortBy = ref(props.filters.sort || 'newest');
+
+const updateFilters = (newFilters) => {
+    currentFilters.value = { ...currentFilters.value, ...newFilters };
+    applyParams();
 };
 
-const filterCategory = (cat) => {
-    category.value = cat;
-    router.get('/shop', { search: search.value, category: category.value }, { preserveState: true, replace: true });
-}
+const handleSort = () => {
+    applyParams();
+};
 
-import { useCart } from '@/composables/useCart';
-const { addToCart } = useCart();
+const applyParams = () => {
+    router.get('/shop', { 
+        ...currentFilters.value, 
+        sort: sortBy.value 
+    }, { 
+        preserveState: true, 
+        preserveScroll: true,
+        replace: true 
+    });
+};
+
 </script>
 
 <template>
     <Head title="Shop Artworks" />
     <MainLayout>
-        <div class="pb-12 px-6 bg-canvas">
-            <div class="max-w-7xl mx-auto">
-                <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4">
-                    <h1 class="text-4xl font-bold text-[#1A1A1A]">Shop Artworks</h1>
+        <div class="bg-canvas min-h-screen pb-20 pt-10">
+            <div class="max-w-[1400px] mx-auto px-6">
+                
+                <!-- Page Header -->
+                <div class="flex flex-col md:flex-row justify-between items-end mb-12 gap-6">
+                    <div>
+                        <p class="text-xs font-bold tracking-[0.2em] text-ink-light uppercase mb-2">The Collection</p>
+                        <h1 class="text-4xl md:text-5xl font-serif font-bold text-ink italic">Discover Masterpieces</h1>
+                    </div>
                     
-                    <div class="flex gap-4 w-full md:w-auto">
-                        <input 
-                            v-model="search" 
-                            @input="handleSearch"
-                            type="text" 
-                            placeholder="Search artworks..." 
-                            class="px-4 py-2 border border-divider rounded-lg focus:outline-none focus:border-accent w-full md:w-64"
-                        >
-                        <select v-model="category" @change="handleSearch" class="px-4 py-2 border border-divider rounded-lg focus:outline-none focus:border-accent">
-                            <option value="">All Categories</option>
-                            <option value="Painting">Painting</option>
-                            <option value="Sculpture">Sculpture</option>
-                            <option value="Canvas">Canvas</option>
-                            <option value="Drawing">Drawing</option>
-                            <option value="Vase">Vase</option>
-                        </select>
+                    <!-- Sort Dropdown -->
+                    <div class="flex items-center gap-4">
+                        <span class="text-sm font-medium text-ink-light">Sort by:</span>
+                        <div class="relative group">
+                            <select 
+                                v-model="sortBy"
+                                @change="handleSort"
+                                class="appearance-none bg-white border border-divider rounded-lg px-4 py-2 pr-8 text-sm font-bold text-ink focus:outline-none focus:border-accent cursor-pointer transition-colors hover:border-ink/30"
+                            >
+                                <option value="newest">Newest Arrivals</option>
+                                <option value="price_asc">Price: Low to High</option>
+                                <option value="price_desc">Price: High to Low</option>
+                            </select>
+                            <svg class="w-4 h-4 text-ink absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                        </div>
                     </div>
                 </div>
 
-                <div v-if="artworks.data.length === 0" class="text-center py-20 text-gray-500">
-                    No artworks found matching your criteria.
-                </div>
+                <div class="flex flex-col lg:flex-row gap-12">
+                    <!-- Sidebar -->
+                    <aside class="w-full lg:w-64 flex-shrink-0">
+                        <div class="lg:sticky lg:top-32 bg-white rounded-xl shadow-sm border border-divider">
+                             <div 
+                                ref="sidebarContainer"
+                                class="max-h-[calc(100vh-140px)] overflow-y-auto custom-scrollbar p-6"
+                            >
+                                <FilterSidebar 
+                                    :filters="filters" 
+                                    :artists="artists" 
+                                    @update="updateFilters" 
+                                />
 
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                    <div v-for="artwork in artworks.data" :key="artwork.id" class="group relative">
-                        <Link :href="route('shop.show', artwork.id)" class="block bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition duration-300">
-                            <div class="aspect-square bg-gray-200 overflow-hidden relative">
-                                <img 
-                                    :src="artwork.image_url || 'https://placehold.co/800x600/f3f4f6/1a1a1a?text=Musea+Artwork'" 
-                                    :alt="artwork.title" 
-                                    loading="lazy"
-                                    decoding="async"
-                                    class="w-full h-full object-cover transition duration-500 group-hover:scale-105 will-change-transform"
-                                    :class="{'grayscale opacity-60': artwork.stock <= 0}"
-                                    @error="$event.target.src = 'https://placehold.co/800x600/f3f4f6/1a1a1a?text=Musea+Artwork'"
+                                <!-- Back to Top Button for Sidebar -->
+                                <button 
+                                    @click="sidebarContainer.scrollTo({ top: 0, behavior: 'smooth' })"
+                                    class="w-full mt-8 flex items-center justify-center gap-2 py-3 rounded-lg text-xs font-bold text-ink-light uppercase tracking-wider hover:bg-canvas hover:text-ink transition-colors"
                                 >
-                                
-                                <div v-if="artwork.stock <= 0" class="absolute inset-0 flex items-center justify-center bg-black/5">
-                                    <span class="bg-white/90 backdrop-blur px-6 py-2 rounded-full text-sm font-black tracking-widest text-[#1A1A1A] shadow-xl border border-zinc-200 uppercase">
-                                        Sold Out
-                                    </span>
-                                </div>
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path></svg>
+                                    Back to Top
+                                </button>
+                            </div>
+                        </div>
+                    </aside>
 
-                                <div v-if="$page.props.auth.user" class="absolute bottom-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-sm font-bold text-[#1A1A1A]">
-                                    ₱{{ artwork.price }}
-                                </div>
-                            </div>
-                            
-                            <div class="p-4 relative">
-                                <div>
-                                    <h3 class="font-bold text-lg text-[#1A1A1A] truncate">{{ artwork.title }}</h3>
-                                    <p class="text-sm text-gray-500 mb-2">{{ artwork.artist ? artwork.artist.first_name + ' ' + artwork.artist.last_name : 'Unknown Artist' }}</p>
-                                    <div class="flex justify-between items-center">
-                                        <span class="text-xs bg-zinc-100 px-2 py-1 rounded text-ink-light">{{ artwork.category }}</span>
-                                        <span v-if="artwork.stock > 0" class="text-xs text-green-600 font-medium">In Stock</span>
-                                        <span v-else class="text-xs text-red-500 font-medium">Sold Out</span>
+                    <!-- Main Grid -->
+                    <div class="flex-1">
+                        <!-- Active Filters Tags (Optional enhancement could go here) -->
+
+                        <div v-if="artworks.data.length === 0" class="text-center py-32 bg-white rounded-3xl border border-dashed border-divider">
+                            <svg class="w-12 h-12 mx-auto text-ink-light mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <p class="text-ink text-lg font-medium">No artworks found.</p>
+                            <p class="text-sm text-ink-light">Try adjusting your filters.</p>
+                            <button @click="updateFilters({ search: '', category: [], subcategory: [], framing: [], ready_to_hang: false, price_min: null, price_max: null, artist_id: [], orientation: [] })" class="mt-4 text-accent hover:underline text-sm font-bold">Clear all filters</button>
+                        </div>
+
+                        <div v-else class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-x-8 gap-y-12">
+                            <div v-for="artwork in artworks.data" :key="artwork.id" class="group">
+                                <Link :href="route('shop.show', artwork.id)" class="block relative aspect-[4/5] bg-gray-100 overflow-hidden rounded-sm mb-4">
+                                    <img 
+                                        :src="artwork.image_url" 
+                                        loading="lazy" 
+                                        class="w-full h-full object-cover transition duration-700 group-hover:scale-105 will-change-transform"
+                                        :class="{'grayscale opacity-50': artwork.stock <= 0}"
+                                    >
+                                    
+                                    <!-- Badges -->
+                                    <div class="absolute top-4 left-4 flex flex-col gap-2">
+                                        <span v-if="artwork.stock <= 0" class="px-3 py-1 bg-white/90 backdrop-blur text-[10px] font-bold tracking-widest uppercase border border-ink/10">Sold Out</span>
+                                        <span v-if="artwork.is_staff_pick" class="px-3 py-1 bg-accent text-white text-[10px] font-bold tracking-widest uppercase shadow-lg">Staff Pick</span>
                                     </div>
+
+                                    <!-- Quick Actions Overlay -->
+                                    <div class="absolute inset-0 bg-ink/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-4">
+                                        <button 
+                                            v-if="artwork.stock > 0"
+                                            @click.prevent="addToCart(artwork)"
+                                            class="bg-white text-ink w-12 h-12 rounded-full flex items-center justify-center hover:bg-accent hover:text-white transition-all shadow-xl transform translate-y-4 group-hover:translate-y-0 duration-300"
+                                            title="Add to Cart"
+                                        >
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                                        </button>
+                                        <button class="bg-white text-ink w-12 h-12 rounded-full flex items-center justify-center hover:bg-accent hover:text-white transition-all shadow-xl transform translate-y-4 group-hover:translate-y-0 duration-300 delay-75" title="Quick View">
+                                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                                        </button>
+                                    </div>
+                                </Link>
+
+                                <div class="space-y-1">
+                                    <div class="flex justify-between items-start">
+                                        <h3 class="font-serif font-bold text-lg text-ink truncate pr-4 group-hover:text-accent transition-colors"><Link :href="route('shop.show', artwork.id)">{{ artwork.title }}</Link></h3>
+                                        <span class="font-black text-ink whitespace-nowrap">₱{{ artwork.price }}</span>
+                                    </div>
+                                    <Link :href="route('artists.show', artwork.artist_id)" class="text-sm text-ink-light hover:text-ink transition-colors flex items-center">
+                                        {{ artwork.artist ? artwork.artist.first_name + ' ' + artwork.artist.last_name : 'Unknown Artist' }}
+                                        <UserBadge v-if="artwork.artist" :role="artwork.artist.role" :is-verified="!!artwork.artist.is_verified" />
+                                    </Link>
+                                    <p class="text-xs text-ink-light/60 uppercase tracking-wider">{{ artwork.category }} • {{ artwork.orientation || 'Variable' }}</p>
                                 </div>
                             </div>
-                        </Link>
-                        
-                        <!-- Add to Cart (Overlay on hover for desktop, or visible) -->
-                        <button 
-                            v-if="artwork.stock > 0"
-                            @click.prevent="addToCart(artwork)"
-                            class="absolute top-4 right-4 bg-accent text-white p-2 rounded-full shadow-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 hover:bg-black"
-                            title="Add to Cart"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                            </svg>
-                        </button>
+                        </div>
+
+                        <!-- Pagination -->
+                         <div class="mt-20 border-t border-divider pt-12 flex justify-center" v-if="artworks.links.length > 3">
+                             <div class="flex gap-2">
+                                <template v-for="(link, k) in artworks.links" :key="k">
+                                    <Link 
+                                        v-if="link.url" 
+                                        :href="link.url" 
+                                        v-html="link.label"
+                                        class="w-10 h-10 flex items-center justify-center rounded-full text-sm font-bold transition-all"
+                                        :class="{'bg-ink text-white shadow-lg': link.active, 'bg-white text-ink-light hover:bg-gray-100 hover:text-ink': !link.active}"
+                                    />
+                                    <span v-else v-html="link.label" class="w-10 h-10 flex items-center justify-center text-ink-light/40 text-sm"></span>
+                                 </template>
+                             </div>
+                        </div>
                     </div>
                 </div>
 
-                <!-- Pagination -->
-                <div class="mt-12 flex justify-center gap-2" v-if="artworks.links.length > 3">
-                     <template v-for="(link, k) in artworks.links" :key="k">
-                        <Link 
-                            v-if="link.url" 
-                            :href="link.url" 
-                            v-html="link.label"
-                            class="px-4 py-2 rounded-lg border text-sm font-medium transition"
-                            :class="{'bg-accent text-white border-accent': link.active, 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300': !link.active}"
-                        />
-                        <span v-else v-html="link.label" class="px-4 py-2 text-gray-400 text-sm"></span>
-                     </template>
+                <!-- Recommendations Section -->
+                <div v-if="recommendations.length > 0" class="mt-32 border-t border-divider pt-20">
+                    <div class="flex items-center gap-4 mb-12">
+                        <span class="w-12 h-px bg-accent"></span>
+                        <h2 class="text-2xl font-serif font-bold italic text-ink">We Thought You'd Like These</h2>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+                        <Link v-for="rec in recommendations" :key="rec.id" :href="route('shop.show', rec.id)" class="group block">
+                            <div class="aspect-square bg-gray-100 overflow-hidden rounded-2xl mb-4 relative">
+                                <img 
+                                    :src="rec.image_url" 
+                                    class="w-full h-full object-cover transition duration-500 group-hover:scale-110 opacity-90 group-hover:opacity-100"
+                                >
+                                <div class="absolute bottom-4 left-4 bg-white/90 backdrop-blur px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm">
+                                    Recommended
+                                </div>
+                            </div>
+                            <h4 class="font-bold text-ink group-hover:text-accent">{{ rec.title }}</h4>
+                            <p class="text-xs text-ink-light mt-1">₱{{ rec.price }}</p>
+                        </Link>
+                    </div>
                 </div>
+
             </div>
         </div>
     </MainLayout>

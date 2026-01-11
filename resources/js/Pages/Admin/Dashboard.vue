@@ -2,8 +2,11 @@
 import AdminLayout from '@/Layouts/AdminLayout.vue';
 import { Head, Link } from '@inertiajs/vue3';
 
+import SalesChart from '@/Components/Charts/SalesChart.vue';
+
 defineProps({
     stats: Object,
+    charts: Object,
 });
 </script>
 
@@ -59,7 +62,7 @@ defineProps({
                 </div>
             </div>
 
-             <!-- Pending Approvals -->
+            <!-- Pending Approvals -->
             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow sm:rounded-lg p-6">
                  <div class="flex items-center">
                     <div class="p-3 rounded-full bg-yellow-100 text-yellow-600 dark:bg-yellow-900 dark:text-yellow-300">
@@ -74,6 +77,102 @@ defineProps({
                 </div>
                 <div class="mt-4">
                      <Link :href="route('admin.approvals.index')" class="text-sm text-indigo-600 hover:text-indigo-900">View Queue &rarr;</Link>
+                </div>
+            </div>
+
+            <!-- Pending Withdrawals -->
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow sm:rounded-lg p-6">
+                 <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-orange-100 text-orange-600 dark:bg-orange-900 dark:text-orange-300">
+                        <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Pending Withdrawals</p>
+                        <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.pendingWithdrawals || 0 }}</p>
+                    </div>
+                </div>
+                <div class="mt-4">
+                     <Link :href="route('admin.withdrawals.index')" class="text-sm text-indigo-600 hover:text-indigo-900">View Requests &rarr;</Link>
+                </div>
+            </div>
+
+             <!-- Active Artists -->
+             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow sm:rounded-lg p-6">
+                 <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-teal-100 text-teal-600 dark:bg-teal-900 dark:text-teal-300">
+                        <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Active Artists</p>
+                        <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.activeArtists || 0 }}</p>
+                    </div>
+                </div>
+                 <div class="mt-4">
+                     <Link :href="route('admin.users.index')" class="text-sm text-indigo-600 hover:text-indigo-900">Manage Users &rarr;</Link>
+                </div>
+            </div>
+
+            <!-- Pending Verifications -->
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow sm:rounded-lg p-6">
+                 <div class="flex items-center">
+                    <div class="p-3 rounded-full bg-indigo-100 text-indigo-600 dark:bg-indigo-900 dark:text-indigo-300">
+                        <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Verification Requests</p>
+                        <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.pendingVerifications || 0 }}</p>
+                    </div>
+                </div>
+                 <div class="mt-4">
+                     <Link :href="route('admin.verifications.index')" class="text-sm text-indigo-600 hover:text-indigo-900">Review Applications &rarr;</Link>
+                </div>
+            </div>
+            
+        </div>
+
+        <!-- Analytics Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8" v-if="charts">
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow sm:rounded-lg p-6">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Monthly Sales Revenue</h3>
+                <div class="h-64">
+                    <SalesChart 
+                        type="line"
+                        :data="{
+                            labels: charts.monthlySales.map(item => item.month),
+                            datasets: [{
+                                label: 'Revenue',
+                                data: charts.monthlySales.map(item => item.total),
+                                borderColor: '#818cf8',
+                                backgroundColor: '#818cf8',
+                                tension: 0.4
+                            }]
+                        }"
+                    />
+                </div>
+            </div>
+
+            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow sm:rounded-lg p-6">
+                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-4">Sales by Category</h3>
+                <div class="h-64">
+                    <SalesChart 
+                        type="doughnut"
+                        :data="{
+                            labels: charts.categorySales.map(item => item.category),
+                            datasets: [{
+                                data: charts.categorySales.map(item => item.total),
+                                backgroundColor: [
+                                    '#f87171', '#fb923c', '#fbbf24', '#a3e635', 
+                                    '#34d399', '#22d3ee', '#818cf8', '#e879f9'
+                                ]
+                            }]
+                        }"
+                    />
                 </div>
             </div>
         </div>

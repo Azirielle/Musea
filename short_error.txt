@@ -1,0 +1,1 @@
+SQLSTATE[HY000]: General error: 1 table artworks has no column named ready_to_hang (Connection: sqlite, SQL: insert into "artworks" ("artist_id", "title", "description", "price", "stock", "status", "category", "subcategory", "ready_to_hang", "updated_at", "created_at") values (1, With RTH, Desc, 100, 1, active, Painting, Oil, 1, 2026-01-07 10:37:42, 2026-01-07 10:37:42))

@@ -17,86 +17,83 @@ const hoveredArtist = ref(null);
 </script>
 
 <template>
-    <section class="py-20 px-6">
-        <div class="max-w-7xl mx-auto">
-            <h2 class="text-4xl font-black mb-16 text-center text-charcoal">Meet the Community</h2>
+    <section class="py-20 bg-zinc-50 border-y border-zinc-200">
+        <div class="max-w-7xl mx-auto px-6">
+            <h2 class="text-3xl font-bold mb-12 text-center text-[#1A1A1A]">Meet the Community</h2>
             
             <!-- Artists Horizontal Scroll -->
-            <div class="relative mb-24 group">
-                <div class="flex gap-10 overflow-x-auto pb-12 snap-x scrollbar-hide">
+            <div class="relative mb-20 group">
+                <div class="flex gap-8 overflow-x-auto pb-8 snap-x scrollbar-hide">
                     <div 
                         v-for="artist in artists" 
                         :key="artist.id" 
-                        class="relative flex-shrink-0 flex flex-col items-center gap-6 snap-center w-40 group/artist"
+                        class="relative flex-shrink-0 flex flex-col items-center gap-4 snap-center w-32"
                         @mouseenter="hoveredArtist = artist.id"
                         @mouseleave="hoveredArtist = null"
                     >
-                        <!-- Tooltip with Glass effect -->
+                        <!-- Tooltip -->
                         <div 
-                            v-if="hoveredArtist === artist.id"
-                            class="absolute -top-36 left-1/2 -translate-x-1/2 glass p-4 rounded-2xl shadow-2xl w-48 z-20 pointer-events-none transition-all duration-300 animate-fade-in-up border-white/50"
+                            v-if="hoveredArtist === artist.id && artist.bestSeller"
+                            class="absolute -top-32 left-1/2 -translate-x-1/2 bg-white p-3 rounded-xl shadow-xl w-40 z-20 pointer-events-none transition-all duration-300 animate-fade-in-up"
                         >
-                            <img :src="artist.bestSeller.image" class="w-full h-28 object-cover rounded-xl mb-3 shadow-sm" alt="">
-                            <h5 class="text-xs font-black text-center truncate text-charcoal">{{ artist.bestSeller.title }}</h5>
-                            <p class="text-[10px] text-center text-grape font-bold tracking-widest uppercase mt-1">Best Seller</p>
+                            <img :src="artist.bestSeller.image" class="w-full h-24 object-cover rounded-lg mb-2" alt="">
+                            <h5 class="text-xs font-bold text-center truncate">{{ artist.bestSeller.title }}</h5>
+                            <p class="text-[10px] text-center text-gray-500">Best Seller</p>
+                            <!-- Triangle -->
+                            <div class="absolute -bottom-2 left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45"></div>
                         </div>
 
-                        <div class="w-32 h-32 rounded-full glass border-4 border-white/60 shadow-xl overflow-hidden transition-all duration-500 group-hover/artist:scale-110 group-hover/artist:border-grape/40 cursor-pointer p-1">
-                            <div class="w-full h-full rounded-full overflow-hidden">
-                                <img 
-                                    :src="artist.image || `https://ui-avatars.com/api/?name=${artist.name}&background=random`" 
-                                    alt="" 
-                                    loading="lazy"
-                                    class="w-full h-full object-cover"
-                                >
-                            </div>
-                        </div>
+                        <Link :href="route('artists.show', artist.id)" class="w-24 h-24 rounded-full bg-white border-2 border-white shadow-lg overflow-hidden transition transform hover:scale-110 cursor-pointer">
+                            <img 
+                                :src="artist.image || `https://ui-avatars.com/api/?name=${artist.name}&background=random`" 
+                                alt="" 
+                                loading="lazy"
+                                class="w-full h-full object-cover"
+                            >
+                        </Link>
                         <div class="text-center">
-                            <h4 class="font-black text-lg text-charcoal group-hover/artist:text-grape transition-colors">{{ artist.name }}</h4>
-                            <p class="text-xs font-bold text-charcoal/40 uppercase tracking-widest mt-1">{{ artist.location }}</p>
+                            <Link :href="route('artists.show', artist.id)" class="font-bold text-[#1A1A1A] hover:text-accent transition-colors">{{ artist.name }}</Link>
+                            <p class="text-xs text-gray-500">{{ artist.location }}</p>
                         </div>
                     </div>
                 </div>
+                <!-- Fade edges hints -->
+                <div class="absolute inset-y-0 right-0 w-24 bg-gradient-to-l from-zinc-50 to-transparent pointer-events-none"></div>
+                <div class="absolute inset-y-0 left-0 w-24 bg-gradient-to-r from-zinc-50 to-transparent pointer-events-none"></div>
             </div>
 
             <!-- Staff Picks -->
-            <div class="glass rounded-[3rem] p-10 md:p-16 border-white/40 shadow-2xl relative overflow-hidden">
-                <div class="absolute top-0 right-0 w-64 h-64 bg-grape/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2"></div>
-                
-                <div class="flex flex-col md:flex-row justify-between items-end mb-16 gap-6 relative z-10">
+            <div class="bg-white rounded-3xl p-8 md:p-12 shadow-sm border border-zinc-100">
+                <div class="flex flex-col md:flex-row justify-between items-end mb-10 gap-4">
                     <div>
-                        <span class="text-grape font-black tracking-[0.3em] uppercase text-xs mb-3 block">Curator's Choice</span>
-                        <h3 class="text-5xl font-black text-charcoal">Staff Picks</h3>
+                        <span class="text-accent font-bold tracking-widest uppercase text-xs">Curator's Choice</span>
+                        <h3 class="text-3xl font-bold mt-2">Staff Picks</h3>
                     </div>
-                    <Link href="/shop" class="text-sm font-black text-charcoal border-b-2 border-grape pb-1 hover:text-grape transition-all hover:scale-105">View All Collections</Link>
+                    <Link href="/shop" class="text-sm font-bold border-b border-black pb-0.5 hover:opacity-70">View All Collections</Link>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-12 relative z-10">
-                    <div v-for="pick in staffPicks" :key="pick.id" class="group cursor-pointer">
-                        <div class="aspect-[4/3] glass p-3 rounded-[2.5rem] border-white/30 overflow-hidden mb-6 relative hover:shadow-grape/10 transition-all duration-500">
-                            <div class="w-full h-full rounded-[2rem] overflow-hidden relative">
-                                <img 
-                                    :src="pick.image || 'https://placehold.co/800x600/f3f4f6/1a1a1a?text=Musea+Artwork'" 
-                                    @error="$event.target.src = 'https://placehold.co/800x600/f3f4f6/1a1a1a?text=Musea+Artwork'" 
-                                    loading="lazy"
-                                    class="w-full h-full object-cover group-hover:scale-110 transition duration-700"
-                                    :class="{'grayscale opacity-60': pick.stock <= 0}"
-                                >
-                                <div v-if="pick.stock <= 0" class="absolute inset-0 flex items-center justify-center bg-charcoal/20 backdrop-blur-[2px]">
-                                    <span class="glass px-8 py-3 rounded-full text-xs font-black tracking-[0.2em] text-charcoal shadow-2xl border-white/50 uppercase">
-                                        Sold Out
-                                    </span>
-                                </div>
-                                <div class="absolute top-6 left-6 glass px-5 py-2 rounded-full text-[10px] font-black tracking-widest text-grape shadow-lg border-white/40 uppercase">
-                                    Staff Pick
-                                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <Link v-for="pick in staffPicks" :key="pick.id" :href="route('shop.show', pick.id)" class="group block">
+                        <div class="aspect-[4/3] bg-gray-100 rounded-xl overflow-hidden mb-4 relative">
+                            <img 
+                                :src="pick.image || 'https://placehold.co/800x600/f3f4f6/1a1a1a?text=Musea+Artwork'" 
+                                @error="$event.target.src = 'https://placehold.co/800x600/f3f4f6/1a1a1a?text=Musea+Artwork'" 
+                                loading="lazy"
+                                class="w-full h-full object-cover group-hover:scale-105 transition duration-500 will-change-transform"
+                                :class="{'grayscale opacity-60': pick.stock <= 0}"
+                            >
+                            <div v-if="pick.stock <= 0" class="absolute inset-0 flex items-center justify-center bg-black/5">
+                                <span class="bg-white/90 backdrop-blur px-6 py-2 rounded-full text-sm font-black tracking-widest text-[#1A1A1A] shadow-xl border border-zinc-200 uppercase">
+                                    Sold Out
+                                </span>
+                            </div>
+                             <div class="absolute top-4 left-4 bg-accent text-white px-3 py-1 rounded-full text-xs font-bold shadow-md">
+                                Staff Pick
                             </div>
                         </div>
-                        <div class="px-4">
-                            <h4 class="font-black text-2xl text-charcoal group-hover:text-grape transition-colors">{{ pick.title }}</h4>
-                            <p class="text-charcoal/50 font-bold text-sm mt-2 uppercase tracking-widest">by {{ pick.artist }} — ₱{{ pick.price }}</p>
-                        </div>
-                    </div>
+                        <h4 class="font-bold text-lg group-hover:text-accent transition-colors">{{ pick.title }}</h4>
+                        <p class="text-gray-500 text-sm">by {{ pick.artist }} — ₱{{ pick.price }}</p>
+                    </Link>
                 </div>
             </div>
         </div>

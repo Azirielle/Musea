@@ -57,15 +57,22 @@ defineProps({
                                             <div class="text-sm text-gray-900">₱{{ artwork.price }}</div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap">
-                                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                                                :class="{
-                                                    'bg-green-100 text-green-800': artwork.status === 'active',
-                                                    'bg-yellow-100 text-yellow-800': artwork.status === 'pending',
-                                                    'bg-red-100 text-red-800': artwork.status === 'declined',
-                                                    'bg-gray-100 text-gray-800': artwork.status === 'archived'
-                                                }">
-                                                {{ artwork.status.charAt(0).toUpperCase() + artwork.status.slice(1) }}
-                                            </span>
+                                            <div v-if="artwork.stock <= 0">
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-black text-white">
+                                                    Sold Out
+                                                </span>
+                                            </div>
+                                            <div v-else>
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
+                                                    :class="{
+                                                        'bg-green-100 text-green-800': artwork.status === 'active',
+                                                        'bg-yellow-100 text-yellow-800': artwork.status === 'pending',
+                                                        'bg-red-100 text-red-800': artwork.status === 'declined',
+                                                        'bg-gray-100 text-gray-800': artwork.status === 'archived'
+                                                    }">
+                                                    {{ artwork.status.charAt(0).toUpperCase() + artwork.status.slice(1) }}
+                                                </span>
+                                            </div>
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {{ new Date(artwork.created_at).toLocaleDateString() }}
