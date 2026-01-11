@@ -4,6 +4,7 @@ FROM php:8.2-apache
 # 2. Install Linux tools and Node.js (for Vue)
 RUN apt-get update && apt-get install -y \
     zip unzip git curl libpng-dev libonig-dev libxml2-dev
+RUN docker-php-ext-install pdo pdo_mysql
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
     apt-get install -y nodejs
 
