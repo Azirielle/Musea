@@ -10,41 +10,7 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        Schema::create('social_layer_tables', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
-        });
-
-        // Follows
-        Schema::create('follows', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('follower_id')->constrained('users')->onDelete('cascade');
-            $table->foreignId('following_id')->constrained('users')->onDelete('cascade');
-            $table->timestamps();
-
-            $table->unique(['follower_id', 'following_id']);
-        });
-
-        // Likes
-        Schema::create('likes', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('artwork_id')->constrained()->onDelete('cascade');
-            $table->timestamps();
-
-            $table->unique(['user_id', 'artwork_id']);
-        });
-
-        // Reviews
-        Schema::create('reviews', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('user_id')->constrained()->onDelete('cascade');
-            $table->foreignId('artwork_id')->constrained()->onDelete('cascade');
-            $table->integer('rating');
-            $table->text('comment')->nullable();
-            $table->string('image')->nullable();
-            $table->timestamps();
-        });
+        // Tables handled by other migrations
     }
 
     public function down(): void
