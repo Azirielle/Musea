@@ -298,3 +298,17 @@ if (config('app.type') !== 'public') {
 Route::post('/checkout/validate-coupon', [\App\Http\Controllers\CouponController::class, 'validateCoupon'])->middleware('auth')->name('checkout.validate-coupon');
 
 require __DIR__ . '/auth.php';
+
+use Illuminate\Support\Facades\Artisan;
+
+// Temporary route to run the seeder
+Route::get('/run-seeder', function () {
+    // 1. Run the specific seeder
+    Artisan::call('db:seed', [
+        '--class' => 'InterestSeeder',
+        '--force' => true // Force is needed in production
+    ]);
+
+    // 2. Show the result on screen
+    return 'Seeding Complete! <br><pre>' . Artisan::output() . '</pre>';
+});
