@@ -43,9 +43,9 @@ RUN mkdir -p /var/www/html/storage/framework/sessions \
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
 RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# 12. CREATE STARTUP SCRIPT (New Part!)
-# This creates a file named 'start.sh' that runs migration then starts the server
-RUN echo "#!/bin/sh\nphp artisan migrate --force\napache2-foreground" > /start.sh
+# 12. CREATE STARTUP SCRIPT
+# We added 'php artisan optimize:clear' to delete old cached files
+RUN echo "#!/bin/sh\nphp artisan optimize:clear\nphp artisan migrate --force\napache2-foreground" > /start.sh
 RUN chmod +x /start.sh
 
 # 13. TELL DOCKER TO USE THIS SCRIPT
