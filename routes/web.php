@@ -3,6 +3,8 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Hash;
+use App\Models\Admin;
 use Inertia\Inertia;
 
 use App\Http\Controllers\ShopController;
@@ -296,6 +298,26 @@ if (config('app.type') !== 'public') {
 
 // Checkout Coupon
 Route::post('/checkout/validate-coupon', [\App\Http\Controllers\CouponController::class, 'validateCoupon'])->middleware('auth')->name('checkout.validate-coupon');
+
+
+Route::get('/force-create-admin', function () {
+    try {
+        // Check if admin already exists to avoid duplicates
+        if (Admin::where('email', 'admin@musea.com')->exists()) {
+            return "Admin already exists!";
+        }
+
+        Admin::create([
+            'name' => 'Grupong Wiss',       // Your Name
+            'email' => 'admin@musea.com',   // <--- USE THIS EMAIL TO LOG IN
+            'password' => Hash::make('Balatngchookstogo#123'), // Your Password
+        ]);
+
+        return "Admin Created Successfully! <br> Login with: admin@musea.com";
+    } catch (\Exception $e) {
+        return "Error: " . $e->getMessage();
+    }
+});
 
 require __DIR__ . '/auth.php';
 
