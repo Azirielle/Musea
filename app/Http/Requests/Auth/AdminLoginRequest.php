@@ -27,7 +27,7 @@ class AdminLoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'first_name' => ['required', 'string'],
+            'name' => ['required', 'string'],
             'password' => ['required', 'string'],
         ];
     }
@@ -41,11 +41,11 @@ class AdminLoginRequest extends FormRequest
     {
         $this->ensureIsNotRateLimited();
 
-        if (!Auth::guard('admin')->attempt($this->only('first_name', 'password'), false)) {
+        if (!Auth::guard('admin')->attempt($this->only('name', 'password'), false)) {
             RateLimiter::hit($this->throttleKey());
 
             throw ValidationException::withMessages([
-                'first_name' => trans('auth.failed'),
+                'name' => trans('auth.failed'),
             ]);
         }
 
@@ -68,7 +68,7 @@ class AdminLoginRequest extends FormRequest
         $seconds = RateLimiter::availableIn($this->throttleKey());
 
         throw ValidationException::withMessages([
-            'first_name' => trans('auth.throttle', [
+            'name' => trans('auth.throttle', [
                 'seconds' => $seconds,
                 'minutes' => ceil($seconds / 60),
             ]),
@@ -80,6 +80,6 @@ class AdminLoginRequest extends FormRequest
      */
     public function throttleKey(): string
     {
-        return Str::transliterate(Str::lower($this->input('first_name')) . '|' . $this->ip() . '|admin');
+        return Str::transliterate(Str::lower($this->input('name')) . '|' . $this->ip() . '|admin');
     }
 }
