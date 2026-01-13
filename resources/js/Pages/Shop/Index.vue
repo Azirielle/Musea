@@ -19,6 +19,7 @@ const { addToCart } = useCart();
 // Filters State
 const currentFilters = ref({ ...props.filters });
 const sidebarContainer = ref(null);
+const isFilterDrawerOpen = ref(false);
 
 
 // Sorting
@@ -78,9 +79,21 @@ const applyParams = () => {
                 </div>
 
                 <div class="flex flex-col lg:flex-row gap-12">
-                    <!-- Sidebar -->
-                    <aside class="w-full lg:w-64 flex-shrink-0">
-                        <div class="lg:sticky lg:top-32 bg-white rounded-xl shadow-sm border border-divider">
+                    <!-- Mobile Filter Logic -->
+                    <div class="lg:hidden mb-6 flex justify-between items-center bg-white p-4 rounded-xl border border-divider shadow-sm">
+                        <span class="text-sm font-bold text-ink">{{ artworks.data.length }} Artworks</span>
+                        <button 
+                            @click="isFilterDrawerOpen = true"
+                            class="flex items-center gap-2 px-4 py-2 bg-ink text-white rounded-lg text-sm font-bold active:scale-95 transition-transform"
+                        >
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+                            Filters
+                        </button>
+                    </div>
+
+                    <!-- Sidebar (Desktop) -->
+                    <aside class="hidden lg:block w-64 flex-shrink-0">
+                        <div class="sticky top-32 bg-white rounded-xl shadow-sm border border-divider">
                              <div 
                                 ref="sidebarContainer"
                                 class="max-h-[calc(100vh-140px)] overflow-y-auto custom-scrollbar p-6"
@@ -102,6 +115,54 @@ const applyParams = () => {
                             </div>
                         </div>
                     </aside>
+
+                    <!-- Mobile Filter Drawer -->
+                    <transition
+                        enter-active-class="transition duration-300 ease-out"
+                        enter-from-class="translate-x-full opacity-0"
+                        enter-to-class="translate-x-0 opacity-100"
+                        leave-active-class="transition duration-200 ease-in"
+                        leave-from-class="translate-x-0 opacity-100"
+                        leave-to-class="translate-x-full opacity-0"
+                    >
+                        <div v-if="isFilterDrawerOpen" class="fixed inset-0 z-[200] lg:hidden">
+                            <!-- Backdrop -->
+                            <div class="absolute inset-0 bg-black/30 backdrop-blur-sm" @click="isFilterDrawerOpen = false"></div>
+                            
+                            <!-- Drawer Content -->
+                            <div class="absolute right-0 top-0 h-full w-[85%] max-w-sm bg-white shadow-2xl flex flex-col">
+                                <div class="flex items-center justify-between p-5 border-b border-divider">
+                                    <h2 class="text-lg font-serif font-bold text-ink">Filters</h2>
+                                    <button @click="isFilterDrawerOpen = false" class="p-2 hover:bg-canvas rounded-full transition-colors">
+                                        <svg class="w-6 h-6 text-ink" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                    </button>
+                                </div>
+                                
+                                <div class="flex-1 overflow-y-auto p-6 pb-24">
+                                    <FilterSidebar 
+                                        :filters="filters" 
+                                        :artists="artists" 
+                                        @update="updateFilters" 
+                                    />
+                                </div>
+                                
+                                <div class="absolute bottom-0 left-0 w-full p-4 bg-white border-t border-divider flex gap-3">
+                                    <button 
+                                        @click="updateFilters({ search: '', category: [], subcategory: [], framing: [], ready_to_hang: false, price_min: null, price_max: null, artist_id: [], orientation: [] }); isFilterDrawerOpen = false"
+                                        class="flex-1 py-3 bg-canvas text-ink font-bold rounded-xl hover:bg-gray-200 transition-colors"
+                                    >
+                                        Reset
+                                    </button>
+                                    <button 
+                                        @click="isFilterDrawerOpen = false"
+                                        class="flex-1 py-3 bg-ink text-white font-bold rounded-xl hover:bg-ink-light transition-colors"
+                                    >
+                                        Done
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </transition>
 
                     <!-- Main Grid -->
                     <div class="flex-1">

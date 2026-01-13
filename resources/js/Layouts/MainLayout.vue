@@ -4,6 +4,7 @@ import { Link, usePage, router } from '@inertiajs/vue3';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import Footer from '@/Components/Footer.vue';
 import SplashScreen from '@/Components/SplashScreen.vue';
+import MobileNavDock from '@/Components/MobileNavDock.vue';
 
 const props = defineProps({
     withHeaderPadding: {
@@ -410,11 +411,18 @@ onUnmounted(() => {
         <main :class="{ 'pt-[140px]': withHeaderPadding }">
             <slot />
         </main>
-        
         <Footer />
+        
+        <MobileNavDock />
     </div>
 </template>
 
+<style scoped>
+/* No longer need heavy custom styles as we use Tailwind's power for the layout */
+header.scrolled {
+    backdrop-filter: blur(20px) saturate(180%);
+}
+</style>
 <style scoped>
 /* No longer need heavy custom styles as we use Tailwind's power for the layout */
 header.scrolled {

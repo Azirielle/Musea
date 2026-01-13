@@ -80,11 +80,25 @@ const applyFilters = () => {
         framing: selectedFraming.value,
         ready_to_hang: readyToHang.value,
         orientation: selectedOrientation.value,
-        orientation: selectedOrientation.value,
         artist_id: selectedArtists.value,
         size: selectedSize.value
     });
 };
+
+// Update local state when props change (e.g. Cleared filters from parent)
+watch(() => props.filters, (newFilters) => {
+    priceRange.value = [
+        newFilters.price_min ? parseInt(newFilters.price_min) : props.minPrice, 
+        newFilters.price_max ? parseInt(newFilters.price_max) : props.maxPrice
+    ];
+    selectedCategory.value = Array.isArray(newFilters.category) ? newFilters.category : (newFilters.category ? [newFilters.category] : []);
+    selectedSubcategory.value = Array.isArray(newFilters.subcategory) ? newFilters.subcategory : (newFilters.subcategory ? [newFilters.subcategory] : []);
+    selectedFraming.value = Array.isArray(newFilters.framing) ? newFilters.framing : (newFilters.framing ? [newFilters.framing] : []);
+    readyToHang.value = newFilters.ready_to_hang === '1' || newFilters.ready_to_hang === 'true';
+    selectedOrientation.value = Array.isArray(newFilters.orientation) ? newFilters.orientation : (newFilters.orientation ? [newFilters.orientation] : []);
+    selectedArtists.value = Array.isArray(newFilters.artist_id) ? newFilters.artist_id.map(id => parseInt(id)) : (newFilters.artist_id ? [parseInt(newFilters.artist_id)] : []);
+    selectedSize.value = Array.isArray(newFilters.size) ? newFilters.size : (newFilters.size ? [newFilters.size] : []);
+}, { deep: true });
 
 // Debounce for price slider
 let priceTimeout;

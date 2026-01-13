@@ -243,17 +243,17 @@ const nextStep = () => {
                     <p class="text-gray-500 text-center mb-8">What kind of art moves you?</p>
 
                     <form @submit.prevent="submitInterests">
-                        <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-8">
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-3 md:gap-4 mb-8">
                             <div 
                                 v-for="interest in interests" 
                                 :key="interest.id"
                                 @click="toggleInterest(interest.id)"
-                                class="cursor-pointer rounded-xl border-2 p-4 flex flex-col items-center justify-center transition-all duration-200 h-32"
+                                class="cursor-pointer rounded-xl border-2 p-3 sm:p-4 flex flex-col items-center justify-center transition-all duration-200 min-h-[8rem] h-auto text-center break-words"
                                 :class="interestsForm.interests.includes(interest.id) 
                                     ? 'border-accent bg-accent/5 shadow-md scale-105' 
                                     : 'border-gray-100 bg-gray-50 hover:border-gray-300'"
                             >
-                                <span class="text-lg font-medium" :class="interestsForm.interests.includes(interest.id) ? 'text-accent' : 'text-gray-600'">
+                                <span class="text-sm sm:text-lg font-medium leading-tight" :class="interestsForm.interests.includes(interest.id) ? 'text-accent' : 'text-gray-600'">
                                     {{ interest.name }}
                                 </span>
                             </div>
