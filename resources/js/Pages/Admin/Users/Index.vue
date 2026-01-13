@@ -43,9 +43,10 @@ const toggleFeatured = (user) => {
                             <tr>
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">Name</th>
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">Email</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">Featured</th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">Joined</th>
+                                <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">Featured</th>
                                 <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">Balance</th>
-                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">Status</th>
+                                <th scope="col" class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">Status</th>
                                 <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-200 uppercase tracking-wider">Actions</th>
                             </tr>
                         </thead>
@@ -64,10 +65,10 @@ const toggleFeatured = (user) => {
                                         {{ new Date(user.created_at).toLocaleDateString() }}
                                     </div>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                <td class="px-6 py-4 whitespace-nowrap text-center">
                                      <button 
                                         @click="toggleFeatured(user)" 
-                                        class="transition-colors duration-200 focus:outline-none"
+                                        class="transition-colors duration-200 focus:outline-none hover:bg-gray-100 dark:hover:bg-gray-700 p-1 rounded-full"
                                         :title="user.is_featured ? 'Remove from Featured' : 'Mark as Featured'"
                                     >
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" :class="user.is_featured ? 'text-yellow-400 fill-current' : 'text-gray-300 hover:text-yellow-400'" viewBox="0 0 20 20" fill="currentColor">
@@ -80,7 +81,7 @@ const toggleFeatured = (user) => {
                                         ₱{{ user.balance }}
                                     </div>
                                 </td>
-                                <td class="px-6 py-4 whitespace-nowrap">
+                                <td class="px-6 py-4 whitespace-nowrap text-center">
                                     <span :class="[
                                         user.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800',
                                         'px-2 inline-flex text-xs leading-5 font-semibold rounded-full'
@@ -89,12 +90,14 @@ const toggleFeatured = (user) => {
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <Link :href="route('admin.sales.index', { user_id: user.id })" class="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-300 mr-3">
-                                        History
-                                    </Link>
-                                    <button @click="toggleStatus(user)" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300">
-                                        {{ user.status === 'active' ? 'Suspend' : 'Activate' }}
-                                    </button>
+                                    <div class="flex items-center justify-end gap-3">
+                                        <Link :href="route('admin.sales.index', { user_id: user.id })" class="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-300">
+                                            History
+                                        </Link>
+                                        <button @click="toggleStatus(user)" class="text-indigo-600 hover:text-indigo-900 dark:text-indigo-400 dark:hover:text-indigo-300 font-bold">
+                                            {{ user.status === 'active' ? 'Suspend' : 'Activate' }}
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         </tbody>

@@ -6,7 +6,7 @@ import Swal from 'sweetalert2';
 const user = usePage().props.auth.user;
 
 const form = useForm({
-    role_requested: 'verified_member',
+    role_requested: 'artist',
     portfolio_url: user.portfolio_url || '',
     bio: user.bio || '',
 });
@@ -42,23 +42,23 @@ const currentRole = computed(() => user.role);
 <template>
     <section>
         <header>
-            <h2 class="text-lg font-medium text-gray-900 font-serif">Verification Center</h2>
+            <h2 class="text-lg font-medium text-gray-900 font-serif">Artist Application</h2>
             <p class="mt-1 text-sm text-gray-600">
-                Request "Verified Member" status to build trust as a collector, or "Artist" status to sell your work.
+                Apply to become a verified artist and start selling your creations on Musea.
             </p>
         </header>
 
         <div class="mt-6 space-y-6">
             <!-- Approved State -->
-            <div v-if="isVerified" class="p-4 bg-green-50 rounded-xl border border-green-100 flex items-center gap-3">
+            <div v-if="currentRole === 'artist'" class="p-4 bg-green-50 rounded-xl border border-green-100 flex items-center gap-3">
                 <div class="p-2 bg-green-100 rounded-full text-green-600">
                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="w-6 h-6">
                         <path fill-rule="evenodd" d="M8.603 3.799A4.49 4.49 0 0112 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 013.498 1.307 4.491 4.491 0 011.307 3.497A4.49 4.49 0 0121.75 12a4.49 4.49 0 01-1.549 3.397 4.491 4.491 0 01-1.307 3.497 4.491 4.491 0 01-3.497 1.307A4.49 4.49 0 0112 21.75a4.49 4.49 0 01-3.397-1.549 4.49 4.49 0 01-3.498-1.306 4.491 4.491 0 01-1.307-3.498A4.49 4.49 0 012.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 011.307-3.497 4.49 4.49 0 013.497-1.307zm4.45 6.45l-3.25 3.5a.75.75 0 01-1.1 0l-1.05-1.125a.75.75 0 111.085-1.066l.488.523 2.73-2.937a.75.75 0 111.1 1.02z" clip-rule="evenodd" />
                     </svg>
                 </div>
                 <div>
-                    <h3 class="font-bold text-green-800">You are Verified!</h3>
-                    <p class="text-sm text-green-700">Role: <span class="uppercase tracking-wider font-bold">{{ currentRole.replace('_', ' ') }}</span></p>
+                    <h3 class="font-bold text-green-800">You are an Artist!</h3>
+                    <p class="text-sm text-green-700">You can now upload and sell your artwork.</p>
                 </div>
             </div>
 
@@ -70,8 +70,8 @@ const currentRole = computed(() => user.role);
                     </svg>
                 </div>
                 <div>
-                    <h3 class="font-bold text-orange-800">Application Under Review</h3>
-                    <p class="text-sm text-orange-700">Our team is reviewing your request. Please check back later.</p>
+                    <h3 class="font-bold text-orange-800">Artist Application Under Review</h3>
+                    <p class="text-sm text-orange-700">Our team is reviewing your profile. Please check back later.</p>
                 </div>
             </div>
 
@@ -83,26 +83,12 @@ const currentRole = computed(() => user.role);
                      <p class="text-xs text-red-700">You can update your details and try again.</p>
                 </div>
 
-                <!-- Role Selection -->
-                <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2">I want to apply as:</label>
-                    <div class="flex gap-4">
-                        <label class="flex-1 cursor-pointer">
-                            <input type="radio" v-model="form.role_requested" value="verified_member" class="peer sr-only">
-                            <div class="p-4 rounded-xl border-2 border-gray-200 peer-checked:border-blue-500 peer-checked:bg-blue-50 transition-all hover:border-gray-300">
-                                <span class="block font-bold text-gray-900 peer-checked:text-blue-700">Verified Member</span>
-                                <span class="text-xs text-gray-500 mt-1">For trusted collectors & buyers.</span>
-                            </div>
-                        </label>
-                        <label class="flex-1 cursor-pointer">
-                            <input type="radio" v-model="form.role_requested" value="artist" class="peer sr-only">
-                            <div class="p-4 rounded-xl border-2 border-gray-200 peer-checked:border-amber-500 peer-checked:bg-amber-50 transition-all hover:border-gray-300">
-                                <span class="block font-bold text-gray-900 peer-checked:text-amber-700">Artist</span>
-                                <span class="text-xs text-gray-500 mt-1">For creators selling artwork.</span>
-                            </div>
-                        </label>
-                    </div>
-                    <div v-if="form.errors.role_requested" class="text-red-500 text-xs mt-1">{{ form.errors.role_requested }}</div>
+                <!-- Hidden Role Input (Always Artist) -->
+                <input type="hidden" v-model="form.role_requested">
+
+                <div class="bg-blue-50 p-4 rounded-lg border border-blue-100 text-blue-800 text-sm mb-4">
+                    <p class="font-bold mb-1">Apply to become a Musea Artist</p>
+                    <p>Verified artists can list artworks, manage sales, and build a following.</p>
                 </div>
 
                 <!-- Portfolio URL -->
@@ -120,13 +106,13 @@ const currentRole = computed(() => user.role);
 
                 <!-- Bio -->
                 <div>
-                    <label for="verification_bio" class="block text-sm font-medium text-gray-700">Bio / About You</label>
+                    <label for="verification_bio" class="block text-sm font-medium text-gray-700">Artist Bio</label>
                     <textarea 
                         id="verification_bio" 
                         rows="3" 
                         class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm"
                         v-model="form.bio"
-                        placeholder="Tell us about yourself..."
+                        placeholder="Tell us about yourself and your art..."
                     ></textarea>
                     <div v-if="form.errors.bio" class="text-red-500 text-xs mt-1">{{ form.errors.bio }}</div>
                 </div>
@@ -137,7 +123,7 @@ const currentRole = computed(() => user.role);
                         :disabled="form.processing" 
                         class="inline-flex items-center px-4 py-2 bg-gray-900 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-gray-700 focus:bg-gray-700 active:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150 disabled:opacity-50"
                     >
-                        Submit Application
+                        Submit Artist Application
                     </button>
                 </div>
             </form>

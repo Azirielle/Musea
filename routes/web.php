@@ -303,6 +303,31 @@ if (config('app.type') !== 'public') {
 Route::post('/checkout/validate-coupon', [\App\Http\Controllers\CouponController::class, 'validateCoupon'])->middleware('auth')->name('checkout.validate-coupon');
 
 
+
+Route::get('/fix-db-schema', function () {
+    try {
+        \Illuminate\Support\Facades\DB::statement("ALTER TABLE artworks MODIFY COLUMN category VARCHAR(255) NOT NULL DEFAULT 'Other'");
+        \Illuminate\Support\Facades\DB::statement("ALTER TABLE users MODIFY COLUMN status VARCHAR(255) NOT NULL DEFAULT 'active'");
+        return "Schema Fixed Successfully: 'category' and 'status' columns converted to VARCHAR.";
+    } catch (\Exception $e) {
+        return "Error: " . $e->getMessage();
+    }
+});
+
+
+Route::get('/debug-user', function () {
+    try {
+        $user = \App\Models\User::first();
+        return response()->json([
+            'user' => $user,
+            'status_column_exists' => Schema::hasColumn('users', 'status'),
+            'status_value' => $user->status,
+        ]);
+    } catch (\Exception $e) {
+        return "Error: " . $e->getMessage();
+    }
+});
+
 Route::get('/force-create-admin', function () {
     try {
         $admin = Admin::updateOrCreate(

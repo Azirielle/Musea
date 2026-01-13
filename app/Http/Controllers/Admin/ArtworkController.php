@@ -11,11 +11,41 @@ class ArtworkController extends Controller
 {
     public function index()
     {
+        $pendingArtworks = Artwork::where('status', 'pending')
+            ->with('artist:id,first_name,last_name')
+            ->latest()
+            ->get()
+            ->map(function ($artwork) {
+                return [
+                    'id' => $artwork->id,
+                    'type' => 'Artwork',
+                    'title' => $artwork->title,
+                    'subtitle' => 'by ' . ($artwork->artist ? $artwork->artist->first_name . ' ' . $artwork->artist->last_name : 'Unknown'),
+                    'image' => $artwork->image_url,
+                    'created_at' => $artwork->created_at,
+                    'model' => 'artwork'
+                ];
+            });
+
+        $pendingVerifications = \App\Models\User::where('verification_status', \App\Models\User::VERIFICATION_PENDING)
+            ->latest()
+            ->get()
+            ->map(function ($user) {
+                return [
+                    'id' => $user->id,
+                    'type' => 'Artist Application',
+                    'title' => $user->first_name . ' ' . $user->last_name,
+                    'subtitle' => $user->email,
+                    'image' => $user->imageUrl(),
+                    'created_at' => $user->created_at,
+                    'model' => 'user'
+                ];
+            });
+
+        $approvals = $pendingArtworks->concat($pendingVerifications)->sortByDesc('created_at')->values();
+
         return Inertia::render('Admin/Approvals/Index', [
-            'pendingArtworks' => Artwork::where('status', 'pending')
-                ->with('artist:id,first_name,last_name')
-                ->latest()
-                ->get(),
+            'approvals' => $approvals,
         ]);
     }
 

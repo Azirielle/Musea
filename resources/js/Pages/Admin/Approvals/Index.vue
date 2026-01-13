@@ -5,51 +5,47 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import Swal from 'sweetalert2';
 
 defineProps({
-    pendingArtworks: Array,
+    approvals: Array,
 });
 
-const approve = (id) => {
+const approve = (item) => {
+    const routeName = item.model === 'artwork' ? 'admin.approvals.approve' : 'admin.verifications.approve';
+    
     Swal.fire({
-        title: 'Approve this artwork?',
-        text: "It will be visible in the shop immediately.",
+        title: `Approve this ${item.model === 'artwork' ? 'artwork' : 'application'}?`,
+        text: item.model === 'artwork' ? "It will be visible in the shop." : "User will become a Verified Artist.",
         icon: 'question',
         showCancelButton: true,
-        confirmButtonColor: '#166534', // green-700
+        confirmButtonColor: '#166534',
         cancelButtonColor: '#6b7280',
         confirmButtonText: 'Yes, approve it!'
     }).then((result) => {
         if (result.isConfirmed) {
-            router.post(route('admin.approvals.approve', id), {}, {
+            router.post(route(routeName, item.id), {}, {
                 onSuccess: () => {
-                    Swal.fire(
-                        'Approved!',
-                        'The artwork has been approved.',
-                        'success'
-                    )
+                    Swal.fire('Approved!', 'The item has been approved.', 'success')
                 }
             });
         }
     });
 };
 
-const reject = (id) => {
+const reject = (item) => {
+    const routeName = item.model === 'artwork' ? 'admin.approvals.reject' : 'admin.verifications.reject';
+
     Swal.fire({
-        title: 'Reject this artwork?',
+        title: `Reject this ${item.model === 'artwork' ? 'artwork' : 'application'}?`,
         text: "It will be marked as rejected.",
         icon: 'warning',
         showCancelButton: true,
-        confirmButtonColor: '#dc2626', // red-600
+        confirmButtonColor: '#dc2626',
         cancelButtonColor: '#6b7280',
         confirmButtonText: 'Yes, reject it!'
     }).then((result) => {
         if (result.isConfirmed) {
-            router.post(route('admin.approvals.reject', id), {}, {
-                 onSuccess: () => {
-                    Swal.fire(
-                        'Rejected!',
-                        'The artwork has been rejected.',
-                        'success'
-                    )
+            router.post(route(routeName, item.id), {}, {
+                onSuccess: () => {
+                    Swal.fire('Rejected!', 'The item has been rejected.', 'success')
                 }
             });
         }
@@ -72,24 +68,30 @@ const reject = (id) => {
             </Link>
         </div>
 
-        <div v-if="pendingArtworks.length === 0" class="bg-white dark:bg-gray-800 shadow sm:rounded-lg p-6 text-center text-gray-500">
+        <div v-if="approvals.length === 0" class="bg-white dark:bg-gray-800 shadow sm:rounded-lg p-6 text-center text-gray-500">
             No pending submissions.
         </div>
 
         <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div v-for="artwork in pendingArtworks" :key="artwork.id" class="bg-white dark:bg-gray-800 overflow-hidden shadow sm:rounded-lg">
-                <img :src="artwork.image_url" alt="Artwork" class="w-full h-48 object-cover">
+            <div v-for="item in approvals" :key="item.type + item.id" class="bg-white dark:bg-gray-800 overflow-hidden shadow sm:rounded-lg relative">
+                <!-- Type Badge -->
+                <div class="absolute top-2 right-2 px-2 py-1 rounded text-xs font-bold uppercase tracking-wider"
+                    :class="item.model === 'artwork' ? 'bg-indigo-100 text-indigo-800' : 'bg-purple-100 text-purple-800'">
+                    {{ item.type }}
+                </div>
+
+                <img :src="item.image" alt="Thumbnail" class="w-full h-48 object-cover bg-gray-100">
+                
                 <div class="p-4">
-                    <h3 class="text-lg font-bold text-gray-900 dark:text-white">{{ artwork.title }}</h3>
-                    <p class="text-sm text-gray-500 dark:text-gray-300">by {{ artwork.artist.first_name }} {{ artwork.artist.last_name }}</p>
-                    <p class="mt-2 text-gray-700 dark:text-gray-300">{{ artwork.description }}</p>
-                    <p class="mt-2 font-bold text-indigo-600 dark:text-indigo-400">₱{{ artwork.price }}</p>
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white truncate" :title="item.title">{{ item.title }}</h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-300 truncate">{{ item.subtitle }}</p>
+                    <p class="text-xs text-gray-400 mt-1">{{ new Date(item.created_at).toLocaleDateString() }}</p>
 
                     <div class="mt-4 flex space-x-2">
-                        <button @click="approve(artwork.id)" class="flex-1 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+                        <button @click="approve(item)" class="flex-1 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors">
                             Approve
                         </button>
-                        <button @click="reject(artwork.id)" class="flex-1 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                        <button @click="reject(item)" class="flex-1 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors">
                             Reject
                         </button>
                     </div>

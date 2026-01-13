@@ -45,7 +45,7 @@ class ArtworkController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'category' => 'required|in:Painting,Canvas,Drawing,Sculpture,Vase,Basket,Other',
+            'category' => 'required|in:Painting,Canvas,Drawing,Sculpture,Vase,Basket,Other,Photography,Digital,Mixed Media',
             'width' => 'required|numeric|min:0',
             'height' => 'required|numeric|min:0',
             'depth' => 'nullable|numeric|min:0',

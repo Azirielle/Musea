@@ -169,20 +169,31 @@ const handleImageUpload = (e) => {
                                 </div>
                             </div>
                             
-                             <!-- Price -->
+                            <!-- Price -->
                              <div>
                                 <InputLabel for="price" value="Price (₱)" />
-                                <TextInput
+                                <input
                                     id="price"
-                                    type="number"
-                                    step="0.01"
-                                    class="mt-1 block w-full"
-                                    v-model="form.price"
+                                    type="text"
+                                    class="mt-1 block w-full border-gray-300 focus:border-[#CBA35C] focus:ring-[#CBA35C] rounded-md shadow-sm"
+                                    :value="form.price ? form.price.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',') : ''"
+                                    @input="(e) => {
+                                        let val = e.target.value.replace(/,/g, '').replace(/[^0-9.]/g, '');
+                                        // Prevent multiple dots
+                                        if ((val.match(/\./g) || []).length > 1) {
+                                            const parts = val.split('.');
+                                            val = parts[0] + '.' + parts.slice(1).join('');
+                                        }
+                                        form.price = val;
+                                        // Force re-format immediately for display
+                                        e.target.value = val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+                                    }"
                                     required
+                                    placeholder="0.00"
                                 />
                                 <InputError class="mt-2" :message="form.errors.price" />
                                 <p class="text-sm text-gray-500 mt-2 bg-yellow-50 p-3 rounded-md border border-yellow-200">
-                                    <span class="font-bold text-yellow-800">Note:</span> Musea takes a 10% commission on all sales. You will receive 90% of the list price (approx. ₱{{ (form.price * 0.9).toFixed(2) }}).
+                                    <span class="font-bold text-yellow-800">Note:</span> Musea takes a 10% commission on all sales. You will receive 90% of the list price (approx. ₱{{ (form.price * 0.9).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) }}).
                                 </p>
                             </div>
 

@@ -18,7 +18,7 @@ defineProps({
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <!-- Total Sales -->
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow sm:rounded-lg p-6">
+            <Link :href="route('admin.sales.index')" class="bg-white dark:bg-gray-800 overflow-hidden shadow sm:rounded-lg p-6 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition block">
                 <div class="flex items-center">
                     <div class="p-3 rounded-full bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-300">
                         <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -30,10 +30,10 @@ defineProps({
                         <p class="text-2xl font-semibold text-gray-900 dark:text-white">₱{{ stats.totalSales.toLocaleString() }}</p>
                     </div>
                 </div>
-            </div>
+            </Link>
 
             <!-- Net Profit -->
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow sm:rounded-lg p-6">
+            <Link :href="route('admin.sales.index')" class="bg-white dark:bg-gray-800 overflow-hidden shadow sm:rounded-lg p-6 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition block">
                 <div class="flex items-center">
                     <div class="p-3 rounded-full bg-purple-100 text-purple-600 dark:bg-purple-900 dark:text-purple-300">
                         <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -45,10 +45,10 @@ defineProps({
                         <p class="text-2xl font-semibold text-gray-900 dark:text-white">₱{{ stats.netProfit.toLocaleString() }}</p>
                     </div>
                 </div>
-            </div>
+            </Link>
 
             <!-- New Users -->
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow sm:rounded-lg p-6">
+            <Link :href="route('admin.users.index')" class="bg-white dark:bg-gray-800 overflow-hidden shadow sm:rounded-lg p-6 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition block">
                 <div class="flex items-center">
                     <div class="p-3 rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900 dark:text-blue-300">
                         <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -60,10 +60,10 @@ defineProps({
                         <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.newUsers }}</p>
                     </div>
                 </div>
-            </div>
+            </Link>
 
-            <!-- Pending Approvals -->
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow sm:rounded-lg p-6">
+            <!-- Pending Approvals (Merged) -->
+            <Link :href="route('admin.approvals.index')" class="bg-white dark:bg-gray-800 overflow-hidden shadow sm:rounded-lg p-6 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition block">
                  <div class="flex items-center">
                     <div class="p-3 rounded-full bg-yellow-100 text-yellow-600 dark:bg-yellow-900 dark:text-yellow-300">
                         <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -72,16 +72,17 @@ defineProps({
                     </div>
                     <div class="ml-4">
                         <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Pending Approvals</p>
-                        <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.pendingApprovals }}</p>
+                        <!-- Summing stats here since controller might separate them still, or user can update controller next -->
+                        <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ (stats.pendingApprovals || 0) + (stats.pendingVerifications || 0) }}</p>
+                        <p v-if="stats.pendingVerifications > 0" class="text-xs text-gray-400 mt-1">
+                            ({{ stats.pendingApprovals }} Artworks, {{ stats.pendingVerifications }} Artists)
+                        </p>
                     </div>
                 </div>
-                <div class="mt-4">
-                     <Link :href="route('admin.approvals.index')" class="text-sm text-indigo-600 hover:text-indigo-900">View Queue &rarr;</Link>
-                </div>
-            </div>
+            </Link>
 
             <!-- Pending Withdrawals -->
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow sm:rounded-lg p-6">
+            <Link :href="route('admin.withdrawals.index')" class="bg-white dark:bg-gray-800 overflow-hidden shadow sm:rounded-lg p-6 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition block">
                  <div class="flex items-center">
                     <div class="p-3 rounded-full bg-orange-100 text-orange-600 dark:bg-orange-900 dark:text-orange-300">
                         <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -93,13 +94,10 @@ defineProps({
                         <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.pendingWithdrawals || 0 }}</p>
                     </div>
                 </div>
-                <div class="mt-4">
-                     <Link :href="route('admin.withdrawals.index')" class="text-sm text-indigo-600 hover:text-indigo-900">View Requests &rarr;</Link>
-                </div>
-            </div>
+            </Link>
 
              <!-- Active Artists -->
-             <div class="bg-white dark:bg-gray-800 overflow-hidden shadow sm:rounded-lg p-6">
+             <Link :href="route('admin.users.index')" class="bg-white dark:bg-gray-800 overflow-hidden shadow sm:rounded-lg p-6 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition block">
                  <div class="flex items-center">
                     <div class="p-3 rounded-full bg-teal-100 text-teal-600 dark:bg-teal-900 dark:text-teal-300">
                         <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -111,28 +109,7 @@ defineProps({
                         <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.activeArtists || 0 }}</p>
                     </div>
                 </div>
-                 <div class="mt-4">
-                     <Link :href="route('admin.users.index')" class="text-sm text-indigo-600 hover:text-indigo-900">Manage Users &rarr;</Link>
-                </div>
-            </div>
-
-            <!-- Pending Verifications -->
-            <div class="bg-white dark:bg-gray-800 overflow-hidden shadow sm:rounded-lg p-6">
-                 <div class="flex items-center">
-                    <div class="p-3 rounded-full bg-indigo-100 text-indigo-600 dark:bg-indigo-900 dark:text-indigo-300">
-                        <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                        </svg>
-                    </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Verification Requests</p>
-                        <p class="text-2xl font-semibold text-gray-900 dark:text-white">{{ stats.pendingVerifications || 0 }}</p>
-                    </div>
-                </div>
-                 <div class="mt-4">
-                     <Link :href="route('admin.verifications.index')" class="text-sm text-indigo-600 hover:text-indigo-900">Review Applications &rarr;</Link>
-                </div>
-            </div>
+            </Link>
             
         </div>
 
