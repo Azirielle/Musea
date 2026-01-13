@@ -316,5 +316,42 @@ Route::get('/force-create-admin', function () {
     }
 });
 
+Route::get('/debug-admin-login', function () {
+    $name = 'Grupong Wiss';
+    $password = 'Balatngchookstogo#123';
+
+    $admin = Admin::where('name', $name)->first();
+
+    echo "<h1>Admin Login Debugger</h1>";
+    echo "Target Name: <strong>{$name}</strong><br>";
+    echo "Target Password: <strong>{$password}</strong><br><br>";
+
+    if (!$admin) {
+        echo "<span style='color:red'>FAIL: Admin user NOT FOUND in database.</span><br>";
+        echo "Existing Admins: " . Admin::pluck('name')->join(', ');
+        return;
+    }
+
+    echo "<span style='color:green'>PASS: Admin user found in database.</span><br>";
+    echo "ID: " . $admin->id . "<br>";
+    echo "Email: " . $admin->email . "<br>";
+    echo "Stored Hash: " . $admin->password . "<br><br>";
+
+    $check = Hash::check($password, $admin->password);
+    if ($check) {
+        echo "<span style='color:green'>PASS: Password Hash Check verified.</span><br>";
+    } else {
+        echo "<span style='color:red'>FAIL: Password Hash Check failed. The stored hash does not match the password.</span><br>";
+    }
+
+    $attempt = Auth::guard('admin')->attempt(['name' => $name, 'password' => $password]);
+    if ($attempt) {
+        echo "<span style='color:green'>PASS: Auth::guard('admin')->attempt() succeeded.</span><br>";
+    } else {
+        echo "<span style='color:red'>FAIL: Auth::guard('admin')->attempt() failed.</span><br>";
+        echo "Debug Info: " . json_encode(config('auth.guards.admin')) . "<br>";
+    }
+});
+
 require __DIR__ . '/auth.php';
 
