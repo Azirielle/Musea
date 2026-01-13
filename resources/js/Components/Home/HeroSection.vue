@@ -14,7 +14,7 @@ defineProps({
         <!-- Background Image with sophisticated overlay -->
         <div class="absolute inset-0 z-0 scale-105 animate-[slow-zoom_20s_ease-in-out_infinite_alternate]">
             <img 
-                :src="featured?.image || '/images/hero-bg-2.jpg'" 
+                :src="featured?.image || 'https://images.unsplash.com/photo-1547891654-e66ed7ebb968?auto=format&fit=crop&q=80&w=2000'" 
                 class="w-full h-full object-cover object-center opacity-70"
                 alt="Hero Background"
             >
@@ -42,7 +42,7 @@ defineProps({
                 
                 <div class="flex flex-col sm:flex-row gap-6 pt-4">
                     <Link 
-                        :href="featured?.link || '/onboarding'" 
+                        :href="featured?.link || ($page.props.auth.user ? '/shop' : '/onboarding')" 
                         class="group relative inline-flex items-center justify-center px-10 py-5 bg-white text-ink rounded-full font-bold text-sm tracking-widest overflow-hidden transition-all duration-500 hover:scale-105 active:scale-95 shadow-2xl shadow-white/10"
                     >
                         <span class="relative z-10 uppercase">{{ featured ? 'View Artwork' : 'Start Collecting' }}</span>

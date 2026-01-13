@@ -288,6 +288,9 @@ if (config('app.type') !== 'public') {
         Route::get('/verifications', [\App\Http\Controllers\Admin\VerificationController::class, 'index'])->name('verifications.index');
         Route::post('/verifications/{user}/approve', [\App\Http\Controllers\Admin\VerificationController::class, 'approve'])->name('verifications.approve');
         Route::post('/verifications/{user}/reject', [\App\Http\Controllers\Admin\VerificationController::class, 'reject'])->name('verifications.reject');
+
+        // Journals
+        Route::resource('journals', \App\Http\Controllers\Admin\JournalController::class);
     });
 } elseif (config('app.type') === 'admin') {
     // Redirect root to admin login if this IS the admin app but user tried to hit root

@@ -4,21 +4,27 @@ import { router } from '@inertiajs/vue3';
 
 const isLoading = ref(false);
 const show = ref(false); // Controls the transition visibility
-let timeout = null;
+const startTimeout = ref(null);
+const finishTimeout = ref(null);
 
 const startLoading = () => {
+    clearTimeout(finishTimeout.value);
+    clearTimeout(startTimeout.value);
+
     isLoading.value = true;
     // Small delay to prevent flashing on super fast loads
-    timeout = setTimeout(() => {
+    startTimeout.value = setTimeout(() => {
         show.value = true;
     }, 100);
 };
 
 const finishLoading = () => {
-    clearTimeout(timeout);
+    clearTimeout(startTimeout.value);
     show.value = false;
+    
+    clearTimeout(finishTimeout.value);
     // Wait for transition to finish before hiding completely
-    setTimeout(() => {
+    finishTimeout.value = setTimeout(() => {
         isLoading.value = false;
     }, 500); // Match transition duration
 };
