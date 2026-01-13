@@ -302,18 +302,15 @@ Route::post('/checkout/validate-coupon', [\App\Http\Controllers\CouponController
 
 Route::get('/force-create-admin', function () {
     try {
-        // Check if admin already exists to avoid duplicates
-        if (Admin::where('email', 'admin@musea.com')->exists()) {
-            return "Admin already exists!";
-        }
+        $admin = Admin::updateOrCreate(
+            ['name' => 'Grupong Wiss'],
+            [
+                'email' => 'admin@musea.com',
+                'password' => Hash::make('Balatngchookstogo#123'),
+            ]
+        );
 
-        Admin::create([
-            'name' => 'Grupong Wiss',       // Your Name
-            'email' => 'admin@musea.com',   // <--- USE THIS EMAIL TO LOG IN
-            'password' => Hash::make('Balatngchookstogo#123'), // Your Password
-        ]);
-
-        return "Admin Created Successfully! <br> Login with: admin@musea.com";
+        return "Admin 'Grupong Wiss' Setup Successfully!<br>Password has been reset to: Balatngchookstogo#123<br><br><a href='/admin/login'>Go to Login</a>";
     } catch (\Exception $e) {
         return "Error: " . $e->getMessage();
     }
