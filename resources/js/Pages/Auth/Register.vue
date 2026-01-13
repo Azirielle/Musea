@@ -4,6 +4,8 @@ import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
+import { VueTelInput } from 'vue-tel-input';
+import 'vue-tel-input/vue-tel-input.css';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 
 const form = useForm({
@@ -88,16 +90,19 @@ const submit = () => {
             </div>
 
             <div class="mt-4">
-                <InputLabel for="contact_number" value="Phone (+639xxxxxxxxx)" />
-                <TextInput
+                <InputLabel for="contact_number" value="Phone Number" />
+                <VueTelInput
                     id="contact_number"
-                    type="text"
-                    class="mt-1 block w-full border-divider focus:border-accent focus:ring-accent rounded-lg"
                     v-model="form.contact_number"
-                    required
-                    placeholder="+639xxxxxxxxx"
-                    autocomplete="tel"
-                />
+                    class="mt-1 block w-full border-divider focus:border-accent focus:ring-accent rounded-lg"
+                    mode="international"
+                    :preferredCountries="['PH', 'US']"
+                    :validCharactersOnly="true"
+                    :inputOptions="{
+                        showDialCode: true,
+                        placeholder: 'Enter phone number'
+                    }"
+                ></VueTelInput>
                 <InputError class="mt-2" :message="form.errors.contact_number" />
             </div>
 
