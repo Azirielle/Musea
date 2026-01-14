@@ -30,6 +30,7 @@ import ApplicationLogo from '@/Components/ApplicationLogo.vue';
                              <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M9 8h-3v4h3v12h5v-12h3.642l.358-4h-4v-1.667c0-.955.192-1.333 1.115-1.333h2.885v-5h-3.808c-3.596 0-5.192 1.583-5.192 4.615v3.385z"/></svg>
                         </a>
                     </div>
+
                 </div>
 
                 <!-- Column 2: Explore -->
@@ -67,12 +68,8 @@ import ApplicationLogo from '@/Components/ApplicationLogo.vue';
             </div>
 
             <div class="border-t border-zinc-800 pt-8 flex flex-col md:flex-row justify-between items-center text-xs text-zinc-500">
-                <p>&copy; 2024 Musea. All rights reserved.</p>
-                 <div class="flex gap-6 mt-4 md:mt-0">
-                    <a href="#" class="hover:text-white transition">Privacy</a>
-                    <a href="#" class="hover:text-white transition">Terms</a>
-                    <a href="#" class="hover:text-white transition">Sitemap</a>
-                </div>
+                <p class="text-white">&copy; 2025 Musea. All rights reserved.</p>
+
             </div>
         </div>
     </footer>

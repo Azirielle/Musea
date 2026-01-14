@@ -27,7 +27,7 @@ class ArtworkController extends Controller
     public function create()
     {
         if (auth()->user()->role !== \App\Models\User::ROLE_ARTIST) {
-            abort(403, 'Only verified artists can upload artwork.');
+            return redirect()->route('profile.edit')->with('error', 'You must be a verified artist to upload artwork. Please apply for verification below.');
         }
 
         return Inertia::render('Dashboard/Artworks/Create');
@@ -39,7 +39,7 @@ class ArtworkController extends Controller
     public function store(Request $request)
     {
         if (auth()->user()->role !== \App\Models\User::ROLE_ARTIST) {
-            abort(403, 'Only verified artists can upload artwork.');
+            return redirect()->route('profile.edit')->with('error', 'You must be a verified artist to upload artwork. Please apply for verification below.');
         }
 
         $validated = $request->validate([

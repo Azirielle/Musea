@@ -31,8 +31,8 @@ class RegisteredUserController extends Controller
     public function store(Request $request): RedirectResponse|\Symfony\Component\HttpFoundation\Response
     {
         $request->validate([
-            'first_name' => 'required|string|max:100',
-            'last_name' => 'required|string|max:100',
+            'first_name' => ['required', 'string', 'max:100', 'regex:/^[a-zA-Z. ]+$/', 'not_regex:/^\s/'],
+            'last_name' => ['required', 'string', 'max:100', 'regex:/^[a-zA-Z. ]+$/', 'not_regex:/^\s/'],
             'email' => 'required|string|lowercase|email|max:255|unique:' . User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'address' => 'required|string|max:255',

@@ -68,45 +68,62 @@ const links = [
         :class="isVisible ? 'translate-y-0 opacity-100' : 'translate-y-[150%] opacity-0'"
     >
         <div class="bg-white/80 backdrop-blur-xl border border-white/20 shadow-2xl rounded-2xl p-2 flex items-center justify-between px-6">
-            <Link 
-                v-for="link in links" 
-                :key="link.label" 
-                :href="link.href"
-                class="relative flex flex-col items-center justify-center p-2 group transition-all"
-                :class="$page.url === link.href || ($page.url.startsWith(link.href) && link.href !== '/') ? 'text-accent' : 'text-gray-400 hover:text-ink'"
-            >
-                <!-- Icon -->
-                <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="24" 
-                    height="24" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    stroke-width="2" 
-                    stroke-linecap="round" 
-                    stroke-linejoin="round" 
-                    class="w-6 h-6 mb-0.5 transition-transform group-active:scale-95"
-                    v-html="link.icon"
-                ></svg>
-                
-                <!-- Label (Optional, maybe just icons for cleaner look? User asked for 'Navigation Dock', usually has labels or just icons. Let's keep it simple with just icons or very small labels. Apple dock uses icons.) -->
-                <!-- <span class="text-[9px] font-bold">{{ link.label }}</span> -->
-                
-                <!-- Active Indicator -->
-                <span 
-                    v-if="$page.url === link.href || ($page.url.startsWith(link.href) && link.href !== '/')" 
-                    class="absolute -bottom-1 w-1 h-1 bg-accent rounded-full"
-                ></span>
-
-                <!-- Cart Badge -->
-                <span 
-                    v-if="link.isCart && cartItemCount > 0" 
-                    class="absolute top-1 right-0 sm:right-1 bg-red-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-white"
+            <template v-for="link in links" :key="link.label">
+                <button 
+                    v-if="link.href === '/profile' && !$page.props.auth.user"
+                    @click="$emit('open-auth')"
+                    class="relative flex flex-col items-center justify-center p-2 group transition-all text-gray-400 hover:text-ink"
                 >
-                    {{ cartItemCount }}
-                </span>
-            </Link>
+                    <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        width="24" 
+                        height="24" 
+                        viewBox="0 0 24 24" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        stroke-width="2" 
+                        stroke-linecap="round" 
+                        stroke-linejoin="round" 
+                        class="w-6 h-6 mb-0.5 transition-transform group-active:scale-95"
+                        v-html="link.icon"
+                    ></svg>
+                </button>
+                <Link 
+                    v-else
+                    :href="link.href"
+                    class="relative flex flex-col items-center justify-center p-2 group transition-all"
+                    :class="$page.url === link.href || ($page.url.startsWith(link.href) && link.href !== '/') ? 'text-accent' : 'text-gray-400 hover:text-ink'"
+                >
+                    <!-- Icon -->
+                    <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        width="24" 
+                        height="24" 
+                        viewBox="0 0 24 24" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        stroke-width="2" 
+                        stroke-linecap="round" 
+                        stroke-linejoin="round" 
+                        class="w-6 h-6 mb-0.5 transition-transform group-active:scale-95"
+                        v-html="link.icon"
+                    ></svg>
+                    
+                    <!-- Active Indicator -->
+                    <span 
+                        v-if="$page.url === link.href || ($page.url.startsWith(link.href) && link.href !== '/')" 
+                        class="absolute -bottom-1 w-1 h-1 bg-accent rounded-full"
+                    ></span>
+
+                    <!-- Cart Badge -->
+                    <span 
+                        v-if="link.isCart && cartItemCount > 0" 
+                        class="absolute top-1 right-0 sm:right-1 bg-red-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center border border-white"
+                    >
+                        {{ cartItemCount }}
+                    </span>
+                </Link>
+            </template>
         </div>
     </div>
 </template>

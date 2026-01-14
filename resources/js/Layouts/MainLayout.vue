@@ -5,6 +5,7 @@ import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import Footer from '@/Components/Footer.vue';
 import SplashScreen from '@/Components/SplashScreen.vue';
 import MobileNavDock from '@/Components/MobileNavDock.vue';
+import AuthModal from '@/Components/AuthModal.vue';
 
 const props = defineProps({
     withHeaderPadding: {
@@ -24,6 +25,14 @@ const searchQuery = ref('');
 const isProfileOpen = ref(false);
 const searchInput = ref(null);
 const recentSearches = ref([]);
+
+const isAuthModalOpen = ref(false);
+const authModalInitialView = ref('login');
+
+const openAuthModal = (view = 'login') => {
+    authModalInitialView.value = view;
+    isAuthModalOpen.value = true;
+};
 
 // Load recent searches from local storage
 onMounted(() => {
@@ -147,13 +156,13 @@ onUnmounted(() => {
                 isScrolled ? 'bg-white/80 backdrop-blur-xl border-b border-divider shadow-sm py-2' : 'bg-transparent py-4'
             ]"
         >
-            <div class="max-w-[1400px] mx-auto px-6 md:px-12 flex items-center justify-between">
+            <div class="w-full px-6 md:px-12 flex items-center justify-between">
                 <!-- Brand / Logo -->
                 <Link href="/" class="relative z-10 flex items-center group">
                     <img 
                         src="/images/logo/Musea.png" 
                         alt="Musea" 
-                        class="h-10 md:h-12 w-auto transition-transform duration-500 group-hover:scale-105"
+                        class="h-14 md:h-16 w-auto transition-transform duration-500 group-hover:scale-105"
                         :class="{ 'invert brightness-0': !isScrolled && !props.withHeaderPadding }"
                     />
                 </Link>
@@ -161,7 +170,7 @@ onUnmounted(() => {
                 <!-- Navigation Desktop -->
                 <nav class="hidden lg:flex items-center gap-10">
                     <div class="relative group">
-                        <button class="flex items-center gap-1.5 text-sm font-semibold tracking-wide hover:text-accent transition-colors py-2" :class="[!isScrolled && !props.withHeaderPadding ? 'text-white' : 'text-ink']">
+                        <button class="flex items-center gap-1.5 text-base font-semibold tracking-wide hover:text-accent transition-colors py-2" :class="[!isScrolled && !props.withHeaderPadding ? 'text-white' : 'text-ink']">
                             Explore
                             <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 transition-transform duration-300 group-hover:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
                         </button>
@@ -177,8 +186,8 @@ onUnmounted(() => {
                             </div>
                         </div>
                     </div>
-                    <Link href="/journal" class="text-sm font-semibold tracking-wide hover:text-accent transition-colors" :class="[!isScrolled && !props.withHeaderPadding ? 'text-white' : 'text-ink']">Journal</Link>
-                    <Link href="/about" class="text-sm font-semibold tracking-wide hover:text-accent transition-colors" :class="[!isScrolled && !props.withHeaderPadding ? 'text-white' : 'text-ink']">About</Link>
+                    <Link href="/journal" class="text-base font-semibold tracking-wide hover:text-accent transition-colors" :class="[!isScrolled && !props.withHeaderPadding ? 'text-white' : 'text-ink']">Journal</Link>
+                    <Link href="/about" class="text-base font-semibold tracking-wide hover:text-accent transition-colors" :class="[!isScrolled && !props.withHeaderPadding ? 'text-white' : 'text-ink']">About</Link>
                 </nav>
 
                 <!-- Actions -->
@@ -381,14 +390,14 @@ onUnmounted(() => {
                             </div>
                         </transition>
                     </div>
-                    <Link 
+                    <button 
                         v-else 
-                        href="/login" 
+                        @click="openAuthModal('login')"
                         class="p-2.5 rounded-full transition-all duration-300 hover:bg-black/5"
                         :class="[!isScrolled && !props.withHeaderPadding ? 'text-white hover:bg-white/10' : 'text-ink']"
                     >
                         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-                    </Link>
+                    </button>
 
                     <!-- Sell Button -->
                     <!-- Sell Button -->
@@ -413,7 +422,13 @@ onUnmounted(() => {
         </main>
         <Footer />
         
-        <MobileNavDock />
+        <MobileNavDock @open-auth="openAuthModal('login')" />
+        
+        <AuthModal 
+            :show="isAuthModalOpen" 
+            :initial-view="authModalInitialView" 
+            @close="isAuthModalOpen = false" 
+        />
     </div>
 </template>
 
