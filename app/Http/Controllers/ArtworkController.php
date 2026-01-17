@@ -6,6 +6,7 @@ use App\Models\Artwork;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
+use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
 class ArtworkController extends Controller
 {
@@ -61,9 +62,12 @@ class ArtworkController extends Controller
         if ($request->hasFile('image')) {
             $imageFile = $request->file('image');
 
-            // Upload to Cloudinary
-            $response = $imageFile->storeOnCloudinary('artworks');
-            $fullUrl = $response->getSecurePath();
+            // Upload using the Facade directly
+            $uploadedFile = Cloudinary::upload($request->file('image')->getRealPath(), [
+                'folder' => 'artworks'
+            ]);
+            $url = $uploadedFile->getSecurePath();
+            $fullUrl = $url; // Map to existing logic variable
 
             // Calculate Orientation based on provided width/height (or we could fetch metadata if needed)
             // Using user input for dimensions since Cloudinary response doesn't give them directly without inspection
