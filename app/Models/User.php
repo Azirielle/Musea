@@ -47,10 +47,16 @@ class User extends Authenticatable
         'verification_status',
         'portfolio_url',
         'requested_role',
+        'last_seen_at',
     ];
 
 
-    protected $appends = ['avatar'];
+    protected $appends = ['avatar', 'is_online'];
+
+    public function getIsOnlineAttribute()
+    {
+        return $this->last_seen_at && $this->last_seen_at->gt(now()->subMinutes(5));
+    }
 
     public function getAvatarAttribute()
     {
@@ -80,6 +86,7 @@ class User extends Authenticatable
             'is_onboarded' => 'boolean',
             'is_featured' => 'boolean',
             'is_verified' => 'boolean',
+            'last_seen_at' => 'datetime',
         ];
 
     }

@@ -43,7 +43,7 @@ class Artwork extends Model
     public function getImageUrlAttribute($value)
     {
         if (!$value) {
-            return '/images/placeholder-art.jpg';
+            return 'https://placehold.co/600x400/png?text=No+Image';
         }
 
         if (str_starts_with($value, 'http')) {
