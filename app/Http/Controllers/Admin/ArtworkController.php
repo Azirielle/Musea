@@ -23,7 +23,15 @@ class ArtworkController extends Controller
                     'subtitle' => 'by ' . ($artwork->artist ? $artwork->artist->first_name . ' ' . $artwork->artist->last_name : 'Unknown'),
                     'image' => $artwork->image_url,
                     'created_at' => $artwork->created_at,
-                    'model' => 'artwork'
+                    'model' => 'artwork',
+                    'details' => [
+                        'Description' => $artwork->description,
+                        'Price' => '₱' . number_format((float) $artwork->price, 2),
+                        'Dimensions' => "{$artwork->height} x {$artwork->width} " . ($artwork->depth ? "x {$artwork->depth} " : "") . $artwork->unit,
+                        'Category' => $artwork->category,
+                        'Orientation' => ucfirst($artwork->orientation),
+                        'Stock' => $artwork->stock
+                    ]
                 ];
             });
 
@@ -38,7 +46,14 @@ class ArtworkController extends Controller
                     'subtitle' => $user->email,
                     'image' => $user->imageUrl(),
                     'created_at' => $user->created_at,
-                    'model' => 'user'
+                    'model' => 'user',
+                    'details' => [
+                        'Email' => $user->email,
+                        'Phone' => $user->phone ?? 'N/A',
+                        'Address' => $user->address ?? 'N/A',
+                        'Bio' => $user->bio ?? 'No bio provided.',
+                        'Portfolio' => $user->portfolio_url ?? 'N/A'
+                    ]
                 ];
             });
 

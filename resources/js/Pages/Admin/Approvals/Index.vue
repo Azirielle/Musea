@@ -1,12 +1,27 @@
 <script setup>
 import AdminLayout from '@/Layouts/AdminLayout.vue';
+import Modal from '@/Components/Modal.vue';
 import { Head, Link, router } from '@inertiajs/vue3';
+import { ref } from 'vue';
 
 import Swal from 'sweetalert2';
 
 defineProps({
     approvals: Array,
 });
+
+const showModal = ref(false);
+const selectedItem = ref(null);
+
+const openDetails = (item) => {
+    selectedItem.value = item;
+    showModal.value = true;
+};
+
+const closeDetails = () => {
+    showModal.value = false;
+    setTimeout(() => selectedItem.value = null, 300); // Clear after animation
+};
 
 const approve = (item) => {
     const routeName = item.model === 'artwork' ? 'admin.approvals.approve' : 'admin.verifications.approve';
@@ -73,30 +88,82 @@ const reject = (item) => {
         </div>
 
         <div v-else class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div v-for="item in approvals" :key="item.type + item.id" class="bg-white dark:bg-gray-800 overflow-hidden shadow sm:rounded-lg relative">
+            <div v-for="item in approvals" :key="item.type + item.id" class="bg-white dark:bg-gray-800 overflow-hidden shadow sm:rounded-lg relative group">
                 <!-- Type Badge -->
-                <div class="absolute top-2 right-2 px-2 py-1 rounded text-xs font-bold uppercase tracking-wider"
+                <div class="absolute top-2 right-2 px-2 py-1 rounded text-xs font-bold uppercase tracking-wider z-10"
                     :class="item.model === 'artwork' ? 'bg-indigo-100 text-indigo-800' : 'bg-purple-100 text-purple-800'">
                     {{ item.type }}
                 </div>
 
-                <img :src="item.image" alt="Thumbnail" class="w-full h-48 object-cover bg-gray-100">
-                
-                <div class="p-4">
-                    <h3 class="text-lg font-bold text-gray-900 dark:text-white truncate" :title="item.title">{{ item.title }}</h3>
-                    <p class="text-sm text-gray-500 dark:text-gray-300 truncate">{{ item.subtitle }}</p>
-                    <p class="text-xs text-gray-400 mt-1">{{ new Date(item.created_at).toLocaleDateString() }}</p>
+                <div @click="openDetails(item)" class="cursor-pointer">
+                    <img :src="item.image" alt="Thumbnail" class="w-full h-48 object-cover bg-gray-100 hover:opacity-90 transition-opacity">
+                    
+                    <div class="p-4">
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-white truncate hover:text-indigo-600 dark:hover:text-indigo-400" :title="item.title">{{ item.title }}</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-300 truncate">{{ item.subtitle }}</p>
+                        <p class="text-xs text-gray-400 mt-1">{{ new Date(item.created_at).toLocaleDateString() }}</p>
 
-                    <div class="mt-4 flex space-x-2">
-                        <button @click="approve(item)" class="flex-1 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors">
-                            Approve
-                        </button>
-                        <button @click="reject(item)" class="flex-1 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors">
-                            Reject
-                        </button>
+                        <div class="mt-4 flex space-x-2 relative z-20">
+                            <button @click.stop="approve(item)" class="flex-1 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 transition-colors">
+                                Approve
+                            </button>
+                            <button @click.stop="reject(item)" class="flex-1 bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors">
+                                Reject
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Details Modal -->
+        <Modal :show="showModal" @close="closeDetails">
+            <div class="p-6" v-if="selectedItem">
+                <div class="flex justify-between items-start mb-4">
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                        {{ selectedItem.title }}
+                    </h2>
+                    <button @click="closeDetails" class="text-gray-500 hover:text-gray-700">
+                        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <img :src="selectedItem.image" class="w-full rounded-lg shadow-md object-contain max-h-[400px] bg-gray-50" />
+                    </div>
+                    
+                    <div class="space-y-4">
+                        <div>
+                            <span class="inline-block px-2 py-1 rounded text-xs font-bold uppercase tracking-wider mb-2"
+                                :class="selectedItem.model === 'artwork' ? 'bg-indigo-100 text-indigo-800' : 'bg-purple-100 text-purple-800'">
+                                {{ selectedItem.type }}
+                            </span>
+                            <p class="text-lg text-gray-600 dark:text-gray-300">{{ selectedItem.subtitle }}</p>
+                        </div>
+
+                        <div class="border-t pt-4">
+                            <dl class="grid grid-cols-1 gap-x-4 gap-y-4">
+                                <div v-for="(value, label) in selectedItem.details" :key="label" class="sm:col-span-1">
+                                    <dt class="text-sm font-medium text-gray-500 dark:text-gray-400">{{ label }}</dt>
+                                    <dd class="mt-1 text-sm text-gray-900 dark:text-white">{{ value || 'N/A' }}</dd>
+                                </div>
+                            </dl>
+                        </div>
+
+                        <div class="pt-6 flex space-x-3">
+                            <button @click="approve(selectedItem); closeDetails()" class="flex-1 bg-green-600 text-white px-4 py-3 rounded-lg hover:bg-green-700 transition-colors font-bold shadow-md">
+                                Approve
+                            </button>
+                            <button @click="reject(selectedItem); closeDetails()" class="flex-1 bg-red-600 text-white px-4 py-3 rounded-lg hover:bg-red-700 transition-colors font-bold shadow-md">
+                                Reject
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </Modal>
     </AdminLayout>
 </template>

@@ -87,10 +87,10 @@ class JournalController extends Controller
 
         // Handle publishing toggle
         // If frontend sends 'is_published' true/false
-        if ($request->has('is_published')) {
-            if ($request->boolean('is_published') && !$journal->published_at) {
+        if ($request->has('published_at')) {
+            if ($request->boolean('published_at') && !$journal->published_at) {
                 $data['published_at'] = now();
-            } elseif (!$request->boolean('is_published') && $journal->published_at) {
+            } elseif (!$request->boolean('published_at') && $journal->published_at) {
                 $data['published_at'] = null;
             }
         }

@@ -12,7 +12,7 @@ const form = useForm({
     excerpt: props.post.excerpt || '',
     content: props.post.content || '',
     image: null,
-    is_published: !!props.post.published_at,
+    published_at: !!props.post.published_at,
 });
 
 const submit = () => {
@@ -89,12 +89,12 @@ const submit = () => {
                     <!-- Publish -->
                     <div class="flex items-center">
                         <input 
-                            id="is_published" 
-                            v-model="form.is_published" 
+                            id="published_at" 
+                            v-model="form.published_at" 
                             type="checkbox" 
                             class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded" 
                         />
-                        <label for="is_published" class="ml-2 block text-sm text-gray-900 dark:text-gray-300">
+                        <label for="published_at" class="ml-2 block text-sm text-gray-900 dark:text-gray-300">
                             Published
                         </label>
                     </div>
