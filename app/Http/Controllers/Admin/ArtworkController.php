@@ -14,15 +14,13 @@ class ArtworkController extends Controller
         $pendingArtworks = Artwork::where('status', 'pending')
             ->with('artist:id,first_name,last_name')
             ->latest()
-            ->get()
             ->map(function ($artwork) {
                 return [
                     'id' => $artwork->id,
                     'type' => 'Artwork',
                     'title' => $artwork->title,
                     'subtitle' => 'by ' . ($artwork->artist ? $artwork->artist->first_name . ' ' . $artwork->artist->last_name : 'Unknown'),
-                    'image' => $artwork->image_url,
-                    'image_path' => $artwork->getRawOriginal('image_url'),
+                    'image' => $artwork->image_url, // Accessor handles logic
                     'created_at' => $artwork->created_at,
                     'model' => 'artwork',
                     'details' => [
@@ -45,8 +43,8 @@ class ArtworkController extends Controller
                     'type' => 'Artist Application',
                     'title' => $user->first_name . ' ' . $user->last_name,
                     'subtitle' => $user->email,
-                    'image' => $user->imageUrl(),
-                    'image_path' => $user->imageUrl(), // Verification uses profile pic, usually standard path
+                    'image' => $user->imageUrl(), // Standard helper
+                    'image_url' => $user->imageUrl(), // For consistency with Artwork
                     'created_at' => $user->created_at,
                     'model' => 'user',
                     'details' => [

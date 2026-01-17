@@ -40,8 +40,12 @@ class Artwork extends Model
         return $this->belongsTo(User::class, 'artist_id');
     }
 
+    protected $appends = ['image_url'];
+
     public function getImageUrlAttribute($value)
     {
+        $value = $this->attributes['image_url'] ?? null;
+
         if (!$value) {
             return 'https://placehold.co/600x400/png?text=No+Image';
         }
@@ -50,16 +54,16 @@ class Artwork extends Model
             return $value;
         }
 
-        // Clean up leading slashes
-        $value = ltrim($value, '/');
-
-        // If it starts with storage/, just return with a leading slash
-        if (str_starts_with($value, 'storage/')) {
-            return '/' . $value;
+        if (str_starts_with($value, 'storage')) {
+            return asset($value);
         }
 
-        // Otherwise prepend /storage/
-        return '/storage/' . $value;
+        try {
+            return \CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary::getUrl($value);
+        } catch (\Exception $e) {
+            // Fallback if Cloudinary fails or ID is invalid, return as is or local
+            return asset('storage/' . $value);
+        }
     }
 
     public function likes()
