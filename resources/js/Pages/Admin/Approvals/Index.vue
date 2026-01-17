@@ -96,7 +96,7 @@ const reject = (item) => {
                 </div>
 
                 <div @click="openDetails(item)" class="cursor-pointer">
-                    <img :src="item.image_url" 
+                    <img :src="item.image_url && item.image_url.startsWith('http') ? item.image_url : '/storage/' + item.image_url" 
                          @error="$event.target.src='https://placehold.co/600x400/png?text=No+Image'"
                          alt="Thumbnail" class="w-full h-48 object-cover bg-gray-100 hover:opacity-90 transition-opacity">
                     
