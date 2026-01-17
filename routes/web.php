@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Admin;
 use Inertia\Inertia;
@@ -382,4 +383,23 @@ Route::get('/debug-admin-login', function () {
 });
 
 require __DIR__ . '/auth.php';
+
+Route::get('/debug-cloudinary', function () {
+    // 1. Clear all caches
+    Artisan::call('config:clear');
+    Artisan::call('cache:clear');
+
+    // 2. Check if the config file exists
+    $hasConfig = file_exists(config_path('cloudinary.php')) ? '✅ File Exists' : '❌ FILE MISSING';
+
+    // 3. Check if the Environment Variable is loaded
+    $envUrl = env('CLOUDINARY_URL') ? '✅ URL Found' : '❌ URL MISSING';
+
+    return "
+    <h1>Debug Report</h1>
+    <p><strong>Config File:</strong> $hasConfig</p>
+    <p><strong>Env Variable:</strong> $envUrl</p>
+    <p><strong>Cache:</strong> Cleared successfully!</p>
+    ";
+});
 
