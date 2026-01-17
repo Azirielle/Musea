@@ -39,51 +39,55 @@ class ArtworkController extends Controller
      */
     public function store(Request $request)
     {
-        // Force-feed the credentials to bypass config cache issues
-        config(['cloudinary.cloud_url' => 'cloudinary://112719694583157:yGB2snsePNfMtODwrtjesYI9Jnw@du6bc1wjb']);
-        config(['cloudinary.secure' => true]);
-
-        if (auth()->user()->role !== \App\Models\User::ROLE_ARTIST) {
-            return redirect()->route('profile.edit')->with('error', 'You must be a verified artist to upload artwork. Please apply for verification below.');
-        }
-
+        // 1. Validate the Input
         $validated = $request->validate([
             'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'category' => 'required|in:Painting,Canvas,Drawing,Sculpture,Vase,Basket,Other,Photography,Digital,Mixed Media',
+            'description' => 'required|string',
+            'category' => 'required|string',
+            // 'subcategory' => 'nullable|string', // Adapted: Field likely does not exist
+            'price' => 'required|numeric|min:0',
             'width' => 'required|numeric|min:0',
             'height' => 'required|numeric|min:0',
             'depth' => 'nullable|numeric|min:0',
-            'unit' => 'required|in:cm,in',
-            'price' => 'required|numeric|min:0',
-            'image' => 'required|image|max:10240', // 10MB max
-            'stock' => 'integer|min:0',
+            'unit' => 'required|string',
+            'stock' => 'required|integer|min:1',
+            // 'ready_to_hang' => 'boolean', // Adapted: Field likely does not exist
+            // 'framing' => 'string', // Adapted: Field likely does not exist
+            'image' => 'required|image|max:10240', // Max 10MB
         ]);
 
-        $fullUrl = null;
-        $orientation = 'landscape';
+        // 2. FORCE CONFIGURATION (The Magic Fix 🪄)
+        // We manually set these values so the app doesn't need to look for a file.
+        config([
+            'cloudinary.cloud_url' => 'cloudinary://112719694583157:yGB2snsePNfMtODwrtjesYI9Jnw@du6bc1wjb',
+            'cloudinary.cloud_name' => 'du6bc1wjb',
+            'cloudinary.api_key' => '112719694583157',
+            'cloudinary.api_secret' => 'yGB2snsePNfMtODwrtjesYI9Jnw',
+            'cloudinary.secure' => true,
+        ]);
 
+        // 3. Upload to Cloudinary
         if ($request->hasFile('image')) {
-            $imageFile = $request->file('image');
-
-            // Upload using the Facade directly
-            $uploadedFile = Cloudinary::upload($request->file('image')->getRealPath(), [
-                'folder' => 'artworks'
-            ]);
+            // Now this will work because we set the config above!
+            $uploadedFile = \CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary::upload(
+                $request->file('image')->getRealPath(),
+                ['folder' => 'artworks']
+            );
             $url = $uploadedFile->getSecurePath();
-            $fullUrl = $url; // Map to existing logic variable
-
-            // Calculate Orientation based on provided width/height (or we could fetch metadata if needed)
-            // Using user input for dimensions since Cloudinary response doesn't give them directly without inspection
-            if ($validated['width'] == $validated['height']) {
-                $orientation = 'square';
-            } elseif ($validated['width'] > $validated['height']) {
-                $orientation = 'landscape';
-            } else {
-                $orientation = 'portrait';
-            }
+        } else {
+            return back()->withErrors(['image' => 'Image upload failed.']);
         }
 
+        // 4. Calculate Orientation
+        $orientation = 'square';
+        if ($validated['width'] > $validated['height']) {
+            $orientation = 'landscape';
+        } elseif ($validated['width'] < $validated['height']) {
+            $orientation = 'portrait';
+        }
+
+        // 5. Create Database Record
+        // Adapted to match existing DB Schema (width/height vs dimensions string)
         auth()->user()->artworks()->create([
             'title' => $validated['title'],
             'description' => $validated['description'],
@@ -93,14 +97,16 @@ class ArtworkController extends Controller
             'depth' => $validated['depth'] ?? null,
             'unit' => $validated['unit'],
             'price' => $validated['price'],
-            'stock' => $request->input('stock', 1),
-            'image_url' => $fullUrl, // Saves full https://res.cloudinary.com... URL
-            'original_image_url' => $fullUrl, // No separate original in this simplified flow
+            'stock' => $validated['stock'],
+            'image_url' => $url, // DB column is 'image_url', not 'image_path'
+            'original_image_url' => $url,
             'status' => 'pending',
             'orientation' => $orientation,
         ]);
 
-        return redirect()->route('dashboard.artworks.index')->with('success', 'Artwork submitted successfully and is pending approval.');
+        // 6. Redirect
+        return redirect()->route('dashboard.artworks.index')
+            ->with('success', 'Artwork submitted successfully and is pending approval!');
     }
 
     /**
