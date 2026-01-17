@@ -55,61 +55,21 @@ class ArtworkController extends Controller
             'stock' => 'integer|min:0',
         ]);
 
-        $path = null;
-        $originalPath = null;
+        $fullUrl = null;
         $orientation = 'landscape';
 
         if ($request->hasFile('image')) {
             $imageFile = $request->file('image');
 
-            // 1. Save Original (Secure)
-            $originalPath = $imageFile->store('artworks/originals', 'public');
+            // Upload to Cloudinary
+            $response = $imageFile->storeOnCloudinary('artworks');
+            $fullUrl = $response->getSecurePath();
 
-            // 2. Generate Watermarked Version
-            // Ensure public directory exists
-            if (!Storage::disk('public')->exists('artworks')) {
-                Storage::disk('public')->makeDirectory('artworks');
-            }
-
-            $watermarkedFilename = $imageFile->hashName();
-            $watermarkedPath = 'artworks/' . $watermarkedFilename;
-            $absolutePath = storage_path('app/public/' . $watermarkedPath);
-
-            try {
-                $image = \Intervention\Image\Laravel\Facades\Image::read($imageFile->getRealPath());
-
-                // Apply Watermark
-                $watermarkPath = public_path('images/logo/Musea.png');
-                if (file_exists($watermarkPath)) {
-                    $watermark = \Intervention\Image\Laravel\Facades\Image::read($watermarkPath);
-
-                    // Resize watermark to 20% of image width
-                    $watermark->scale(width: $image->width() * 0.2);
-
-                    // Place watermark in center with 40% opacity
-                    $image->place($watermark, 'center', 0, 0, 40);
-                }
-
-                $image->save($absolutePath);
-                $path = $watermarkedPath;
-
-                // Detect orientation from Interverntion Image object
-                $width = $image->width();
-                $height = $image->height();
-
-            } catch (\Exception $e) {
-                // If watermarking fails (e.g. driver issue), fallback to standard store
-                $path = $imageFile->store('artworks', 'public');
-
-                // Fallback to native PHP function for dimensions
-                $dimensions = getimagesize($imageFile->getRealPath());
-                $width = $dimensions[0] ?? 0;
-                $height = $dimensions[1] ?? 0;
-            }
-
-            if ($width == $height) {
+            // Calculate Orientation based on provided width/height (or we could fetch metadata if needed)
+            // Using user input for dimensions since Cloudinary response doesn't give them directly without inspection
+            if ($validated['width'] == $validated['height']) {
                 $orientation = 'square';
-            } elseif ($width > $height) {
+            } elseif ($validated['width'] > $validated['height']) {
                 $orientation = 'landscape';
             } else {
                 $orientation = 'portrait';
@@ -126,8 +86,8 @@ class ArtworkController extends Controller
             'unit' => $validated['unit'],
             'price' => $validated['price'],
             'stock' => $request->input('stock', 1),
-            'image_url' => $path ? '/storage/' . $path : null,
-            'original_image_url' => $originalPath ? '/storage/' . $originalPath : null,
+            'image_url' => $fullUrl, // Saves full https://res.cloudinary.com... URL
+            'original_image_url' => $fullUrl, // No separate original in this simplified flow
             'status' => 'pending',
             'orientation' => $orientation,
         ]);
