@@ -72,10 +72,14 @@ const filteredArtists = computed(() => {
 
 const isUpdating = ref(false);
 
+// Helper to check equality
+const isEqual = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+
 // Watchers to emit updates
 const applyFilters = () => {
     if (isUpdating.value) return; // Prevent loop
-    emit('update', {
+
+    const payload = {
         price_min: priceRange.value[0],
         price_max: priceRange.value[1],
         category: selectedCategory.value,
@@ -85,10 +89,39 @@ const applyFilters = () => {
         orientation: selectedOrientation.value,
         artist_id: selectedArtists.value,
         size: selectedSize.value
-    });
+    };
+
+    // Check if payload matches current props to prevent redundant loops
+    // We construct a prop-like object to compare
+    const currentProps = {
+        price_min: props.filters.price_min ? parseInt(props.filters.price_min) : props.minPrice,
+        price_max: props.filters.price_max ? parseInt(props.filters.price_max) : props.maxPrice,
+        category: Array.isArray(props.filters.category) ? props.filters.category : (props.filters.category ? [props.filters.category] : []),
+        subcategory: Array.isArray(props.filters.subcategory) ? props.filters.subcategory : (props.filters.subcategory ? [props.filters.subcategory] : []),
+        framing: Array.isArray(props.filters.framing) ? props.filters.framing : (props.filters.framing ? [props.filters.framing] : []),
+        ready_to_hang: props.filters.ready_to_hang === '1' || props.filters.ready_to_hang === 'true',
+        orientation: Array.isArray(props.filters.orientation) ? props.filters.orientation : (props.filters.orientation ? [props.filters.orientation] : []),
+        artist_id: Array.isArray(props.filters.artist_id) ? props.filters.artist_id.map(id => parseInt(id)) : (props.filters.artist_id ? [parseInt(props.filters.artist_id)] : []),
+        size: Array.isArray(props.filters.size) ? props.filters.size : (props.filters.size ? [props.filters.size] : [])
+    };
+
+    // Normalize for comparison (sort arrays)
+    const normalize = (obj) => {
+        const n = { ...obj };
+        ['category', 'subcategory', 'framing', 'orientation', 'artist_id', 'size'].forEach(k => {
+            if (Array.isArray(n[k])) n[k] = [...n[k]].sort();
+        });
+        return n;
+    };
+
+    if (isEqual(normalize(payload), normalize(currentProps))) {
+        return;
+    }
+
+    emit('update', payload);
 };
 
-// Update local state when props change (e.g. Cleared filters from parent)
+// Update local state when props change
 watch(() => props.filters, (newFilters) => {
     isUpdating.value = true; // Lock
     
@@ -109,10 +142,10 @@ watch(() => props.filters, (newFilters) => {
     selectedArtists.value = getIntArray(newFilters.artist_id);
     selectedSize.value = getArray(newFilters.size);
     
-    // Unlock after Vue reactivity settles (next tick) or simple timeout
+    // Unlock after proper delay
     setTimeout(() => {
         isUpdating.value = false;
-    }, 50); // Small buffer to ensure watchers have fired and returned
+    }, 100); 
 }, { deep: true });
 
 // Debounce for price slider
