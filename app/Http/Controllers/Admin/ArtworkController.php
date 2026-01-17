@@ -22,6 +22,7 @@ class ArtworkController extends Controller
                     'title' => $artwork->title,
                     'subtitle' => 'by ' . ($artwork->artist ? $artwork->artist->first_name . ' ' . $artwork->artist->last_name : 'Unknown'),
                     'image' => $artwork->image_url,
+                    'image_path' => $artwork->getRawOriginal('image_url'),
                     'created_at' => $artwork->created_at,
                     'model' => 'artwork',
                     'details' => [
@@ -45,6 +46,7 @@ class ArtworkController extends Controller
                     'title' => $user->first_name . ' ' . $user->last_name,
                     'subtitle' => $user->email,
                     'image' => $user->imageUrl(),
+                    'image_path' => $user->imageUrl(), // Verification uses profile pic, usually standard path
                     'created_at' => $user->created_at,
                     'model' => 'user',
                     'details' => [

@@ -96,7 +96,9 @@ const reject = (item) => {
                 </div>
 
                 <div @click="openDetails(item)" class="cursor-pointer">
-                    <img :src="item.image" alt="Thumbnail" class="w-full h-48 object-cover bg-gray-100 hover:opacity-90 transition-opacity">
+                    <img :src="item.image_path || item.image" 
+                         @error="$event.target.src='https://placehold.co/600x400/png?text=No+Image'"
+                         alt="Thumbnail" class="w-full h-48 object-cover bg-gray-100 hover:opacity-90 transition-opacity">
                     
                     <div class="p-4">
                         <h3 class="text-lg font-bold text-gray-900 dark:text-white truncate hover:text-indigo-600 dark:hover:text-indigo-400" :title="item.title">{{ item.title }}</h3>
@@ -132,7 +134,9 @@ const reject = (item) => {
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <img :src="selectedItem.image" class="w-full rounded-lg shadow-md object-contain max-h-[400px] bg-gray-50" />
+                        <img :src="selectedItem.image_path || selectedItem.image" 
+                             @error="$event.target.src='https://placehold.co/600x400/png?text=No+Image'"
+                             class="w-full rounded-lg shadow-md object-contain max-h-[400px] bg-gray-50" />
                     </div>
                     
                     <div class="space-y-4">
