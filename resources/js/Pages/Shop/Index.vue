@@ -44,15 +44,17 @@ const debounce = (fn, delay) => {
 };
 
 const applyParams = debounce(() => {
-    router.get('/shop', { 
-        ...currentFilters.value, 
-        sort: sortBy.value 
-    }, { 
+    router.visit(route('shop.index'), {
+        method: 'get',
+        data: { 
+            ...currentFilters.value, 
+            sort: sortBy.value 
+        },
         preserveState: true, 
         preserveScroll: true,
         replace: true 
     });
-}, 500);
+}, 600);
 
 const formatPrice = (price) => {
     return Number(price).toLocaleString('en-PH', { 

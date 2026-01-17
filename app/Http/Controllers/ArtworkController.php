@@ -79,12 +79,18 @@ class ArtworkController extends Controller
             return back()->withErrors(['image' => 'Image upload failed.']);
         }
 
-        // 3. Calculate Orientation
+        // 3. Calculate Orientation & Color
         $orientation = 'square';
         if ($validated['width'] > $validated['height']) {
             $orientation = 'landscape';
         } elseif ($validated['width'] < $validated['height']) {
             $orientation = 'portrait';
+        }
+
+        // Extract Color
+        $dominantColor = null;
+        if ($request->hasFile('image')) {
+            $dominantColor = \App\Services\ColorExtractor::getDominantColor($request->file('image')->getRealPath());
         }
 
         // 4. Create Database Record
@@ -102,6 +108,7 @@ class ArtworkController extends Controller
             'original_image_url' => $url,
             'status' => 'pending',
             'orientation' => $orientation,
+            'dominant_color' => $dominantColor,
         ]);
 
         // 5. Redirect

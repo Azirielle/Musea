@@ -13,105 +13,48 @@ class ShopController extends Controller
         ]);
 
         try {
-            // Manual Config (Same as ArtworkController)
-            \Cloudinary\Configuration\Configuration::instance('cloudinary://112719694583157:yGB2snsePNfMtODwrtjesYI9Jnw@du6bc1wjb?secure=true');
+            // 1. Extract Color from Uploaded Image (Local processing, no Cloudinary upload needed for search itself)
+            $targetHex = \App\Services\ColorExtractor::getDominantColor($request->file('image')->getRealPath());
 
-            // 1. Upload temp image
-            $uploadApi = new \Cloudinary\Api\Upload\UploadApi();
-            $result = $uploadApi->upload($request->file('image')->getRealPath(), [
-                'folder' => 'temp_visual_search',
-            ]);
+            if (!$targetHex) {
+                return redirect()->back()->with('error', 'Could not extract color from image.');
+            }
 
-            $publicId = $result['public_id'];
-            $imageUrl = $result['secure_url'];
+            // 2. Fetch all Artworks with dominant_color
+            // We fetch ID and Color to perform distance calculation in PHP
+            $artworks = \App\Models\Artwork::where('status', 'active')
+                ->whereNotNull('dominant_color')
+                ->get(['id', 'dominant_color']);
 
-            // 2. Perform Visual Search using SearchApi
-            // We search for images that are similar to the uploaded one
-            // Note: This requires the "Visual Search" add-on or support in your Cloudinary plan.
-            // If strictly using the 'search' API with expressions:
+            if ($artworks->isEmpty()) {
+                return redirect()->route('shop.index')->with('error', 'No artworks have color data yet.');
+            }
 
-            $searchApi = new \Cloudinary\Api\Search\SearchApi();
-            $searchResult = $searchApi
-                ->expression("resource_type:image AND status:active AND folder:artworks/*")
-                ->sortBy('similarity', 'desc')
-                // .interaction('visual_search', ['image_url' => $imageUrl]) // Some SDKs use this
-                // But generally for similarity you might use the Upload API 'similarity_search' or specialized endpoints.
-                // However, standard Search API supports 'similar_to_image'?
-                // Actually, correct PHP SDK usage for visual search often involves:
-                // $search->expression("...")->withField("similarity_search", "url:...")?
-                // Let's use the simplest reliable method: Upload API 'similarity_search' doesn't exist directly?
-                // Actually, the Admin API or Search API has 'similar_to_image' parameter?
-                // Let's try the modern expression: 'similar' is not a standard expression keyword without setup.
-                // Wait, Cloudinary "Visual Search" usually implies:
-                // search.expression('...').sort_by('similarity', 'desc').aggregate('format').execute() ??
+            // 3. Calculate Distance
+            $targetRgb = sscanf($targetHex, "#%02x%02x%02x");
 
-                // ALTERNATIVE: Use the specific 'visual_search' endpoint if available or 'similar_image' param.
-                // Since I can't easily debug the exact SDK version capabilities, I will use the *Admin API* to find similar resources 
-                // OR better, try to use the raw Search API via the instance if the SDK wrapper is vague.
+            $sorted = $artworks->map(function ($art) use ($targetRgb) {
+                $artRgb = sscanf($art->dominant_color, "#%02x%02x%02x");
+                // Euclidean Distance
+                $distance = sqrt(
+                    pow($targetRgb[0] - $artRgb[0], 2) +
+                    pow($targetRgb[1] - $artRgb[1], 2) +
+                    pow($targetRgb[2] - $artRgb[2], 2)
+                );
+                $art->color_distance = $distance;
+                return $art;
+            })->sortBy('color_distance');
 
-                // Let's look at the documentation pattern for PHP SDK v2:
-                // (new SearchApi())->expression('...')->sortBy('similarity', 'desc')...
-                // The key is HOW to pass the reference image.
-                // Usually: ->add_param("similar_to_image", "id:".$publicId)
+            // 4. Get Top 20 Matches
+            $topMatches = $sorted->take(20);
 
-                // LET'S TRY THIS PATTERN:
-                ->add_extra_param("similar_to_image", "id:" . $publicId)
-                ->execute();
+            $artworkIds = $topMatches->pluck('id')->values()->toArray();
 
-            /* 
-               If the above specific method helper `add_extra_param` doesn't exist on the specific SearchApi class, 
-               we might fallback to raw JSON POST if needed, but SDK usually has generic methods.
-               Let's assume standard SearchApi usage. 
-            */
+            return redirect()->route('shop.index', ['visual_search_ids' => $artworkIds]);
 
         } catch (\Exception $e) {
-            // Fallback or error
             return redirect()->back()->with('error', 'Visual search failed: ' . $e->getMessage());
         }
-
-        // 3. Extract IDs
-        // $searchResult['resources'] contains matches
-        $resources = $searchResult['resources'] ?? [];
-
-        // Map Cloudinary Public IDs (or filenames) back to Artworks.
-        // Our Artworks generally store the full URL or a path.
-        // We might need to match by extracted filename if strict.
-        // Or, assume we can find them by parsing the result URL.
-
-        $matches = [];
-        foreach ($resources as $res) {
-            // We can match loosely by filename if we trust uniqueness
-            // $filename = pathinfo($res['public_id'], PATHINFO_FILENAME);
-            // $matches[] = $filename;
-            // OR match by full URL if possible?
-            // Best is if we stored public_id in DB. We didn't explicitly store public_id in separate column, mostly image_url.
-            // But image_url contains the public_id usually.
-
-            // Strategy: Search Artworks where image_url LIKE '%public_id%'
-            $matches[] = $res['public_id'];
-        }
-
-        if (empty($matches)) {
-            return redirect()->route('shop.index')->with('error', 'No visually similar artworks found.');
-        }
-
-        // 4. Find Artworks
-        // This query might be slow if standard SQL LIKE. 
-        // Better: extract the unique part of public_id and search.
-
-        // Let's pass the public_ids to the frontend (Shop/Index) or filter directly here?
-        // The user wants "Return those specific artworks to the grid."
-        // We can just query them here and pass to the Inertia render OR redirect to index with 'ids' param.
-        // Direction: Redirect to index with ?visual_search_ids=...
-
-        // Let's find IDs first to ensure valid IDs
-        $artworkIds = \App\Models\Artwork::where(function ($q) use ($matches) {
-            foreach ($matches as $mid) {
-                $q->orWhere('image_url', 'LIKE', "%$mid%");
-            }
-        })->pluck('id')->toArray();
-
-        return redirect()->route('shop.index', ['visual_search_ids' => $artworkIds]);
     }
 
     public function index(Request $request)
