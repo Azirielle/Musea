@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\EnsureAdminPort::class,
             \App\Http\Middleware\CheckMaintenanceMode::class,
             \App\Http\Middleware\UpdateUserActivity::class,
+            \App\Http\Middleware\EnsureUserIsActive::class,
         ])->alias([
                     'guest' => \App\Http\Middleware\RedirectIfAuthenticated::class,
                 ]);

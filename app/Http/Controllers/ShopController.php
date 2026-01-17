@@ -6,74 +6,13 @@ use Illuminate\Http\Request;
 
 class ShopController extends Controller
 {
-    public function visualSearch(Request $request)
-    {
-        $request->validate([
-            'image' => 'required|image|max:10240', // 10MB limit
-        ]);
 
-        try {
-            // 1. Extract Color from Uploaded Image (Local processing, no Cloudinary upload needed for search itself)
-            $targetHex = \App\Services\ColorExtractor::getDominantColor($request->file('image')->getRealPath());
-
-            if (!$targetHex) {
-                return redirect()->back()->with('error', 'Could not extract color from image.');
-            }
-
-            // 2. Fetch all Artworks with dominant_color
-            // We fetch ID and Color to perform distance calculation in PHP
-            $artworks = \App\Models\Artwork::where('status', 'active')
-                ->whereNotNull('dominant_color')
-                ->get(['id', 'dominant_color']);
-
-            if ($artworks->isEmpty()) {
-                return redirect()->route('shop.index')->with('error', 'No artworks have color data yet.');
-            }
-
-            // 3. Calculate Distance
-            $targetRgb = sscanf($targetHex, "#%02x%02x%02x");
-
-            $sorted = $artworks->map(function ($art) use ($targetRgb) {
-                $artRgb = sscanf($art->dominant_color, "#%02x%02x%02x");
-                // Euclidean Distance
-                $distance = sqrt(
-                    pow($targetRgb[0] - $artRgb[0], 2) +
-                    pow($targetRgb[1] - $artRgb[1], 2) +
-                    pow($targetRgb[2] - $artRgb[2], 2)
-                );
-                $art->color_distance = $distance;
-                return $art;
-            })->sortBy('color_distance');
-
-            // 4. Get Top 20 Matches
-            $topMatches = $sorted->take(20);
-
-            $artworkIds = $topMatches->pluck('id')->values()->toArray();
-
-            return redirect()->route('shop.index', ['visual_search_ids' => $artworkIds]);
-
-        } catch (\Exception $e) {
-            return redirect()->back()->with('error', 'Visual search failed: ' . $e->getMessage());
-        }
-    }
 
     public function index(Request $request)
     {
         $query = \App\Models\Artwork::with('artist')->where('status', 'active');
 
-        // Visual Search IDs
-        if ($request->filled('visual_search_ids')) {
-            $ids = is_array($request->input('visual_search_ids'))
-                ? $request->input('visual_search_ids')
-                : explode(',', $request->input('visual_search_ids'));
 
-            // Preserve order of IDs for relevance
-            if (!empty($ids)) {
-                $query->whereIn('id', $ids);
-                $idsString = implode(',', $ids);
-                $query->orderByRaw("FIELD(id, $idsString)");
-            }
-        }
 
         // Search (Unified 'search' or 'query')
         if ($request->has('search') || $request->has('query')) {

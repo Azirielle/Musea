@@ -81,30 +81,7 @@ const handleSearch = (customQuery = null) => {
     }
 };
 
-const visualSearchInput = ref(null);
-const handleVisualSearch = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
 
-    // Use router to post the file
-    const formData = new FormData();
-    formData.append('image', file);
-
-    router.post(route('shop.visual-search'), formData, {
-        forceFormData: true,
-        onStart: () => {
-            // Optional: Show global loader
-            isLoading.value = true;
-            dismissSearch();
-        },
-        onFinish: () => {
-             isLoading.value = false;
-        }
-    });
-    
-    // Reset input
-    e.target.value = null;
-};
 
 const suggestions = ref({ artworks: [], artists: [] });
 const showSuggestions = ref(false);
@@ -161,6 +138,20 @@ const toggleSearch = () => {
 
 const toggleProfile = () => {
     isProfileOpen.value = !isProfileOpen.value;
+};
+
+const getAvatarUrl = (user) => {
+    if (!user.avatar_path) {
+        return `https://ui-avatars.com/api/?name=${user.first_name}+${user.last_name}&color=7F9CF5&background=EBF4FF`;
+    }
+    if (user.avatar_path.startsWith('http')) {
+        return user.avatar_path;
+    }
+    // Fix: Ensure we don't double-slash if path already has /storage/ or check relative
+    if (user.avatar_path.startsWith('/storage/') || user.avatar_path.startsWith('storage/')) {
+        return user.avatar_path.startsWith('/') ? user.avatar_path : '/' + user.avatar_path;
+    }
+    return `/storage/${user.avatar_path}`;
 };
 
 onMounted(() => {
@@ -258,14 +249,9 @@ onUnmounted(() => {
                                         @focus="showSuggestions = true"
                                         @keyup.enter="handleSearch"
                                     />
-                                    <button @click="$refs.visualSearchInput.click()" title="Visual Search" class="text-ink-light hover:text-accent transition-colors">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        </svg>
-                                    </button>
+
                                 </div>
-                                <input type="file" ref="visualSearchInput" class="hidden" accept="image/*" @change="handleVisualSearch" />
+
                                 
                                 <!-- Suggestions Results -->
                                 <div v-if="showSuggestions && (suggestions.artworks.length > 0 || suggestions.artists.length > 0)" class="mt-4 space-y-4 max-h-[300px] overflow-y-auto custom-scrollbar">
@@ -357,7 +343,7 @@ onUnmounted(() => {
                     <div v-if="user" class="relative" v-click-outside="() => isProfileOpen = false">
                         <button @click="toggleProfile" class="relative h-9 w-9 rounded-full border-2 border-divider hover:border-accent transition-all duration-300 group">
                             <img 
-                                :src="user.avatar_path && user.avatar_path.startsWith('http') ? user.avatar_path : (user.avatar_path ? `/storage/${user.avatar_path}` : `https://ui-avatars.com/api/?name=${user.first_name}+${user.last_name}&color=7F9CF5&background=EBF4FF`)" 
+                                :src="getAvatarUrl(user)" 
                                 alt="Profile" 
                                 class="w-full h-full object-cover rounded-full"
                             />

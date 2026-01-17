@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
+use Cloudinary\Configuration\Configuration;
+use Cloudinary\Api\Upload\UploadApi;
 
 class JournalController extends Controller
 {
@@ -34,9 +36,21 @@ class JournalController extends Controller
             'published_at' => 'nullable|boolean', // We'll accept boolean from frontend and convert
         ]);
 
-        $path = null;
+        $url = null;
         if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('journal', 'public');
+            try {
+                // Manually configure the library (Bypassing Laravel Config)
+                Configuration::instance('cloudinary://112719694583157:yGB2snsePNfMtODwrtjesYI9Jnw@du6bc1wjb?secure=true');
+
+                $uploadApi = new UploadApi();
+                $result = $uploadApi->upload($request->file('image')->getRealPath(), [
+                    'folder' => 'journal'
+                ]);
+                $url = $result['secure_url'];
+
+            } catch (\Exception $e) {
+                return back()->withErrors(['image' => 'Upload failed: ' . $e->getMessage()]);
+            }
         }
 
         JournalPost::create([
@@ -44,7 +58,7 @@ class JournalController extends Controller
             'slug' => Str::slug($validated['title']) . '-' . Str::random(6),
             'excerpt' => $validated['excerpt'],
             'content' => $validated['content'],
-            'image_url' => $path ? '/storage/' . $path : null,
+            'image_url' => $url,
             'author_id' => auth()->id(),
             'author_name' => $validated['author_name'] ?? null,
             'published_at' => $request->boolean('published_at') ? now() : null,
@@ -82,11 +96,19 @@ class JournalController extends Controller
         // Let's keep slug persistent for now unless explicitly requested.
 
         if ($request->hasFile('image')) {
-            // Delete old image if exists?
-            // if ($journal->image_url) ...
+            try {
+                // Manually configure the library (Bypassing Laravel Config)
+                Configuration::instance('cloudinary://112719694583157:yGB2snsePNfMtODwrtjesYI9Jnw@du6bc1wjb?secure=true');
 
-            $path = $request->file('image')->store('journal', 'public');
-            $data['image_url'] = '/storage/' . $path;
+                $uploadApi = new UploadApi();
+                $result = $uploadApi->upload($request->file('image')->getRealPath(), [
+                    'folder' => 'journal'
+                ]);
+                $data['image_url'] = $result['secure_url'];
+
+            } catch (\Exception $e) {
+                return back()->withErrors(['image' => 'Upload failed: ' . $e->getMessage()]);
+            }
         }
 
         // Handle publishing toggle

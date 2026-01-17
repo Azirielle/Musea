@@ -167,7 +167,7 @@ if (config('app.type') !== 'admin') {
 
     Route::get('/shop', [ShopController::class, 'index'])->name('shop.index');
     Route::post('/shop/suggestions', [ShopController::class, 'suggestions'])->name('shop.suggestions');
-    Route::post('/shop/visual-search', [ShopController::class, 'visualSearch'])->name('shop.visual-search');
+
     Route::get('/shop/{artwork:id}', [ShopController::class, 'show'])->name('shop.show');
     Route::get('/artists', [ArtistController::class, 'index'])->name('artists.index');
     Route::get('/artists/{artist}', [ArtistController::class, 'show'])->name('artists.show');
@@ -453,51 +453,5 @@ Route::get('/debug-cloudinary', function () {
     ";
 });
 
-Route::get('/fix-artwork-colors', function () {
-    try {
-        // 1. Run Migration if needed
-        if (!Schema::hasColumn('artworks', 'dominant_color')) {
-            Schema::table('artworks', function (\Illuminate\Database\Schema\Blueprint $table) {
-                $table->string('dominant_color', 7)->nullable()->after('status');
-            });
-            echo "✅ 'dominant_color' column added.<br>";
-        } else {
-            echo "ℹ️ 'dominant_color' column already exists.<br>";
-        }
 
-        // 2. Backfill Colors
-        $artworks = \App\Models\Artwork::whereNull('dominant_color')->get();
-        $count = 0;
-
-        foreach ($artworks as $art) {
-            // Filter invalid URLs
-            if (!$art->image_url)
-                continue;
-
-            // Handle URL format (ensure absolute for GD)
-            $url = $art->image_url;
-
-            // If it's a relative path in storage
-            if (str_starts_with($url, '/storage/')) {
-                $path = str_replace('/storage/', '', $url);
-                $url = storage_path('app/public/' . $path);
-            }
-
-            $color = \App\Services\ColorExtractor::getDominantColor($url);
-
-            if ($color) {
-                $art->dominant_color = $color;
-                $art->save();
-                $count++;
-                echo "Processed [{$art->id}]: $color <br>";
-            } else {
-                echo "<span style='color:red'>Failed [{$art->id}]: {$url}</span><br>";
-            }
-        }
-
-        return "<br>✅ Done! Processed $count artworks.";
-    } catch (\Exception $e) {
-        return "Error: " . $e->getMessage() . "<br>Trace: " . $e->getTraceAsString();
-    }
-});
 
