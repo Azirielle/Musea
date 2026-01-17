@@ -88,22 +88,24 @@ class ArtworkController extends Controller
 
                     // Place watermark in center with 40% opacity
                     $image->place($watermark, 'center', 0, 0, 40);
-                } else {
-                    // Fallback text watermark if logo missing
-                    // Note: Requires font file usually, skipping for safety to just use original if fails or simple overlay
                 }
 
                 $image->save($absolutePath);
                 $path = $watermarkedPath;
 
+                // Detect orientation from Interverntion Image object
+                $width = $image->width();
+                $height = $image->height();
+
             } catch (\Exception $e) {
                 // If watermarking fails (e.g. driver issue), fallback to standard store
                 $path = $imageFile->store('artworks', 'public');
-            }
 
-            // Detect orientation
-            $width = $image->width();
-            $height = $image->height();
+                // Fallback to native PHP function for dimensions
+                $dimensions = getimagesize($imageFile->getRealPath());
+                $width = $dimensions[0] ?? 0;
+                $height = $dimensions[1] ?? 0;
+            }
 
             if ($width == $height) {
                 $orientation = 'square';

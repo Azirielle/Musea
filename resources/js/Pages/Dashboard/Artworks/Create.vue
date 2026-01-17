@@ -66,6 +66,11 @@ const handleImageUpload = (e) => {
             <div class="max-w-2xl mx-auto sm:px-6 lg:px-8">
                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                     <div class="p-6 text-gray-900">
+                        <div v-if="form.hasErrors" class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                            <strong class="font-bold">Whoops!</strong>
+                            <span class="block sm:inline"> Please fix the errors below to continue.</span>
+                        </div>
+
                         <form @submit.prevent="submit" class="space-y-6">
                             
                             <!-- Title -->
