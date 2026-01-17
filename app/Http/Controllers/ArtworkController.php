@@ -8,6 +8,9 @@ use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
 
+use Cloudinary\Configuration\Configuration;
+use Cloudinary\Api\Upload\UploadApi;
+
 class ArtworkController extends Controller
 {
     /**
@@ -44,41 +47,39 @@ class ArtworkController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'category' => 'required|string',
-            // 'subcategory' => 'nullable|string', // Adapted: Field likely does not exist
+            // 'subcategory' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'width' => 'required|numeric|min:0',
             'height' => 'required|numeric|min:0',
             'depth' => 'nullable|numeric|min:0',
             'unit' => 'required|string',
             'stock' => 'required|integer|min:1',
-            // 'ready_to_hang' => 'boolean', // Adapted: Field likely does not exist
-            // 'framing' => 'string', // Adapted: Field likely does not exist
+            // 'ready_to_hang' => 'boolean',
+            // 'framing' => 'string',
             'image' => 'required|image|max:10240', // Max 10MB
         ]);
 
-        // 2. FORCE CONFIGURATION (The Magic Fix 🪄)
-        // We manually set these values so the app doesn't need to look for a file.
-        config([
-            'cloudinary.cloud_url' => 'cloudinary://112719694583157:yGB2snsePNfMtODwrtjesYI9Jnw@du6bc1wjb',
-            'cloudinary.cloud_name' => 'du6bc1wjb',
-            'cloudinary.api_key' => '112719694583157',
-            'cloudinary.api_secret' => 'yGB2snsePNfMtODwrtjesYI9Jnw',
-            'cloudinary.secure' => true,
-        ]);
-
-        // 3. Upload to Cloudinary
+        // 2. Upload to Cloudinary (Raw SDK)
+        $url = null;
         if ($request->hasFile('image')) {
-            // Now this will work because we set the config above!
-            $uploadedFile = \CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary::upload(
-                $request->file('image')->getRealPath(),
-                ['folder' => 'artworks']
-            );
-            $url = $uploadedFile->getSecurePath();
+            try {
+                // Manually configure the library (Bypassing Laravel Config)
+                Configuration::instance('cloudinary://112719694583157:yGB2snsePNfMtODwrtjesYI9Jnw@du6bc1wjb?secure=true');
+
+                $uploadApi = new UploadApi();
+                $result = $uploadApi->upload($request->file('image')->getRealPath(), [
+                    'folder' => 'artworks'
+                ]);
+                $url = $result['secure_url'];
+
+            } catch (\Exception $e) {
+                return back()->withErrors(['image' => 'Upload failed: ' . $e->getMessage()]);
+            }
         } else {
             return back()->withErrors(['image' => 'Image upload failed.']);
         }
 
-        // 4. Calculate Orientation
+        // 3. Calculate Orientation
         $orientation = 'square';
         if ($validated['width'] > $validated['height']) {
             $orientation = 'landscape';
@@ -86,8 +87,7 @@ class ArtworkController extends Controller
             $orientation = 'portrait';
         }
 
-        // 5. Create Database Record
-        // Adapted to match existing DB Schema (width/height vs dimensions string)
+        // 4. Create Database Record
         auth()->user()->artworks()->create([
             'title' => $validated['title'],
             'description' => $validated['description'],
@@ -98,13 +98,13 @@ class ArtworkController extends Controller
             'unit' => $validated['unit'],
             'price' => $validated['price'],
             'stock' => $validated['stock'],
-            'image_url' => $url, // DB column is 'image_url', not 'image_path'
+            'image_url' => $url,
             'original_image_url' => $url,
             'status' => 'pending',
             'orientation' => $orientation,
         ]);
 
-        // 6. Redirect
+        // 5. Redirect
         return redirect()->route('dashboard.artworks.index')
             ->with('success', 'Artwork submitted successfully and is pending approval!');
     }
