@@ -42,7 +42,7 @@ class ArtworkApprovedNotification extends Notification
         return [
             'title' => 'Artwork Approved!',
             'message' => 'Your artwork "' . $this->artwork->title . '" has been approved and is now live.',
-            'action_url' => url('/artworks/' . $this->artwork->id),
+            'action_url' => route('shop.show', $this->artwork->id),
             'type' => 'artwork_approved',
             'data' => [
                 'artwork_id' => $this->artwork->id

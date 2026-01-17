@@ -42,7 +42,7 @@ defineProps({
                     <div class="flex items-center gap-2 mb-3 text-xs font-bold uppercase tracking-wider text-gray-500">
                         <span>{{ new Date(post.published_at).toLocaleDateString() }}</span>
                         <span>&bull;</span>
-                        <span>{{ post.author.first_name }} {{ post.author.last_name }}</span>
+                        <span>{{ post.author_name || (post.author.first_name + ' ' + post.author.last_name) }}</span>
                     </div>
 
                     <h3 class="font-bold text-2xl mb-3 group-hover:underline decoration-2 underline-offset-4">{{ post.title }}</h3>

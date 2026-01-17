@@ -10,7 +10,23 @@ return new class extends Migration {
      */
     public function up(): void
     {
-        // Tables handled by other migrations
+        Schema::create('follows', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('follower_id')->constrained('users')->cascadeOnDelete();
+            $table->foreignId('following_id')->constrained('users')->cascadeOnDelete();
+            $table->timestamps();
+
+            $table->unique(['follower_id', 'following_id']);
+        });
+
+        Schema::create('likes', function (Blueprint $table) {
+            $table->id();
+            $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('artwork_id')->constrained()->cascadeOnDelete();
+            $table->timestamps();
+
+            $table->unique(['user_id', 'artwork_id']);
+        });
     }
 
     public function down(): void

@@ -305,6 +305,55 @@ Route::post('/checkout/validate-coupon', [\App\Http\Controllers\CouponController
 
 
 
+Route::get('/fix-social-tables', function () {
+    try {
+        if (!Schema::hasTable('follows')) {
+            Schema::create('follows', function (\Illuminate\Database\Schema\Blueprint $table) {
+                $table->id();
+                $table->foreignId('follower_id')->constrained('users')->cascadeOnDelete();
+                $table->foreignId('following_id')->constrained('users')->cascadeOnDelete();
+                $table->timestamps();
+                $table->unique(['follower_id', 'following_id']);
+            });
+            echo "✅ 'follows' table created.<br>";
+        } else {
+            echo "ℹ️ 'follows' table already exists.<br>";
+        }
+
+        if (!Schema::hasTable('likes')) {
+            Schema::create('likes', function (\Illuminate\Database\Schema\Blueprint $table) {
+                $table->id();
+                $table->foreignId('user_id')->constrained()->cascadeOnDelete();
+                $table->foreignId('artwork_id')->constrained()->cascadeOnDelete();
+                $table->timestamps();
+                $table->unique(['user_id', 'artwork_id']);
+            });
+            echo "✅ 'likes' table created.<br>";
+        } else {
+            echo "ℹ️ 'likes' table already exists.<br>";
+        }
+
+        return "Social tables check completed.";
+    } catch (\Exception $e) {
+        return "Error: " . $e->getMessage();
+    }
+});
+
+Route::get('/fix-journal-author', function () {
+    try {
+        if (!Schema::hasColumn('journal_posts', 'author_name')) {
+            Schema::table('journal_posts', function (\Illuminate\Database\Schema\Blueprint $table) {
+                $table->string('author_name')->nullable()->after('author_id');
+            });
+            return "✅ 'author_name' column added to 'journal_posts' table.";
+        } else {
+            return "ℹ️ 'author_name' column already exists.";
+        }
+    } catch (\Exception $e) {
+        return "Error: " . $e->getMessage();
+    }
+});
+
 Route::get('/fix-db-schema', function () {
     try {
         \Illuminate\Support\Facades\DB::statement("ALTER TABLE artworks MODIFY COLUMN category VARCHAR(255) NOT NULL DEFAULT 'Other'");

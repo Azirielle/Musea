@@ -16,7 +16,7 @@ defineProps({
                  <div class="flex items-center justify-center gap-2 mb-6 text-xs font-bold uppercase tracking-widest text-[#1A1A1A]">
                     <span>{{ new Date(post.published_at).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' }) }}</span>
                     <span>&mdash;</span>
-                    <span>{{ post.author.first_name }} {{ post.author.last_name }}</span>
+                    <span>{{ post.author_name || (post.author.first_name + ' ' + post.author.last_name) }}</span>
                 </div>
                 
                 <h1 class="text-4xl md:text-6xl font-bold text-[#1A1A1A] leading-tight mb-8 font-serif">{{ post.title }}</h1>

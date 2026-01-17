@@ -14,6 +14,7 @@ class JournalPost extends Model
         'content',
         'image_url',
         'author_id',
+        'author_name',
         'published_at',
     ];
 

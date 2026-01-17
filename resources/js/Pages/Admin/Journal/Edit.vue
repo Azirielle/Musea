@@ -9,6 +9,7 @@ const props = defineProps({
 const form = useForm({
     _method: 'PUT',
     title: props.post.title || '',
+    author_name: props.post.author_name || '',
     excerpt: props.post.excerpt || '',
     content: props.post.content || '',
     image: null,
@@ -42,6 +43,19 @@ const submit = () => {
                             required 
                         />
                         <div v-if="form.errors.title" class="text-red-500 text-xs mt-1">{{ form.errors.title }}</div>
+                    </div>
+
+                    <!-- Author Name -->
+                    <div>
+                        <label for="author_name" class="block text-sm font-medium text-gray-700 dark:text-gray-300">Author Name (Optional)</label>
+                        <input 
+                            id="author_name" 
+                            v-model="form.author_name" 
+                            type="text" 
+                            placeholder="Defaults to your name"
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 dark:bg-gray-900 dark:border-gray-600 dark:text-gray-300" 
+                        />
+                        <div v-if="form.errors.author_name" class="text-red-500 text-xs mt-1">{{ form.errors.author_name }}</div>
                     </div>
 
                     <!-- Excerpt -->

@@ -30,6 +30,7 @@ class JournalController extends Controller
             'excerpt' => 'nullable|string|max:500',
             'content' => 'required|string',
             'image' => 'nullable|image|max:5120', // 5MB max
+            'author_name' => 'nullable|string|max:255',
             'published_at' => 'nullable|boolean', // We'll accept boolean from frontend and convert
         ]);
 
@@ -45,6 +46,7 @@ class JournalController extends Controller
             'content' => $validated['content'],
             'image_url' => $path ? '/storage/' . $path : null,
             'author_id' => auth()->id(),
+            'author_name' => $validated['author_name'] ?? null,
             'published_at' => $request->boolean('published_at') ? now() : null,
         ]);
 
@@ -65,6 +67,7 @@ class JournalController extends Controller
             'excerpt' => 'nullable|string|max:500',
             'content' => 'required|string',
             'image' => 'nullable|image|max:5120',
+            'author_name' => 'nullable|string|max:255',
             'is_published' => 'nullable|boolean', // Use distinct field name to avoid ambiguity if needed, or simply check existence
         ]);
 
@@ -72,6 +75,7 @@ class JournalController extends Controller
             'title' => $validated['title'],
             'excerpt' => $validated['excerpt'],
             'content' => $validated['content'],
+            'author_name' => $validated['author_name'] ?? null,
         ];
 
         // Only update slug if title changed significantly? Or never update slug to preserve SEO?

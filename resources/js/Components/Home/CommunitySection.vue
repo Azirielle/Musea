@@ -23,7 +23,7 @@ const hoveredArtist = ref(null);
             
             <!-- Artists Horizontal Scroll -->
             <div class="relative mb-20 group">
-                <div class="flex gap-8 overflow-x-auto pb-8 snap-x scrollbar-hide">
+                <div class="flex gap-8 overflow-x-auto pb-8 snap-x scrollbar-hide justify-center">
                     <div 
                         v-for="artist in artists" 
                         :key="artist.id" 

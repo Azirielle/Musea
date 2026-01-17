@@ -34,7 +34,16 @@ const handleSort = () => {
     applyParams();
 };
 
-const applyParams = () => {
+// Custom Debounce Function
+const debounce = (fn, delay) => {
+    let timeoutId;
+    return (...args) => {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => fn(...args), delay);
+    };
+};
+
+const applyParams = debounce(() => {
     router.get('/shop', { 
         ...currentFilters.value, 
         sort: sortBy.value 
@@ -42,6 +51,13 @@ const applyParams = () => {
         preserveState: true, 
         preserveScroll: true,
         replace: true 
+    });
+}, 500);
+
+const formatPrice = (price) => {
+    return Number(price).toLocaleString('en-PH', { 
+        minimumFractionDigits: 2, 
+        maximumFractionDigits: 2 
     });
 };
 
@@ -210,7 +226,7 @@ const applyParams = () => {
                                 <div class="space-y-1">
                                     <div class="flex justify-between items-start">
                                         <h3 class="font-serif font-bold text-lg text-ink truncate pr-4 group-hover:text-accent transition-colors"><Link :href="route('shop.show', artwork.id)">{{ artwork.title }}</Link></h3>
-                                        <span class="font-black text-ink whitespace-nowrap">₱{{ artwork.price }}</span>
+                                        <span class="font-black text-ink whitespace-nowrap">₱{{ formatPrice(artwork.price) }}</span>
                                     </div>
                                     <Link :href="route('artists.show', artwork.artist_id)" class="text-sm text-ink-light hover:text-ink transition-colors flex items-center">
                                         {{ artwork.artist ? artwork.artist.first_name + ' ' + artwork.artist.last_name : 'Unknown Artist' }}
@@ -258,7 +274,7 @@ const applyParams = () => {
                                 </div>
                             </div>
                             <h4 class="font-bold text-ink group-hover:text-accent">{{ rec.title }}</h4>
-                            <p class="text-xs text-ink-light mt-1">₱{{ rec.price }}</p>
+                            <p class="text-xs text-ink-light mt-1">₱{{ formatPrice(rec.price) }}</p>
                         </Link>
                     </div>
                 </div>
