@@ -70,8 +70,11 @@ const filteredArtists = computed(() => {
     return props.artists.filter(a => a.name.toLowerCase().includes(artistSearch.value.toLowerCase()));
 });
 
+const isUpdating = ref(false);
+
 // Watchers to emit updates
 const applyFilters = () => {
+    if (isUpdating.value) return; // Prevent loop
     emit('update', {
         price_min: priceRange.value[0],
         price_max: priceRange.value[1],
@@ -87,17 +90,29 @@ const applyFilters = () => {
 
 // Update local state when props change (e.g. Cleared filters from parent)
 watch(() => props.filters, (newFilters) => {
+    isUpdating.value = true; // Lock
+    
+    // Safety checks for undefined values
+    const getArray = (val) => Array.isArray(val) ? val : (val ? [val] : []);
+    const getIntArray = (val) => Array.isArray(val) ? val.map(id => parseInt(id)) : (val ? [parseInt(val)] : []);
+
     priceRange.value = [
         newFilters.price_min ? parseInt(newFilters.price_min) : props.minPrice, 
         newFilters.price_max ? parseInt(newFilters.price_max) : props.maxPrice
     ];
-    selectedCategory.value = Array.isArray(newFilters.category) ? newFilters.category : (newFilters.category ? [newFilters.category] : []);
-    selectedSubcategory.value = Array.isArray(newFilters.subcategory) ? newFilters.subcategory : (newFilters.subcategory ? [newFilters.subcategory] : []);
-    selectedFraming.value = Array.isArray(newFilters.framing) ? newFilters.framing : (newFilters.framing ? [newFilters.framing] : []);
+    
+    selectedCategory.value = getArray(newFilters.category);
+    selectedSubcategory.value = getArray(newFilters.subcategory);
+    selectedFraming.value = getArray(newFilters.framing);
     readyToHang.value = newFilters.ready_to_hang === '1' || newFilters.ready_to_hang === 'true';
-    selectedOrientation.value = Array.isArray(newFilters.orientation) ? newFilters.orientation : (newFilters.orientation ? [newFilters.orientation] : []);
-    selectedArtists.value = Array.isArray(newFilters.artist_id) ? newFilters.artist_id.map(id => parseInt(id)) : (newFilters.artist_id ? [parseInt(newFilters.artist_id)] : []);
-    selectedSize.value = Array.isArray(newFilters.size) ? newFilters.size : (newFilters.size ? [newFilters.size] : []);
+    selectedOrientation.value = getArray(newFilters.orientation);
+    selectedArtists.value = getIntArray(newFilters.artist_id);
+    selectedSize.value = getArray(newFilters.size);
+    
+    // Unlock after Vue reactivity settles (next tick) or simple timeout
+    setTimeout(() => {
+        isUpdating.value = false;
+    }, 50); // Small buffer to ensure watchers have fired and returned
 }, { deep: true });
 
 // Debounce for price slider

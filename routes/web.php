@@ -166,8 +166,9 @@ if (config('app.type') !== 'admin') {
     })->name('home');
 
     Route::get('/shop', [ShopController::class, 'index'])->name('shop.index');
-    Route::get('/shop/suggestions', [ShopController::class, 'suggestions'])->name('shop.suggestions');
-    Route::get('/shop/{artwork}', [ShopController::class, 'show'])->name('shop.show');
+    Route::post('/shop/suggestions', [ShopController::class, 'suggestions'])->name('shop.suggestions');
+    Route::post('/shop/visual-search', [ShopController::class, 'visualSearch'])->name('shop.visual-search');
+    Route::get('/shop/{artwork:id}', [ShopController::class, 'show'])->name('shop.show');
     Route::get('/artists', [ArtistController::class, 'index'])->name('artists.index');
     Route::get('/artists/{artist}', [ArtistController::class, 'show'])->name('artists.show');
     Route::get('/about', [PageController::class, 'about'])->name('pages.about');
