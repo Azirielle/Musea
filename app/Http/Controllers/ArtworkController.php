@@ -39,6 +39,10 @@ class ArtworkController extends Controller
      */
     public function store(Request $request)
     {
+        // Force-feed the credentials to bypass config cache issues
+        config(['cloudinary.cloud_url' => 'cloudinary://112719694583157:yGB2snsePNfMtODwrtjesYI9Jnw@du6bc1wjb']);
+        config(['cloudinary.secure' => true]);
+
         if (auth()->user()->role !== \App\Models\User::ROLE_ARTIST) {
             return redirect()->route('profile.edit')->with('error', 'You must be a verified artist to upload artwork. Please apply for verification below.');
         }
