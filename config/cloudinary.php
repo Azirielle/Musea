@@ -18,7 +18,7 @@ return [
     |
     */
 
-    'cloud_url' => env('CLOUDINARY_URL'),
+    'cloud_url' => 'cloudinary://112719694583157:yGB2snsePNfMtODwrtjesYI9Jnw@du6bc1wjb',
 
     'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
 
