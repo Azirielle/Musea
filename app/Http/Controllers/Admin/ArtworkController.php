@@ -14,6 +14,7 @@ class ArtworkController extends Controller
         $pendingArtworks = Artwork::where('status', 'pending')
             ->with('artist:id,first_name,last_name')
             ->latest()
+            ->get()
             ->map(function ($artwork) {
                 return [
                     'id' => $artwork->id,
