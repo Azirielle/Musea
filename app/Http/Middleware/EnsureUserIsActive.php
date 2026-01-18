@@ -21,7 +21,8 @@ class EnsureUserIsActive
             $request->session()->invalidate();
             $request->session()->regenerateToken();
 
-            return redirect()->route('login')->with('error', 'Your account has been suspended.');
+            $route = \Illuminate\Support\Facades\Route::has('login') ? 'login' : 'admin.login';
+            return redirect()->route($route)->with('error', 'Your account has been suspended.');
         }
 
         return $next($request);
