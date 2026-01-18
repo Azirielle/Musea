@@ -305,6 +305,9 @@ if (config('app.type') !== 'public') {
 Route::post('/checkout/validate-coupon', [\App\Http\Controllers\CouponController::class, 'validateCoupon'])->middleware('auth')->name('checkout.validate-coupon');
 
 
+require __DIR__ . '/auth.php';
+
+
 
 
 

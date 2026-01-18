@@ -8,8 +8,6 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
-use Cloudinary\Configuration\Configuration;
-use Cloudinary\Api\Upload\UploadApi;
 
 class JournalController extends Controller
 {
@@ -39,15 +37,8 @@ class JournalController extends Controller
         $url = null;
         if ($request->hasFile('image')) {
             try {
-                // Manually configure the library (Bypassing Laravel Config)
-                Configuration::instance('cloudinary://112719694583157:yGB2snsePNfMtODwrtjesYI9Jnw@du6bc1wjb?secure=true');
-
-                $uploadApi = new UploadApi();
-                $result = $uploadApi->upload($request->file('image')->getRealPath(), [
-                    'folder' => 'journal'
-                ]);
-                $url = $result['secure_url'];
-
+                $path = $request->file('image')->store('journal', 'public');
+                $url = Storage::url($path);
             } catch (\Exception $e) {
                 return back()->withErrors(['image' => 'Upload failed: ' . $e->getMessage()]);
             }
@@ -82,7 +73,7 @@ class JournalController extends Controller
             'content' => 'required|string',
             'image' => 'nullable|image|max:5120',
             'author_name' => 'nullable|string|max:255',
-            'is_published' => 'nullable|boolean', // Use distinct field name to avoid ambiguity if needed, or simply check existence
+            'is_published' => 'nullable|boolean',
         ]);
 
         $data = [
@@ -92,19 +83,16 @@ class JournalController extends Controller
             'author_name' => $validated['author_name'] ?? null,
         ];
 
-        // Only update slug if title changed significantly? Or never update slug to preserve SEO?
-        // Let's keep slug persistent for now unless explicitly requested.
-
         if ($request->hasFile('image')) {
             try {
-                // Manually configure the library (Bypassing Laravel Config)
-                Configuration::instance('cloudinary://112719694583157:yGB2snsePNfMtODwrtjesYI9Jnw@du6bc1wjb?secure=true');
+                // Delete old image if exists and is local
+                if ($journal->image_url && Str::startsWith($journal->image_url, '/storage/')) {
+                    $oldPath = str_replace('/storage/', '', $journal->image_url);
+                    Storage::disk('public')->delete($oldPath);
+                }
 
-                $uploadApi = new UploadApi();
-                $result = $uploadApi->upload($request->file('image')->getRealPath(), [
-                    'folder' => 'journal'
-                ]);
-                $data['image_url'] = $result['secure_url'];
+                $path = $request->file('image')->store('journal', 'public');
+                $data['image_url'] = Storage::url($path);
 
             } catch (\Exception $e) {
                 return back()->withErrors(['image' => 'Upload failed: ' . $e->getMessage()]);
@@ -112,7 +100,6 @@ class JournalController extends Controller
         }
 
         // Handle publishing toggle
-        // If frontend sends 'is_published' true/false
         if ($request->has('published_at')) {
             if ($request->boolean('published_at') && !$journal->published_at) {
                 $data['published_at'] = now();
@@ -128,6 +115,11 @@ class JournalController extends Controller
 
     public function destroy(JournalPost $journal)
     {
+        if ($journal->image_url && Str::startsWith($journal->image_url, '/storage/')) {
+            $path = str_replace('/storage/', '', $journal->image_url);
+            Storage::disk('public')->delete($path);
+        }
+
         $journal->delete();
         return redirect()->back()->with('success', 'Journal post deleted.');
     }
