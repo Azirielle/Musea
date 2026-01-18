@@ -16,6 +16,11 @@ class EnsureUserIsActive
      */
     public function handle(Request $request, Closure $next): Response
     {
+        // Skip for Admin routes
+        if ($request->is('admin', 'admin/*') || $request->getPort() == 8001) {
+            return $next($request);
+        }
+
         if (Auth::check() && Auth::user()->status !== 'active') {
             Auth::logout();
             $request->session()->invalidate();
