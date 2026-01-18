@@ -31,6 +31,7 @@ defineProps({
                          <img 
                             v-if="post.image_url" 
                             :src="post.image_url" 
+                            @error="$event.target.src = 'https://placehold.co/600x400?text=Musea+Journal'"
                             loading="lazy"
                             class="w-full h-full object-cover transition duration-500 group-hover:scale-105 will-change-transform"
                          >

@@ -50,7 +50,7 @@ const deletePost = (post) => {
                                 <td class="px-6 py-4">
                                     <div class="flex items-center">
                                         <div class="h-10 w-10 flex-shrink-0 mr-4" v-if="post.image_url">
-                                            <img class="h-10 w-10 rounded-md object-cover" :src="post.image_url" alt="" />
+                                            <img class="h-10 w-10 rounded-md object-cover" :src="post.image_url" @error="$event.target.src = 'https://placehold.co/100x100?text=No+Img'" alt="" />
                                         </div>
                                         <div class="text-sm font-medium text-gray-900 dark:text-white">
                                             {{ post.title }}
