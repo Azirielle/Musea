@@ -61,14 +61,16 @@ class ProfileController extends Controller
 
         // Handle Avatar Upload
         if ($request->hasFile('avatar')) {
-            if ($request->user()->avatar_path) {
-                // Should only delete if it's a local file, not a URL
-                if (!str_starts_with($request->user()->avatar_path, 'http')) {
-                    \Illuminate\Support\Facades\Storage::disk('public')->delete($request->user()->avatar_path);
-                }
+            try {
+                // Upload to Cloudinary and get the secure URL
+                $response = $request->file('avatar')->storeOnCloudinary('avatars');
+                $path = $response->getSecurePath();
+                $request->user()->avatar_path = $path;
+            } catch (\Exception $e) {
+                // Fallback to public storage if Cloudinary fails (e.g. no credentials)
+                $path = $request->file('avatar')->store('avatars', 'public');
+                $request->user()->avatar_path = $path;
             }
-            $path = $request->file('avatar')->store('avatars', 'public');
-            $request->user()->avatar_path = $path;
         } elseif ($request->filled('default_avatar')) {
             $request->user()->avatar_path = $request->default_avatar;
         }

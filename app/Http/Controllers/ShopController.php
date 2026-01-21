@@ -29,22 +29,14 @@ class ShopController extends Controller
 
         // Category / Medium (Multiple support)
         if ($request->filled('category')) {
-            $category = $request->input('category');
-            if (is_array($category)) {
-                $query->whereIn('category', $category);
-            } else {
-                $query->where('category', $category);
-            }
+            $categories = (array) $request->input('category');
+            $query->whereIn('category', $categories);
         }
 
         // Subcategory (Multiple support)
         if ($request->filled('subcategory')) {
-            $subcategory = $request->input('subcategory');
-            if (is_array($subcategory)) {
-                $query->whereIn('subcategory', $subcategory);
-            } else {
-                $query->where('subcategory', $subcategory);
-            }
+            $subcategories = (array) $request->input('subcategory');
+            $query->whereIn('subcategory', $subcategories);
         }
 
         // Ready to Hang
@@ -54,22 +46,14 @@ class ShopController extends Controller
 
         // Framing status
         if ($request->filled('framing')) {
-            $framing = $request->input('framing');
-            if (is_array($framing)) {
-                $query->whereIn('framing', $framing);
-            } else {
-                $query->where('framing', $framing);
-            }
+            $framing = (array) $request->input('framing');
+            $query->whereIn('framing', $framing);
         }
 
         // Artist ID (Multiple support)
         if ($request->filled('artist_id')) {
-            $artistIds = $request->input('artist_id');
-            if (is_array($artistIds)) {
-                $query->whereIn('artist_id', $artistIds);
-            } else {
-                $query->where('artist_id', $artistIds);
-            }
+            $artistIds = (array) $request->input('artist_id');
+            $query->whereIn('artist_id', $artistIds);
         }
 
         // Price Range
@@ -79,61 +63,35 @@ class ShopController extends Controller
         if ($request->filled('price_max')) {
             $query->where('price', '<=', $request->input('price_max'));
         }
-        // Legacy range support
-        if ($request->filled('price_range')) {
-            $range = $request->input('price_range');
-            switch ($range) {
-                case '0-5000':
-                    $query->where('price', '<', 5000);
-                    break;
-                case '5000-20000':
-                    $query->whereBetween('price', [5000, 20000]);
-                    break;
-                case '20000-plus':
-                    $query->where('price', '>', 20000);
-                    break;
-            }
-        }
 
         // Orientation
         if ($request->filled('orientation')) {
-            $orientation = $request->input('orientation');
-            if (is_array($orientation)) {
-                $query->whereIn('orientation', $orientation);
-            } else {
-                $query->where('orientation', $orientation);
-            }
+            $orientation = (array) $request->input('orientation');
+            $query->whereIn('orientation', $orientation);
         }
 
-        // Size Filter (Small, Medium, Large, Extra Large)
-        // Buckets based on longest side (normalized to cm):
-        // Small: < 40cm
-        // Medium: 40-80cm
-        // Large: 80-120cm
-        // Extra Large: > 120cm
+        // Size Filter
         if ($request->filled('size')) {
             $sizes = (array) $request->input('size');
-
             $query->where(function ($q) use ($sizes) {
                 foreach ($sizes as $size) {
-                    // Calculate longest side in CM using standard SQL for compatibility (SQLite matches MySQL/Postgres)
-                    // We use a CASE statement standard instead of GREATEST (not in SQLite) or MAX (aggregate ambiguity)
                     $w = "CASE WHEN unit = 'in' THEN width * 2.54 ELSE width END";
                     $h = "CASE WHEN unit = 'in' THEN height * 2.54 ELSE height END";
-                    $maxDimSql = "(CASE WHEN ($w) > ($h) THEN ($w) ELSE ($h) END)";
+                    // Correct logic for max dimension in SQLite/MySQL compatible way
+                    $maxDimSql = "CASE WHEN ($w) > ($h) THEN ($w) ELSE ($h) END";
 
                     switch ($size) {
                         case 'Small':
-                            $q->orWhereRaw("$maxDimSql < 40");
+                            $q->orWhereRaw("($maxDimSql) < 40");
                             break;
                         case 'Medium':
-                            $q->orWhereRaw("$maxDimSql >= 40 AND $maxDimSql < 80");
+                            $q->orWhereRaw("($maxDimSql) >= 40 AND ($maxDimSql) < 80");
                             break;
                         case 'Large':
-                            $q->orWhereRaw("$maxDimSql >= 80 AND $maxDimSql < 120");
+                            $q->orWhereRaw("($maxDimSql) >= 80 AND ($maxDimSql) < 120");
                             break;
                         case 'Extra Large':
-                            $q->orWhereRaw("$maxDimSql >= 120");
+                            $q->orWhereRaw("($maxDimSql) >= 120");
                             break;
                     }
                 }

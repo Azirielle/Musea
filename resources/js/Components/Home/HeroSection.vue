@@ -5,31 +5,10 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const props = defineProps({
-    featured: Object
-});
-
 const heroContainer = ref(null);
-const gridContainer = ref(null);
-const subjectRef = ref(null);
-const portalMask = ref(null);
-
-// Placeholder artworks for the kinetic grid
-const artworksSource = [
-    'https://images.unsplash.com/photo-1579783902614-a3fb39279c65?auto=format&fit=crop&w=500&q=80',
-    'https://images.unsplash.com/photo-1549490349-8643362247b5?auto=format&fit=crop&w=500&q=80',
-    'https://images.unsplash.com/photo-1555445054-01aaa6096162?auto=format&fit=crop&w=500&q=80',
-    'https://images.unsplash.com/photo-1515405295579-ba7f9f92f413?auto=format&fit=crop&w=500&q=80',
-    'https://images.unsplash.com/photo-1569172122301-bc5008bc09c5?auto=format&fit=crop&w=500&q=80',
-    'https://images.unsplash.com/photo-1561214115-f2f134cc4912?auto=format&fit=crop&w=500&q=80',
-    'https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?auto=format&fit=crop&w=500&q=80',
-    'https://images.unsplash.com/photo-1629310629471-ee364303794e?auto=format&fit=crop&w=500&q=80',
-];
-
-// Double the artworks for seamless scrolling
-const artworks = [...artworksSource, ...artworksSource];
-
-const subjectImage = 'https://png.pngtree.com/png-vector/20230906/ourmid/pngtree-punk-boy-character-illustration-png-image_9961642.png'; 
+const heroText = ref(null);
+const heroSubject = ref(null);
+const circleRef = ref(null);
 
 let mouseX = 0;
 let mouseY = 0;
@@ -40,79 +19,90 @@ const handleMouseMove = (e) => {
     mouseY = (e.clientY / innerHeight) * 2 - 1;
 };
 
-// Animation Context for easy cleanup
 let ctx;
 
 onMounted(() => {
-    // Enable "Animating on Twos" (approx 12-15fps) for that hand-drawn feel
-    gsap.ticker.fps(15);
-    
     ctx = gsap.context(() => {
-        // 1. Initial 3D Tilt Setup
-        gsap.set(gridContainer.value, {
-            rotationX: 20,
-            rotationY: -10,
-            rotationZ: 5,
-            scale: 1.5,
-            transformPerspective: 1000,
-            transformOrigin: "center center"
-        });
+        // Initial Entrance
+        const tl = gsap.timeline();
+        
+        tl.from(heroText.value, {
+            y: 100,
+            opacity: 0,
+            duration: 1.5,
+            ease: "power4.out",
+            skewY: 5
+        })
+        .from(heroSubject.value, {
+            y: 50,
+            opacity: 0,
+            duration: 1.5,
+            ease: "power3.out"
+        }, "-=1.2")
+        .from('.hero-meta', {
+            opacity: 0,
+            y: 20,
+            duration: 1,
+            stagger: 0.1,
+            ease: "power2.out"
+        }, "-=1");
 
-        // 2. Infinite Loop Animation for rows
-        const rows = gsap.utils.toArray('.grid-row');
-        rows.forEach((row, i) => {
-            const direction = i % 2 === 0 ? 1 : -1;
-            
-            // Allow GSAP to handle the infinite scroll logic
-            // Since we doubled the content in the template, we just move -50%
-            gsap.to(row, {
-                xPercent: direction * -50,
-                ease: "none",
-                duration: 20,
-                repeat: -1
-            });
-        });
-
-        // 3. Mouse-Track Parallax (driven by ticker for shared FPS)
+        // Mouse Parallax Loop
         gsap.ticker.add(() => {
-            // Smoothly interpolate current values to target mouse values
-            // We use standard lerp or just gsap.to logic, but since we have a low FPS ticker, 
-            // direct assignment or simple easing works well.
-            
-            gsap.to(gridContainer.value, {
-                rotationY: -10 + (mouseX * 5),
-                rotationX: 20 - (mouseY * 5),
-                x: -mouseX * 30,
-                y: -mouseY * 30,
-                duration: 1, // longer duration for smoothness even at low FPS
-                overwrite: 'auto',
-                ease: "power2.out"
+            // Text moves slightly opposite to mouse
+            gsap.to(heroText.value, {
+                x: -mouseX * 20,
+                y: -mouseY * 20,
+                duration: 1,
+                ease: "power2.out",
+                overwrite: "auto"
             });
 
-            gsap.to(subjectRef.value, {
-                x: mouseX * 15,
-                y: mouseY * 15,
-                duration: 1,
-                overwrite: 'auto',
-                ease: "power2.out"
+            // Subject moves more (Foreground feel)
+            gsap.to(heroSubject.value, {
+                x: -mouseX * 40,
+                y: -mouseY * 40,
+                duration: 1.2,
+                ease: "power2.out",
+                overwrite: "auto"
+            });
+            
+             // Geometric accents move differently
+            gsap.to(circleRef.value, {
+                x: mouseX * 60,
+                y: mouseY * 60,
+                rotation: mouseX * 10,
+                duration: 1.5,
+                ease: "power2.out",
+                overwrite: "auto"
             });
         });
 
-        // 4. Portal Transition (Dynamic Mask)
-        gsap.fromTo(portalMask.value, 
-            { clipPath: 'circle(35% at 50% 45%)' },
-            {
-                clipPath: 'circle(150% at 50% 50%)',
-                scrollTrigger: {
-                    trigger: heroContainer.value,
-                    start: "top top",
-                    end: "bottom top",
-                    scrub: 1,
-                    pin: true
-                },
-                ease: "none"
+        // Scroll Parallax
+        gsap.to(heroSubject.value, {
+            yPercent: 20,
+            ease: "none",
+            scrollTrigger: {
+                trigger: heroContainer.value,
+                start: "top top",
+                end: "bottom top",
+                scrub: true
             }
-        );
+        });
+        
+         gsap.to(heroText.value, {
+            yPercent: -10,
+            scale: 1.05,
+            opacity: 0,
+            ease: "none",
+            scrollTrigger: {
+                trigger: heroContainer.value,
+                start: "top top",
+                end: "bottom center",
+                scrub: true
+            }
+        });
+
     }, heroContainer.value);
 
     window.addEventListener('mousemove', handleMouseMove);
@@ -120,101 +110,105 @@ onMounted(() => {
 
 onUnmounted(() => {
     window.removeEventListener('mousemove', handleMouseMove);
-    gsap.ticker.fps(null); // Restore default FPS (60hz/Screen hz)
-    if (ctx) ctx.revert(); // Cleanup GSAP animations/ScrollTriggers
+    if (ctx) ctx.revert();
 });
 </script>
 
 <template>
     <section 
         ref="heroContainer" 
-        class="relative w-full h-screen overflow-hidden bg-ink text-white perspective-container"
+        class="relative w-full h-screen overflow-hidden bg-[#050505] text-white flex items-center justify-center"
     >
-        <!-- The Portal/Masked Container -->
-        <!-- This container holds the chaotic background and is masked -->
-        <div ref="portalMask" class="absolute inset-0 z-0 overflow-hidden bg-black portal-layer">
-            
-            <!-- RGB Split / Chromatic Aberration / Glitch Container -->
-            <!-- We can simulate this by having the grid inside, and maybe a pseudo-element or filter -->
-            <!-- For high energy, reusing the grid or using a CSS filter -->
-            
-            <div ref="gridContainer" class="absolute inset-[-50%] w-[200%] h-[200%] grid-container flex flex-col justify-center gap-8 opacity-80 decoration-slice">
-                <!-- Rows of Artworks -->
-                <div v-for="i in 5" :key="i" class="grid-row flex gap-8 whitespace-nowrap will-change-transform">
-                    <!-- Artwork Cards -->
-                    <div 
-                        v-for="(art, index) in artworks" 
-                        :key="index"
-                        class="relative w-64 h-80 md:w-80 md:h-96 flex-shrink-0 rounded-lg overflow-hidden border-2 border-white/20 transform hover:scale-105 transition-transform duration-300 card-glitch"
-                    >
-                        <img :src="art" class="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-500" />
-                        <div class="absolute inset-0 bg-accent/20 mix-blend-overlay"></div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Overlay Gradient for depth -->
-            <div class="absolute inset-0 bg-radial-gradient from-transparent to-black/80 pointer-events-none"></div>
+        <!-- Background Ambient Glow -->
+        <div class="absolute inset-0 z-0">
+             <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80vw] h-[80vw] bg-red-900/10 rounded-full blur-[100px] mix-blend-screen opacity-60"></div>
         </div>
+        
+        <!-- Geometric Accents (Floating Circles/Lines) -->
+         <div ref="circleRef" class="absolute inset-0 z-0 pointer-events-none opacity-20">
+             <!-- Left Circles -->
+             <div class="absolute bottom-20 left-10 md:left-20 flex gap-4">
+                 <div class="w-12 h-12 rounded-full border border-red-500/30 hero-meta"></div>
+                 <div class="w-12 h-12 rounded-full border border-red-500/30 hero-meta"></div>
+                 <div class="w-12 h-12 rounded-full border border-red-500/30 hero-meta"></div>
+                 <div class="w-12 h-12 rounded-full border border-white/10 hero-meta"></div>
+             </div>
+             
+             <!-- Right Lines -->
+             <div class="absolute top-40 right-10 md:right-20 flex flex-col gap-2 hero-meta">
+                 <div class="w-32 h-[1px] bg-red-500/50"></div>
+                 <div class="w-20 h-[1px] bg-white/20 self-end"></div>
+             </div>
+         </div>
 
-        <!-- Static Foreground Subject -->
-        <div class="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
-            <div ref="subjectRef" class="relative w-[90%] h-[90%] md:w-[60%] md:h-[90%] flex items-end justify-center">
-                 <!-- Subject Image -->
-                 <img 
-                    :src="subjectImage" 
-                    alt="Hero Subject" 
-                    class="h-full w-auto object-contain drop-shadow-[0_0_50px_rgba(255,255,255,0.2)]"
-                 />
-                 
-                 <!-- Noise/Grain Overlay on Subject for texture -->
-                 <div class="absolute inset-0 bg-noise mix-blend-overlay opacity-50"></div>
-            </div>
-        </div>
-
-        <!-- Hero Content / Text (Overlaying everything) -->
-        <div class="absolute inset-0 z-20 flex flex-col items-center justify-center text-center pointer-events-none mix-blend-difference">
-            <h1 class="text-8xl md:text-[10rem] font-black tracking-tighter uppercase italic leading-[0.8]">
-                <span class="block text-transparent stroke-text">Enter</span>
-                <span class="block text-white">Musea</span>
+        <!-- Typography Layer (Check z-index, should be behind subject but visible) -->
+        <div 
+            ref="heroText"
+            class="absolute z-10 text-center select-none mix-blend-overlay md:mix-blend-normal"
+        >
+            <h1 class="font-serif text-[15vw] leading-[0.8] text-white/10 font-bold tracking-tighter shimmer-text">
+                MUSEA
             </h1>
-            <p class="mt-6 text-xl md:text-2xl font-mono tracking-widest uppercase">The Digital Renaissance</p>
         </div>
 
-        <!-- Glitch Overlay -->
-        <div class="absolute inset-0 z-30 pointer-events-none bg-scanlines opacity-10"></div>
+        <!-- Hero Subject Layer -->
+        <!-- Image should contain the artist w/ transparent bg -->
+        <div class="relative z-20 h-[90vh] w-auto flex items-end justify-center pointer-events-none mb-[-5vh]">
+            <div ref="heroSubject" class="h-full w-auto">
+                <img 
+                    src="/images/hero-artist.png" 
+                    alt="The Artist" 
+                    class="h-full w-auto object-contain drop-shadow-[0_20px_50px_rgba(0,0,0,0.8)]"
+                />
+            </div>
+        </div>
+
+        <!-- Foreground Content / CTA -->
+        <div class="absolute bottom-12 z-30 w-full flex flex-col items-center justify-center gap-4 hero-meta">
+            <p class="text-xs md:text-sm font-mono tracking-[0.3em] uppercase text-white/50">
+                The Digital Renaissance
+            </p>
+            
+             <button class="group relative px-8 py-3 overflow-hidden rounded-full border border-white/20 hover:border-red-500/50 transition-colors duration-300">
+                <span class="absolute inset-0 bg-gradient-to-r from-red-900/20 to-black opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                <span class="relative font-mono text-sm tracking-widest uppercase group-hover:text-red-300 transition-colors">
+                    Enter Gallery
+                </span>
+            </button>
+        </div>
+        
     </section>
 </template>
 
 <style scoped>
-.perspective-container {
-    perspective: 2000px;
+/* 
+  Since we want that "Spiderman" cinematic text feel, 
+  we might want to use a specific font. 
+  "shimmer-text" could be a subtle gradient loop.
+*/
+
+.font-serif {
+    font-family: 'Playfair Display', serif;
 }
 
-.grid-container {
-    transform-style: preserve-3d;
+.shimmer-text {
+    /* Optional: subtle texture solely on the big text */
+    background: linear-gradient(
+        to right, 
+        rgba(255,255,255,0.1) 0%, 
+        rgba(255,255,255,0.3) 50%, 
+        rgba(255,255,255,0.1) 100%
+    );
+    background-size: 200% auto;
+    color: transparent;
+    -webkit-background-clip: text;
+    background-clip: text;
+    animation: shimmer 5s infinite linear;
 }
 
-/* Chromatic Aberration on Cards */
-.card-glitch {
-    box-shadow: -2px 0 0 rgba(255,0,0,0.5), 2px 0 0 rgba(0,255,255,0.5);
-}
-
-/* Text Stroke Effect */
-.stroke-text {
-    -webkit-text-stroke: 2px white;
-}
-
-.bg-radial-gradient {
-    background: radial-gradient(circle at center, transparent 20%, #000 100%);
-}
-
-.bg-noise {
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-}
-
-.bg-scanlines {
-    background: linear-gradient(to bottom, rgba(255,255,255,0), rgba(255,255,255,0) 50%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0.2));
-    background-size: 100% 4px;
+@keyframes shimmer {
+    to {
+        background-position: 200% center;
+    }
 }
 </style>

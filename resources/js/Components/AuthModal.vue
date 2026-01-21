@@ -30,9 +30,9 @@ const close = () => {
         :show="show" 
         @close="close" 
         maxWidth="md"
-        containerClass="backdrop-blur-xl bg-white/70 dark:bg-[#1A1A1A]/90 border border-white/20 shadow-2xl"
+        containerClass="bg-canvas border border-accent/20 shadow-2xl shadow-ink/10"
     >
-        <div class="p-8"> <!-- Increased padding for breathing room -->
+        <div class="p-10"> <!-- Increased padding for elegance -->
             <Transition
                 mode="out-in"
                 enter-active-class="transition duration-300 ease-out"

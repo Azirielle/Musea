@@ -135,7 +135,7 @@ const reject = (item) => {
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <img :src="selectedItem.image_url" 
+                        <img :src="(selectedItem.image || '').startsWith('http') ? selectedItem.image : '/storage/' + selectedItem.image" 
                              @error="$event.target.src='https://placehold.co/600x400/png?text=No+Image'"
                              class="w-full rounded-lg shadow-md object-contain max-h-[400px] bg-gray-50" />
                     </div>

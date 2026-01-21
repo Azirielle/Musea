@@ -240,19 +240,34 @@ const formatPrice = (price) => {
                         </div>
 
                         <!-- Pagination -->
-                         <div class="mt-20 border-t border-divider pt-12 flex justify-center" v-if="artworks.links.length > 3">
-                             <div class="flex gap-2">
+                        <div class="mt-20 border-t border-divider pt-12 flex justify-center" v-if="artworks.links.length > 3">
+                            <div class="flex items-center gap-2">
                                 <template v-for="(link, k) in artworks.links" :key="k">
                                     <Link 
                                         v-if="link.url" 
                                         :href="link.url" 
-                                        v-html="link.label"
-                                        class="w-10 h-10 flex items-center justify-center rounded-full text-sm font-bold transition-all"
-                                        :class="{'bg-ink text-white shadow-lg': link.active, 'bg-white text-ink-light hover:bg-gray-100 hover:text-ink': !link.active}"
-                                    />
-                                    <span v-else v-html="link.label" class="w-10 h-10 flex items-center justify-center text-ink-light/40 text-sm"></span>
-                                 </template>
-                             </div>
+                                        class="flex items-center justify-center text-sm font-bold transition-all rounded-full"
+                                        :class="[
+                                            link.label.includes('Previous') || link.label.includes('Next') 
+                                                ? 'px-6 h-10 w-auto rounded-lg' 
+                                                : 'w-10 h-10',
+                                            link.active 
+                                                ? 'bg-ink text-white shadow-lg' 
+                                                : 'bg-white text-ink-light hover:bg-gray-100 hover:text-ink'
+                                        ]"
+                                    >
+                                        <span v-html="link.label"></span>
+                                    </Link>
+                                    
+                                    <span 
+                                        v-else 
+                                        class="flex items-center justify-center text-ink-light/40 text-sm font-bold"
+                                        :class="link.label.includes('Previous') || link.label.includes('Next') ? 'px-6 h-10 w-auto' : 'w-10 h-10'"
+                                    >
+                                        <span v-html="link.label"></span>
+                                    </span>
+                                </template>
+                            </div>
                         </div>
                     </div>
                 </div>
