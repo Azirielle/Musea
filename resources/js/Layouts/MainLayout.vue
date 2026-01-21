@@ -343,7 +343,7 @@ onUnmounted(() => {
                     <div v-if="user" class="relative" v-click-outside="() => isProfileOpen = false">
                         <button @click="toggleProfile" class="relative h-9 w-9 rounded-full border-2 border-divider hover:border-accent transition-all duration-300 group">
                             <img 
-                                :src="getAvatarUrl(user)" 
+                                :src="user.avatar" 
                                 alt="Profile" 
                                 class="w-full h-full object-cover rounded-full"
                             />

@@ -28,7 +28,7 @@ const form = useForm({
 });
 
 const fileInput = ref(null);
-const avatarPreview = ref(user.avatar_path ? (user.avatar_path.startsWith('http') ? user.avatar_path : `/storage/${user.avatar_path}`) : null);
+const avatarPreview = ref(user.avatar || null);
 
 const defaultAvatars = [
     'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',

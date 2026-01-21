@@ -15,6 +15,10 @@ const props = defineProps({
         type: Object,
         default: () => ({}),
     },
+    simple: {
+        type: Boolean,
+        default: false,
+    }
 });
 
 const canvasRef = ref(null);
@@ -32,16 +36,29 @@ const renderChart = () => {
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                scales: props.options.scales || (props.type === 'line' || props.type === 'bar' ? {
+                    x: { 
+                        display: !props.simple, // Hide axis for simple charts
+                        ticks: { color: document.documentElement.classList.contains('dark') ? '#ccc' : '#666' } 
+                    },
+                    y: { 
+                        display: !props.simple, // Hide axis for simple charts
+                        ticks: { color: document.documentElement.classList.contains('dark') ? '#ccc' : '#666' } 
+                    }
+                } : {}),
                 plugins: {
                     legend: {
+                        display: !props.simple, // Hide legend for simple charts
                         labels: {
                             color: document.documentElement.classList.contains('dark') ? '#fff' : '#333'
                         }
+                    },
+                    tooltip: {
+                        enabled: !props.simple // Optional: disable tooltips too if desired, usually keep them
                     }
                 },
-                scales: props.type === 'line' || props.type === 'bar' ? {
-                    x: { ticks: { color: document.documentElement.classList.contains('dark') ? '#ccc' : '#666' } },
-                    y: { ticks: { color: document.documentElement.classList.contains('dark') ? '#ccc' : '#666' } }
+                elements: props.simple ? {
+                    point: { radius: 0 } // Hide points for sparkline
                 } : {},
                 ...props.options
             }

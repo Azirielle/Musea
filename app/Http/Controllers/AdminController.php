@@ -28,6 +28,14 @@ class AdminController extends Controller
             ->groupBy('artworks.category')
             ->get();
 
+        // Sales Trend (Last 30 Days)
+        $dailySales = \App\Models\Order::selectRaw('DATE(created_at) as date, SUM(total_amount) as total')
+            ->where('status', '!=', 'cancelled')
+            ->where('created_at', '>=', now()->subDays(30))
+            ->groupBy('date')
+            ->orderBy('date')
+            ->get();
+
         return Inertia::render('Admin/Dashboard', [
             'stats' => [
                 'totalSales' => \App\Models\Order::sum('total_amount'),
@@ -41,6 +49,7 @@ class AdminController extends Controller
             'charts' => [
                 'monthlySales' => $monthlySales,
                 'categorySales' => $categorySales,
+                'dailySales' => $dailySales,
             ],
         ]);
     }

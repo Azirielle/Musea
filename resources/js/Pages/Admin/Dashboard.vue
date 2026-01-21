@@ -18,32 +18,70 @@ defineProps({
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <!-- Total Sales -->
-            <Link :href="route('admin.sales.index')" class="bg-white dark:bg-gray-800 overflow-hidden shadow sm:rounded-lg p-6 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition block">
-                <div class="flex items-center">
-                    <div class="p-3 rounded-full bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-300">
-                        <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
+            <Link :href="route('admin.sales.index')" class="bg-white dark:bg-gray-800 overflow-hidden shadow sm:rounded-lg p-6 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition block relative">
+                <div class="flex items-center justify-between relative z-10">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-300">
+                            <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Sales (GMV)</p>
+                            <p class="text-2xl font-semibold text-gray-900 dark:text-white">₱{{ stats.totalSales.toLocaleString() }}</p>
+                        </div>
                     </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total Sales (GMV)</p>
-                        <p class="text-2xl font-semibold text-gray-900 dark:text-white">₱{{ stats.totalSales.toLocaleString() }}</p>
-                    </div>
+                </div>
+                 <!-- Sparkline Chart -->
+                <div class="absolute bottom-0 right-0 w-32 h-16 opacity-50 pointer-events-none" v-if="charts && charts.dailySales">
+                    <SalesChart 
+                        type="line"
+                        simple
+                        :data="{
+                            labels: charts.dailySales.map(d => d.date),
+                            datasets: [{
+                                data: charts.dailySales.map(d => d.total),
+                                borderColor: '#16a34a', // green-600
+                                borderWidth: 2,
+                                fill: false,
+                                tension: 0.4
+                            }]
+                        }"
+                    />
                 </div>
             </Link>
 
             <!-- Net Profit -->
-            <Link :href="route('admin.sales.index')" class="bg-white dark:bg-gray-800 overflow-hidden shadow sm:rounded-lg p-6 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition block">
-                <div class="flex items-center">
-                    <div class="p-3 rounded-full bg-purple-100 text-purple-600 dark:bg-purple-900 dark:text-purple-300">
-                        <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                        </svg>
+            <Link :href="route('admin.sales.index')" class="bg-white dark:bg-gray-800 overflow-hidden shadow sm:rounded-lg p-6 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition block relative">
+                <div class="flex items-center justify-between relative z-10">
+                    <div class="flex items-center">
+                        <div class="p-3 rounded-full bg-purple-100 text-purple-600 dark:bg-purple-900 dark:text-purple-300">
+                            <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                            </svg>
+                        </div>
+                        <div class="ml-4">
+                            <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Net Profit (10%)</p>
+                            <p class="text-2xl font-semibold text-gray-900 dark:text-white">₱{{ stats.netProfit.toLocaleString() }}</p>
+                        </div>
                     </div>
-                    <div class="ml-4">
-                        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Net Profit (10%)</p>
-                        <p class="text-2xl font-semibold text-gray-900 dark:text-white">₱{{ stats.netProfit.toLocaleString() }}</p>
-                    </div>
+                </div>
+                 <!-- Sparkline Chart -->
+                 <div class="absolute bottom-0 right-0 w-32 h-16 opacity-50 pointer-events-none" v-if="charts && charts.dailySales">
+                    <SalesChart 
+                        type="line"
+                        simple
+                        :data="{
+                            labels: charts.dailySales.map(d => d.date),
+                            datasets: [{
+                                data: charts.dailySales.map(d => d.total * 0.10),
+                                borderColor: '#9333ea', // purple-600
+                                borderWidth: 2,
+                                fill: false,
+                                tension: 0.4
+                            }]
+                        }"
+                    />
                 </div>
             </Link>
 

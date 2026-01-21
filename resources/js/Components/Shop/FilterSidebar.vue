@@ -253,19 +253,17 @@ watch([selectedCategory, selectedSubcategory, selectedFraming, readyToHang, sele
             
             <div class="pt-4 space-y-4">
                 <div v-for="(subs, cat) in categories" :key="cat" class="space-y-1">
-                    <label class="flex items-center gap-3 cursor-pointer group">
-                        <div class="relative flex items-center">
-                            <input type="checkbox" :value="cat" v-model="selectedCategory" class="peer h-4 w-4 border-2 border-divider rounded text-accent focus:ring-accent/20 cursor-pointer transition-all checked:border-accent">
-                        </div>
-                        <span class="text-sm font-medium text-ink group-hover:text-accent transition-colors">{{ cat }}</span>
-                    </label>
+                    <!-- Parent Category (Header Only) -->
+                    <div class="flex items-center gap-3 py-1">
+                        <span class="text-sm font-bold text-ink underline decoration-accent/30 decoration-2 underline-offset-4">{{ cat }}</span>
+                    </div>
 
-                    <div v-if="subs.length > 0" class="ml-6 space-y-1 mt-1 border-l-2 border-divider/30 pl-3">
-                        <label v-for="sub in subs" :key="sub" class="flex items-center gap-2 cursor-pointer group/sub">
+                    <div v-if="subs.length > 0" class="ml-2 space-y-1 mt-1 pl-3 border-l border-divider/50">
+                        <label v-for="sub in subs" :key="sub" class="flex items-center gap-2 cursor-pointer group/sub py-0.5">
                             <div class="relative flex items-center">
-                                <input type="checkbox" :value="sub" v-model="selectedSubcategory" class="peer h-3 w-3 border border-divider rounded text-accent focus:ring-accent/20 cursor-pointer transition-all checked:border-accent">
+                                <input type="checkbox" :value="sub" v-model="selectedSubcategory" class="peer h-3.5 w-3.5 border border-divider/80 rounded bg-white text-accent focus:ring-accent/20 cursor-pointer transition-all checked:border-accent checked:bg-accent">
                             </div>
-                            <span class="text-xs text-ink-light group-hover/sub:text-ink transition-colors">{{ sub }}</span>
+                            <span class="text-xs text-ink-light group-hover/sub:text-ink transition-colors font-medium">{{ sub }}</span>
                         </label>
                     </div>
                 </div>
