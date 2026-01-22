@@ -174,6 +174,16 @@ class ProfileController extends Controller
 
         $request->user()->save();
 
+        // CRITICAL DEBUG: Log what was actually saved
+        $request->user()->refresh(); // Reload from database
+        Log::info('FINAL AVATAR CHECK', [
+            'user_id' => $request->user()->id,
+            'avatar_path_in_db' => $request->user()->avatar_path,
+            'avatar_url_attribute' => $request->user()->avatar_url ?? 'null',
+            'imageUrl_method_returns' => $request->user()->imageUrl(),
+            'starts_with_http' => $request->user()->avatar_path ? (str_starts_with($request->user()->avatar_path, 'http://') || str_starts_with($request->user()->avatar_path, 'https://')) : false,
+        ]);
+
         return Redirect::route('profile.edit');
     }
 

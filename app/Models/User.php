@@ -115,25 +115,39 @@ class User extends Authenticatable
     {
         $path = $this->avatar_path ?: $this->avatar_url;
 
+        \Log::info('imageUrl() called', [
+            'user_id' => $this->id,
+            'avatar_path' => $this->avatar_path,
+            'avatar_url_column' => $this->avatar_url ?? 'null',
+            'path_variable' => $path,
+        ]);
+
         // No path - use UI Avatars as fallback
         if (!$path) {
-            return 'https://ui-avatars.com/api/?name=' . urlencode($this->first_name . ' ' . $this->last_name) . '&color=7F9CF5&background=EBF4FF';
+            $fallback = 'https://ui-avatars.com/api/?name=' . urlencode($this->first_name . ' ' . $this->last_name) . '&color=7F9CF5&background=EBF4FF';
+            \Log::info('imageUrl() returning fallback (no path)', ['url' => $fallback]);
+            return $fallback;
         }
 
         // Already a full URL (Cloudinary or external)
         if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
+            \Log::info('imageUrl() returning full URL', ['url' => $path]);
             return $path;
         }
 
         // Local path - check if file exists
         if (Storage::disk('public')->exists($path)) {
-            return asset('storage/' . $path);
+            $localUrl = asset('storage/' . $path);
+            \Log::info('imageUrl() returning local storage URL', ['url' => $localUrl]);
+            return $localUrl;
         }
 
         // Path exists in DB but file doesn't exist on disk
         // This can happen on ephemeral filesystems like Render
         // Fall back to UI Avatars
-        return 'https://ui-avatars.com/api/?name=' . urlencode($this->first_name . ' ' . $this->last_name) . '&color=7F9CF5&background=EBF4FF';
+        $fallback = 'https://ui-avatars.com/api/?name=' . urlencode($this->first_name . ' ' . $this->last_name) . '&color=7F9CF5&background=EBF4FF';
+        \Log::info('imageUrl() returning fallback (file not found)', ['path' => $path, 'url' => $fallback]);
+        return $fallback;
     }
 
     // Social Relationships
