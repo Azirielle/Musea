@@ -108,9 +108,6 @@ class ProfileController extends Controller
                     $cloudinaryUrl = 'cloudinary://' . env('CLOUDINARY_API_KEY') . ':' . env('CLOUDINARY_API_SECRET') . '@' . env('CLOUDINARY_CLOUD_NAME');
                 }
 
-                // Force config into SDK
-                // \Cloudinary\Configuration\Configuration::instance($cloudinaryUrl); // Not needed if we instantiate directly below
-
                 Log::info('Attempting Cloudinary upload (Native SDK)', [
                     'user_id' => $request->user()->id,
                     'url' => substr($cloudinaryUrl, 0, 25) . '...',
@@ -132,32 +129,23 @@ class ProfileController extends Controller
                     'response_dump' => print_r($cloudinaryResponse, true),
                 ]);
 
-                // Try multiple methods to extract the secure URL
-                $avatarPath = null;
+                // CAST TO ARRAY to handle both Array and ApiResponse Object
+                // This forces standard array access
+                $responseArray = (array) $cloudinaryResponse;
 
-                // Method 1: Check for getSecurePath() method (v2 API)
-                if (is_object($cloudinaryResponse) && method_exists($cloudinaryResponse, 'getSecurePath')) {
-                    $avatarPath = $cloudinaryResponse->getSecurePath();
-                }
-                // Method 2: Check for getSecureUrl() method (v3 API)
-                elseif (is_object($cloudinaryResponse) && method_exists($cloudinaryResponse, 'getSecureUrl')) {
-                    $avatarPath = $cloudinaryResponse->getSecureUrl();
-                }
-                // Method 3: Array access
-                elseif (is_array($cloudinaryResponse) && isset($cloudinaryResponse['secure_url'])) {
-                    $avatarPath = $cloudinaryResponse['secure_url'];
-                }
-                // Method 4: Try casting to string
-                elseif (is_object($cloudinaryResponse) && method_exists($cloudinaryResponse, '__toString')) {
-                    $avatarPath = (string) $cloudinaryResponse;
-                }
+                $avatarPath = $responseArray['secure_url'] ?? $responseArray['url'] ?? null;
 
                 if ($avatarPath && (str_starts_with($avatarPath, 'http://') || str_starts_with($avatarPath, 'https://'))) {
                     $request->user()->avatar_path = $avatarPath;
                     Log::info('Avatar path set successfully', ['user_id' => $request->user()->id, 'path' => $avatarPath]);
                 } else {
-                    throw new \Exception('Failed to get valid avatar URL from Cloudinary response. Got: ' . ($avatarPath ?? 'null'));
+                    // CRASH AND SHOW KEYS
+                    dd('CLOUDINARY DEBUG: Upload success but no URL found. Keys: ' . implode(',', array_keys($responseArray)), [
+                        'Available Keys' => array_keys($responseArray),
+                        'Full Response' => $responseArray
+                    ]);
                 }
+
             } catch (\Exception $e) {
                 // NUCLEAR OPTION: DIE AND DUMP THE ERROR
                 dd('CLOUDINARY DEBUG ERROR: ' . $e->getMessage(), $e->getTraceAsString());
