@@ -98,10 +98,15 @@ class ProfileController extends Controller
                 return back()->withErrors(['avatar' => 'Upload failed: ' . $errorMessage]);
             }
 
-            try {
-                Log::info('Attempting Cloudinary upload', ['user_id' => $request->user()->id]);
 
-                // Upload to Cloudinary using the proper method
+            try {
+                Log::info('Attempting Cloudinary upload', [
+                    'user_id' => $request->user()->id,
+                    'file_size' => $file->getSize(),
+                    'file_type' => $file->getMimeType(),
+                ]);
+
+                // Upload to Cloudinary using v3 API
                 $cloudinaryResponse = \CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary::upload(
                     $file->getRealPath(),
                     [
@@ -110,30 +115,48 @@ class ProfileController extends Controller
                     ]
                 );
 
-                Log::info('Cloudinary Response', [
+                Log::info('Cloudinary Response Received', [
                     'user_id' => $request->user()->id,
                     'response_type' => gettype($cloudinaryResponse),
                     'response_class' => is_object($cloudinaryResponse) ? get_class($cloudinaryResponse) : 'not_object',
+                    'response_dump' => print_r($cloudinaryResponse, true), // Full dump for debugging
                 ]);
 
-                // Get the secure URL from the Cloudinary response
+                // Try multiple methods to extract the secure URL
                 $avatarPath = null;
+
+                // Method 1: Check for getSecurePath() method (v2 API)
                 if (is_object($cloudinaryResponse) && method_exists($cloudinaryResponse, 'getSecurePath')) {
                     $avatarPath = $cloudinaryResponse->getSecurePath();
-                } elseif (is_array($cloudinaryResponse) && isset($cloudinaryResponse['secure_url'])) {
+                    Log::info('Got URL via getSecurePath()', ['url' => $avatarPath]);
+                }
+                // Method 2: Check for getSecureUrl() method (v3 API)
+                elseif (is_object($cloudinaryResponse) && method_exists($cloudinaryResponse, 'getSecureUrl')) {
+                    $avatarPath = $cloudinaryResponse->getSecureUrl();
+                    Log::info('Got URL via getSecureUrl()', ['url' => $avatarPath]);
+                }
+                // Method 3: Array access
+                elseif (is_array($cloudinaryResponse) && isset($cloudinaryResponse['secure_url'])) {
                     $avatarPath = $cloudinaryResponse['secure_url'];
+                    Log::info('Got URL from array[secure_url]', ['url' => $avatarPath]);
+                }
+                // Method 4: Try casting to string
+                elseif (is_object($cloudinaryResponse) && method_exists($cloudinaryResponse, '__toString')) {
+                    $avatarPath = (string) $cloudinaryResponse;
+                    Log::info('Got URL via __toString()', ['url' => $avatarPath]);
                 }
 
-                Log::info('Avatar Path Extracted', [
+                Log::info('Avatar Path Extraction Result', [
                     'user_id' => $request->user()->id,
                     'avatar_path' => $avatarPath,
+                    'is_cloudinary_url' => $avatarPath ? str_starts_with($avatarPath, 'https://res.cloudinary.com') : false,
                 ]);
 
-                if ($avatarPath) {
+                if ($avatarPath && (str_starts_with($avatarPath, 'http://') || str_starts_with($avatarPath, 'https://'))) {
                     $request->user()->avatar_path = $avatarPath;
                     Log::info('Avatar path set successfully', ['user_id' => $request->user()->id, 'path' => $avatarPath]);
                 } else {
-                    throw new \Exception('Failed to get avatar URL from Cloudinary response');
+                    throw new \Exception('Failed to get valid avatar URL from Cloudinary response. Got: ' . ($avatarPath ?? 'null'));
                 }
             } catch (\Exception $e) {
                 Log::error('Cloudinary Upload Failed', [
