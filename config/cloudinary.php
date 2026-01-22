@@ -17,36 +17,32 @@ return [
     |
     */
 
-    'cloud_url' => env('CLOUDINARY_URL', 'cloudinary://112719694583157:yGB2snsePNfMtODwrtjesYI9Jnw@du6bc1wjb'),
+    'cloud_url' => env('CLOUDINARY_URL'),
 
     /**
-     * Legacy Keys (Top-Level)
-     */
-    'cloud_name' => env('CLOUDINARY_CLOUD_NAME', 'du6bc1wjb'),
-    'api_key' => env('CLOUDINARY_API_KEY', '112719694583157'),
-    'api_secret' => env('CLOUDINARY_API_SECRET', 'yGB2snsePNfMtODwrtjesYI9Jnw'),
-    'secure' => true,
-
-    /**
-     * V2/V3 SDK Compatible Structure
+     * Essential for Cloudinary SDK v2/v3
+     * We replicate the keys to ensure compatibility regardless of how the SDK tries to read them.
      */
     'cloud' => [
         'cloud_name' => env('CLOUDINARY_CLOUD_NAME', 'du6bc1wjb'),
         'api_key' => env('CLOUDINARY_API_KEY', '112719694583157'),
         'api_secret' => env('CLOUDINARY_API_SECRET', 'yGB2snsePNfMtODwrtjesYI9Jnw'),
     ],
+
     'url' => [
         'secure' => true,
     ],
+
+    // Keep top-level keys just in case some other part of the app reads them
+    'cloud_name' => env('CLOUDINARY_CLOUD_NAME', 'du6bc1wjb'),
+    'api_key' => env('CLOUDINARY_API_KEY', '112719694583157'),
+    'api_secret' => env('CLOUDINARY_API_SECRET', 'yGB2snsePNfMtODwrtjesYI9Jnw'),
+    'secure' => true,
 
     /*
     |--------------------------------------------------------------------------
     | Cloudinary Upload Preset
     |--------------------------------------------------------------------------
-    |
-    | Upload presets allow you to define the default behavior for all your
-    | uploads. You can configure this in your Cloudinary Dashboard.
-    |
     */
     'upload_preset' => env('CLOUDINARY_UPLOAD_PRESET'),
 
@@ -54,9 +50,6 @@ return [
     |--------------------------------------------------------------------------
     | Cloudinary Route Configuration
     |--------------------------------------------------------------------------
-    |
-    | These settings control the routing for the Cloudinary controller.
-    |
     */
     'notification_url' => env('CLOUDINARY_NOTIFICATION_URL'),
 ];
