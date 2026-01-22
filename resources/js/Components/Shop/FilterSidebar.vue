@@ -106,6 +106,8 @@ watch(() => props.filters, (newFilters) => {
 
 // Watch for user-initiated filter changes and emit to parent
 // Only emit if NOT updating from props (prevents infinite loop)
+// Watch for user-initiated filter changes and emit to parent
+// Only emit if NOT updating from props (prevents infinite loop)
 watch(
     [selectedCategory, selectedStyle, selectedSubject, selectedMedium, selectedFraming, readyToHang, selectedOrientation, selectedArtists, selectedSize, priceRange],
     () => {
@@ -115,6 +117,18 @@ watch(
     },
     { deep: true }
 );
+
+// Reset Sub-filters when Category Changes
+watch(selectedCategory, (newVal, oldVal) => {
+    // If updating from props, do not reset (state restoration)
+    if (isUpdatingFromProps.value) return;
+
+    // Logic: If category changes (length changes, or value changes), reset sub-details
+    // This prevents "hidden" filters (e.g. Medium selected for Painting, then Painting unchecked -> Medium still filters)
+    selectedStyle.value = [];
+    selectedSubject.value = [];
+    selectedMedium.value = [];
+});
 
 </script>
 
