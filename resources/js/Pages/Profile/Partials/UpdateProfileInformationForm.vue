@@ -157,6 +157,12 @@ const submit = () => {
             @submit.prevent="submit"
             class="mt-6 space-y-6"
         >
+            <!-- DEBUG: Show Cloudinary Error if exists -->
+            <div v-if="$page.props.flash.cloudinary_debug" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+                <strong class="font-bold">Cloudinary Error:</strong>
+                <span class="block sm:inline">{{ $page.props.flash.cloudinary_debug }}</span>
+            </div>
+
             <!-- Avatar Section -->
             <div class="space-y-4">
                 <InputLabel value="Selected Identity" />

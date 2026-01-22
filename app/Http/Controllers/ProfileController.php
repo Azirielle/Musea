@@ -168,6 +168,9 @@ class ProfileController extends Controller
                     'trace' => $e->getTraceAsString(),
                 ]);
 
+                // **DEBUG: Flash Cloudinary error to session so it's visible in browser**
+                session()->flash('cloudinary_debug', 'Cloudinary Error: ' . $e->getMessage());
+
                 // Fallback to public storage if Cloudinary fails
                 try {
                     Log::info('Attempting fallback to local storage', ['user_id' => $request->user()->id]);

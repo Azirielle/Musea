@@ -40,6 +40,7 @@ class HandleInertiaRequests extends Middleware
             'flash' => [
                 'success' => fn() => $request->session()->get('success'),
                 'error' => fn() => $request->session()->get('error'),
+                'cloudinary_debug' => fn() => $request->session()->get('cloudinary_debug'),
             ],
         ];
     }
