@@ -21,6 +21,9 @@ import { categories } from '@/Constants/Categories';
 // ... (props defined above, keep checks)
 
 // New Refs
+const selectedCategory = ref(
+    Array.isArray(props.filters.category) ? props.filters.category : (props.filters.category ? [props.filters.category] : [])
+);
 const selectedStyle = ref(
     Array.isArray(props.filters.style) ? props.filters.style : (props.filters.style ? [props.filters.style] : [])
 );
@@ -30,8 +33,22 @@ const selectedSubject = ref(
 const selectedMedium = ref(
     Array.isArray(props.filters.medium) ? props.filters.medium : (props.filters.medium ? [props.filters.medium] : [])
 );
-
-// ... existing refs ...
+const selectedFraming = ref(
+    Array.isArray(props.filters.framing) ? props.filters.framing : (props.filters.framing ? [props.filters.framing] : [])
+);
+const readyToHang = ref(
+    props.filters.ready_to_hang ? true : false
+);
+const selectedOrientation = ref(
+    Array.isArray(props.filters.orientation) ? props.filters.orientation : (props.filters.orientation ? [props.filters.orientation] : [])
+);
+const selectedArtists = ref(
+    Array.isArray(props.filters.artist_id) ? props.filters.artist_id : (props.filters.artist_id ? [props.filters.artist_id] : [])
+);
+const selectedSize = ref(
+    Array.isArray(props.filters.size) ? props.filters.size : (props.filters.size ? [props.filters.size] : [])
+);
+const isUpdating = ref(false);
 
 const applyFilters = () => {
     if (isUpdating.value) return;
@@ -60,13 +77,15 @@ watch(() => props.filters, (newFilters) => {
     isUpdating.value = true;
     const getArray = (val) => Array.isArray(val) ? val : (val ? [val] : []);
     
+    selectedCategory.value = getArray(newFilters.category);
     selectedStyle.value = getArray(newFilters.style);
     selectedSubject.value = getArray(newFilters.subject);
     selectedMedium.value = getArray(newFilters.medium);
-    
-    // ... existing syncs ...
-    selectedCategory.value = getArray(newFilters.category);
-    // ... 
+    selectedFraming.value = getArray(newFilters.framing);
+    readyToHang.value = newFilters.ready_to_hang ? true : false;
+    selectedOrientation.value = getArray(newFilters.orientation);
+    selectedArtists.value = getArray(newFilters.artist_id);
+    selectedSize.value = getArray(newFilters.size);
     
     setTimeout(() => isUpdating.value = false, 100);
 }, { deep: true });
