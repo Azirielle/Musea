@@ -18,6 +18,7 @@ use App\Http\Controllers\Admin\ArtworkController as AdminArtworkController;
 use App\Http\Controllers\Admin\TransactionController;
 use App\Http\Controllers\Admin\ReportController;
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\ReportController as PublicReportController;
 
 use Illuminate\Support\Str;
 
@@ -241,6 +242,9 @@ if (config('app.type') !== 'admin') {
 
         // Verification
         Route::post('/verification', [\App\Http\Controllers\VerificationController::class, 'store'])->name('verification.store');
+
+        // Reports (API-style endpoint, session-authenticated)
+        Route::post('/api/reports', [PublicReportController::class, 'store'])->name('api.reports.store');
     });
 
 }

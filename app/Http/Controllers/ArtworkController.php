@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\Storage;
 use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
+use Illuminate\Validation\Rule;
 
 use Cloudinary\Configuration\Configuration;
 use Cloudinary\Api\Upload\UploadApi;
@@ -42,11 +43,24 @@ class ArtworkController extends Controller
      */
     public function store(Request $request)
     {
+        $taxonomy = config('artwork_taxonomy', []);
+        $validCategories = array_keys($taxonomy);
+
+        $category = $request->input('category');
+        $group = is_string($category) && isset($taxonomy[$category]) ? $taxonomy[$category] : null;
+        $styleValues = $group['Style'] ?? [];
+        $subjectValues = $group['Subject'] ?? [];
+        $mediumOrMethodValues = $group['Medium'] ?? ($group['Method'] ?? []);
+
         // 1. Validate the Input
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
-            'category' => 'required|string',
+            'category' => ['required', 'string', Rule::in($validCategories)],
+            'style' => ['required', 'string', Rule::in($styleValues)],
+            'subject' => ['required', 'string', Rule::in($subjectValues)],
+            // Stored in artworks.medium (UI labels it "Method" for Sculpture)
+            'medium' => ['required', 'string', Rule::in($mediumOrMethodValues)],
             // 'subcategory' => 'nullable|string',
             'price' => 'required|numeric|min:0',
             'width' => 'required|numeric|min:0',
@@ -94,6 +108,9 @@ class ArtworkController extends Controller
             'title' => $validated['title'],
             'description' => $validated['description'],
             'category' => $validated['category'],
+            'style' => $validated['style'],
+            'subject' => $validated['subject'],
+            'medium' => $validated['medium'],
             'width' => $validated['width'],
             'height' => $validated['height'],
             'depth' => $validated['depth'] ?? null,

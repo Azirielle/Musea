@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
     {
         $this->call(LegacyDataSeeder::class);
         $this->call(InterestSeeder::class);
+        $this->call(ArtworkTaxonomySeeder::class);
 
         // Dummy data commented out to preserve strict legacy import
         /*

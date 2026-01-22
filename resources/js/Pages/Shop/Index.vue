@@ -5,6 +5,7 @@ import FilterSidebar from '@/Components/Shop/FilterSidebar.vue';
 import UserBadge from '@/Components/UserBadge.vue';
 import { ref, watch } from 'vue';
 import { useCart } from '@/composables/useCart';
+import { normalizeSameOriginUrl } from '@/utils/urls';
 
 const props = defineProps({
     artworks: Object,
@@ -245,7 +246,7 @@ const formatPrice = (price) => {
                                 <template v-for="(link, k) in artworks.links" :key="k">
                                     <Link 
                                         v-if="link.url" 
-                                        :href="link.url" 
+                                        :href="normalizeSameOriginUrl(link.url)" 
                                         preserve-scroll
                                         preserve-state
                                         class="flex items-center justify-center text-sm font-bold transition-all rounded-full"

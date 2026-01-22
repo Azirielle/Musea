@@ -2,7 +2,8 @@
 import { ref } from 'vue';
 import { Link, usePage } from '@inertiajs/vue3';
 
-const showingNavigationDropdown = ref(false);
+const showingNavigationDropdown = ref(false); // legacy
+const mobileNavOpen = ref(false);
 const page = usePage();
 
 const links = [
@@ -56,8 +57,73 @@ const links = [
                  <Link :href="route('admin.dashboard')" class="text-lg font-bold text-gray-800 dark:text-white">
                     Musea Admin
                 </Link>
-                <!-- Hamburger menu implementation would go here -->
+                <button
+                    type="button"
+                    class="inline-flex items-center justify-center rounded-md p-2 text-gray-600 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none"
+                    @click="mobileNavOpen = true"
+                    aria-label="Open menu"
+                >
+                    <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                    </svg>
+                </button>
             </div>
+
+            <!-- Mobile Drawer -->
+            <transition
+                enter-active-class="transition duration-200 ease-out"
+                enter-from-class="opacity-0"
+                enter-to-class="opacity-100"
+                leave-active-class="transition duration-150 ease-in"
+                leave-from-class="opacity-100"
+                leave-to-class="opacity-0"
+            >
+                <div v-if="mobileNavOpen" class="fixed inset-0 z-[200] md:hidden">
+                    <div class="absolute inset-0 bg-black/40" @click="mobileNavOpen = false"></div>
+
+                    <div class="absolute left-0 top-0 h-full w-[85%] max-w-xs bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 shadow-2xl flex flex-col">
+                        <div class="h-16 px-4 flex items-center justify-between border-b border-gray-200 dark:border-gray-700">
+                            <Link :href="route('admin.dashboard')" class="text-lg font-bold text-gray-800 dark:text-white" @click="mobileNavOpen = false">
+                                Musea Admin
+                            </Link>
+                            <button
+                                type="button"
+                                class="p-2 rounded-md text-gray-600 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700"
+                                @click="mobileNavOpen = false"
+                                aria-label="Close menu"
+                            >
+                                <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-1">
+                            <Link
+                                v-for="link in links"
+                                :key="link.name"
+                                :href="route(link.route)"
+                                @click="mobileNavOpen = false"
+                                :class="[
+                                    route().current(link.route)
+                                        ? 'bg-indigo-50 text-indigo-700 dark:bg-gray-700 dark:text-white'
+                                        : 'text-gray-600 hover:bg-gray-50 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white',
+                                    'group flex items-center px-3 py-2 text-sm font-medium rounded-md'
+                                ]"
+                            >
+                                <svg class="mr-3 h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" :d="link.icon" />
+                                </svg>
+                                {{ link.name }}
+                            </Link>
+                        </nav>
+
+                        <div class="p-4 border-t border-gray-200 dark:border-gray-700 text-xs text-gray-500 dark:text-gray-400 text-center">
+                            Admin Mode
+                        </div>
+                    </div>
+                </div>
+            </transition>
 
             <!-- Page Content -->
             <main class="flex-1 overflow-y-auto p-6">

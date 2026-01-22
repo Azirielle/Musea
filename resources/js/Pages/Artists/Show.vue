@@ -3,6 +3,7 @@ import { Head, Link, router } from '@inertiajs/vue3';
 import MainLayout from '@/Layouts/MainLayout.vue';
 import UserBadge from '@/Components/UserBadge.vue';
 import { ref } from 'vue';
+import { normalizeSameOriginUrl } from '@/utils/urls';
 
 const props = defineProps({
     artist: Object,
@@ -123,7 +124,7 @@ const toggleFollow = () => {
                         <template v-for="(link, k) in artworks.links" :key="k">
                             <Link 
                                 v-if="link.url" 
-                                :href="link.url" 
+                                :href="normalizeSameOriginUrl(link.url)" 
                                 v-html="link.label"
                                 class="w-10 h-10 flex items-center justify-center rounded-full text-sm font-bold transition-all"
                                 :class="{'bg-ink text-white shadow-lg': link.active, 'bg-white text-ink-light hover:bg-gray-100 hover:text-ink': !link.active}"

@@ -15,12 +15,14 @@ const messages = ref([]);
 const messageBody = ref('');
 const isLoading = ref(false);
 const scrollContainer = ref(null);
+const showMobileList = ref(true);
 let pollingInterval = null;
 
 const selectConversation = async (conversation) => {
     selectedId.value = conversation.id;
     activeConversation.value = conversation;
     isLoading.value = true;
+    showMobileList.value = false;
     
     try {
         const response = await axios.get(route('messages.show', conversation.id));
@@ -109,10 +111,13 @@ watch(() => props.conversations, (newVal) => {
         </template>
 
         <div class="py-12 px-4 sm:px-6 lg:px-8 bg-canvas min-h-[calc(100vh-64px)]">
-            <div class="max-w-6xl mx-auto h-[700px] flex bg-paper rounded-3xl border border-divider shadow-2xl overflow-hidden">
+            <div class="max-w-6xl mx-auto md:h-[700px] flex flex-col md:flex-row bg-paper rounded-3xl border border-divider shadow-2xl overflow-hidden">
                 
                 <!-- Sidebar -->
-                <div class="w-1/3 border-r border-divider flex flex-col h-full bg-white/50 backdrop-blur-sm">
+                <div
+                    class="w-full md:w-1/3 md:border-r border-divider flex flex-col bg-white/50 backdrop-blur-sm"
+                    :class="showMobileList ? 'flex' : 'hidden md:flex'"
+                >
                     <div class="p-6 border-b border-divider">
                         <h3 class="text-xl font-serif font-bold italic text-ink">Inquiries</h3>
                     </div>
@@ -155,11 +160,24 @@ watch(() => props.conversations, (newVal) => {
                 </div>
 
                 <!-- Chat Area -->
-                <div class="flex-1 flex flex-col h-full bg-white">
+                <div
+                    class="flex-1 flex flex-col bg-white"
+                    :class="showMobileList ? 'hidden md:flex' : 'flex'"
+                >
                     <template v-if="activeConversation">
                         <!-- Chat Header -->
                         <div class="p-4 border-b border-divider flex items-center justify-between bg-canvas/30">
                             <div class="flex items-center gap-3">
+                                <button
+                                    type="button"
+                                    class="md:hidden p-2 -ml-2 rounded-lg hover:bg-white/60 text-ink-light"
+                                    @click="showMobileList = true"
+                                    aria-label="Back to conversations"
+                                >
+                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                                    </svg>
+                                </button>
                                 <Link :href="route('artists.show', activeConversation.other_user.id)">
                                     <img :src="activeConversation.other_user.avatar" class="w-10 h-10 rounded-full object-cover hover:opacity-80 transition-opacity">
                                 </Link>
@@ -186,7 +204,7 @@ watch(() => props.conversations, (newVal) => {
                         </div>
 
                         <!-- Messages Container -->
-                        <div 
+                        <div
                             ref="scrollContainer"
                             class="flex-1 overflow-y-auto p-6 space-y-4 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-fixed"
                         >

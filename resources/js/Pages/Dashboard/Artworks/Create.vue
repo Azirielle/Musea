@@ -148,7 +148,9 @@ const handleImageUpload = (e) => {
                                         <InputError class="mt-2" :message="form.errors.medium" />
                                     </div>
                                 </div>
-                            
+
+                            </div>
+
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <!-- Framing -->
                                 <div>

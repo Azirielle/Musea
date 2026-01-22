@@ -1,6 +1,7 @@
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
 import MainLayout from '@/Layouts/MainLayout.vue';
+import { normalizeSameOriginUrl } from '@/utils/urls';
 
 defineProps({
     artists: Object
@@ -35,7 +36,7 @@ defineProps({
                      <template v-for="(link, k) in artists.links" :key="k">
                         <Link 
                             v-if="link.url" 
-                            :href="link.url" 
+                            :href="normalizeSameOriginUrl(link.url)" 
                             v-html="link.label"
                             class="px-4 py-2 rounded-lg border text-sm font-medium transition"
                             :class="{'bg-accent text-white border-accent': link.active, 'bg-white text-gray-700 hover:bg-gray-50 border-gray-300': !link.active}"
