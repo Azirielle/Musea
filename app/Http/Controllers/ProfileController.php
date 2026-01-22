@@ -100,10 +100,20 @@ class ProfileController extends Controller
 
 
             try {
-                Log::info('Attempting Cloudinary upload', [
+                // MANUAL CONFIGURATION - BYPASS CONFIG FILE
+                // This ensures we are absolutely using the correct credentials
+                $cloudinaryUrl = env('CLOUDINARY_URL');
+                if (!$cloudinaryUrl) {
+                    // Try to reconstruct if missing
+                    $cloudinaryUrl = 'cloudinary://' . env('CLOUDINARY_API_KEY') . ':' . env('CLOUDINARY_API_SECRET') . '@' . env('CLOUDINARY_CLOUD_NAME');
+                }
+
+                // Force config into SDK
+                \Cloudinary\Configuration\Configuration::instance($cloudinaryUrl);
+
+                Log::info('Attempting Cloudinary upload (Manual)', [
                     'user_id' => $request->user()->id,
-                    'file_size' => $file->getSize(),
-                    'file_type' => $file->getMimeType(),
+                    'url' => substr($cloudinaryUrl, 0, 25) . '...',
                 ]);
 
                 // Upload to Cloudinary using v3 API
@@ -117,9 +127,7 @@ class ProfileController extends Controller
 
                 Log::info('Cloudinary Response Received', [
                     'user_id' => $request->user()->id,
-                    'response_type' => gettype($cloudinaryResponse),
-                    'response_class' => is_object($cloudinaryResponse) ? get_class($cloudinaryResponse) : 'not_object',
-                    'response_dump' => print_r($cloudinaryResponse, true), // Full dump for debugging
+                    'response_dump' => print_r($cloudinaryResponse, true),
                 ]);
 
                 // Try multiple methods to extract the secure URL
@@ -128,29 +136,19 @@ class ProfileController extends Controller
                 // Method 1: Check for getSecurePath() method (v2 API)
                 if (is_object($cloudinaryResponse) && method_exists($cloudinaryResponse, 'getSecurePath')) {
                     $avatarPath = $cloudinaryResponse->getSecurePath();
-                    Log::info('Got URL via getSecurePath()', ['url' => $avatarPath]);
                 }
                 // Method 2: Check for getSecureUrl() method (v3 API)
                 elseif (is_object($cloudinaryResponse) && method_exists($cloudinaryResponse, 'getSecureUrl')) {
                     $avatarPath = $cloudinaryResponse->getSecureUrl();
-                    Log::info('Got URL via getSecureUrl()', ['url' => $avatarPath]);
                 }
                 // Method 3: Array access
                 elseif (is_array($cloudinaryResponse) && isset($cloudinaryResponse['secure_url'])) {
                     $avatarPath = $cloudinaryResponse['secure_url'];
-                    Log::info('Got URL from array[secure_url]', ['url' => $avatarPath]);
                 }
                 // Method 4: Try casting to string
                 elseif (is_object($cloudinaryResponse) && method_exists($cloudinaryResponse, '__toString')) {
                     $avatarPath = (string) $cloudinaryResponse;
-                    Log::info('Got URL via __toString()', ['url' => $avatarPath]);
                 }
-
-                Log::info('Avatar Path Extraction Result', [
-                    'user_id' => $request->user()->id,
-                    'avatar_path' => $avatarPath,
-                    'is_cloudinary_url' => $avatarPath ? str_starts_with($avatarPath, 'https://res.cloudinary.com') : false,
-                ]);
 
                 if ($avatarPath && (str_starts_with($avatarPath, 'http://') || str_starts_with($avatarPath, 'https://'))) {
                     $request->user()->avatar_path = $avatarPath;
@@ -159,12 +157,12 @@ class ProfileController extends Controller
                     throw new \Exception('Failed to get valid avatar URL from Cloudinary response. Got: ' . ($avatarPath ?? 'null'));
                 }
             } catch (\Exception $e) {
+                // NUCLEAR OPTION: DIE AND DUMP THE ERROR
+                dd('CLOUDINARY DEBUG ERROR: ' . $e->getMessage(), $e->getTraceAsString());
+
                 Log::error('Cloudinary Upload Failed', [
                     'user_id' => $request->user()->id,
                     'error_message' => $e->getMessage(),
-                    'error_code' => $e->getCode(),
-                    'error_file' => $e->getFile(),
-                    'error_line' => $e->getLine(),
                     'trace' => $e->getTraceAsString(),
                 ]);
 
@@ -181,8 +179,6 @@ class ProfileController extends Controller
                     Log::error('Local Storage Fallback Failed', [
                         'user_id' => $request->user()->id,
                         'error_message' => $fallbackError->getMessage(),
-                        'error_code' => $fallbackError->getCode(),
-                        'trace' => $fallbackError->getTraceAsString(),
                     ]);
                     return back()->withErrors(['avatar' => 'Failed to upload avatar. Cloudinary error: ' . $e->getMessage() . '. Local storage error: ' . $fallbackError->getMessage()]);
                 }
@@ -205,9 +201,6 @@ class ProfileController extends Controller
         Log::info('FINAL AVATAR CHECK', [
             'user_id' => $request->user()->id,
             'avatar_path_in_db' => $request->user()->avatar_path,
-            'avatar_url_attribute' => $request->user()->avatar_url ?? 'null',
-            'imageUrl_method_returns' => $request->user()->imageUrl(),
-            'starts_with_http' => $request->user()->avatar_path ? (str_starts_with($request->user()->avatar_path, 'http://') || str_starts_with($request->user()->avatar_path, 'https://')) : false,
         ]);
 
         return Redirect::route('profile.edit');
