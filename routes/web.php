@@ -332,6 +332,12 @@ if (config('app.type') !== 'public') {
 Route::post('/checkout/validate-coupon', [\App\Http\Controllers\CouponController::class, 'validateCoupon'])->middleware('auth')->name('checkout.validate-coupon');
 
 
+// Temporary cache clearing route
+Route::get('/force-cache-clear', function () {
+    Artisan::call('optimize:clear');
+    return 'Cache cleared! <br> <pre>' . Artisan::output() . '</pre>';
+});
+
 require __DIR__ . '/auth.php';
 
 
