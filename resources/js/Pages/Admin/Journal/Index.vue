@@ -9,7 +9,7 @@ defineProps({
 
 const deletePost = (post) => {
     if (confirm('Are you sure you want to delete this journal post?')) {
-        router.delete(route('admin.journals.destroy', post.id));
+        router.delete(route('admin.journals.destroy', post.slug));
     }
 };
 </script>
@@ -71,7 +71,7 @@ const deletePost = (post) => {
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <Link :href="route('admin.journals.edit', post.id)" class="text-indigo-600 hover:text-indigo-900 mr-4">Edit</Link>
+                                    <Link :href="route('admin.journals.edit', post.slug)" class="text-indigo-600 hover:text-indigo-900 mr-4">Edit</Link>
                                     <button @click="deletePost(post)" class="text-red-600 hover:text-red-900">Delete</button>
                                 </td>
                             </tr>

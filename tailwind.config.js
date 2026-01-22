@@ -29,6 +29,15 @@ export default {
                 sans: ['Inter', ...defaultTheme.fontFamily.sans],
                 serif: ['Playfair Display', ...defaultTheme.fontFamily.serif],
             },
+            keyframes: {
+                scroll: {
+                    '0%': { transform: 'translateX(0)' },
+                    '100%': { transform: 'translateX(-50%)' },
+                }
+            },
+            animation: {
+                scroll: 'scroll 30s linear infinite',
+            },
         },
     },
 

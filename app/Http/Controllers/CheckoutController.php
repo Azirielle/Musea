@@ -60,17 +60,24 @@ class CheckoutController extends Controller
             // Coupon Logic
             $discountAmount = 0;
             $couponCode = null;
+            $appliedCoupon = null;
 
             if ($request->has('coupon_code') && $request->coupon_code) {
                 $coupon = \App\Models\Coupon::where('code', $request->coupon_code)->first();
                 // Basic validation again to be safe
                 if ($coupon && $coupon->is_active && (!$coupon->expires_at || $coupon->expires_at->isFuture()) && (!$coupon->usage_limit || $coupon->used_count < $coupon->usage_limit)) {
+
+                    if (!$coupon->isValidForUser(auth()->id())) {
+                        throw new \Exception("You have already redeemed this coupon code.");
+                    }
+
                     if ($coupon->type === 'fixed') {
                         $discountAmount = min($coupon->value, $total);
                     } else {
                         $discountAmount = $total * ($coupon->value / 100);
                     }
                     $couponCode = $coupon->code;
+                    $appliedCoupon = $coupon;
 
                     // Increment usage
                     $coupon->increment('used_count');
@@ -102,6 +109,15 @@ class CheckoutController extends Controller
                 ]);
 
                 $data['artwork']->decrement('stock', $data['quantity']);
+            }
+
+            // Record Coupon Usage
+            if ($appliedCoupon) {
+                $appliedCoupon->users()->attach(auth()->id(), [
+                    'order_id' => $order->id,
+                    'created_at' => now(),
+                    'updated_at' => now()
+                ]);
             }
 
             DB::commit();

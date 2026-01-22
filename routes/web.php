@@ -307,6 +307,7 @@ if (config('app.type') !== 'public') {
         Route::get('/users', [UserController::class, 'index'])->name('users.index');
         Route::post('/users/{user}/toggle', [UserController::class, 'toggleStatus'])->name('users.toggle');
         Route::post('/users/{user}/featured', [UserController::class, 'toggleFeatured'])->name('users.featured');
+        Route::get('/users/{user}/history', [UserController::class, 'history'])->name('users.history');
 
         // Artwork Approval
         Route::get('/approvals', [AdminArtworkController::class, 'index'])->name('approvals.index');

@@ -20,4 +20,16 @@ class Coupon extends Model
         'expires_at' => 'datetime',
         'is_active' => 'boolean',
     ];
+
+    public function users()
+    {
+        return $this->belongsToMany(User::class, 'coupon_usages')
+            ->withPivot('order_id')
+            ->withTimestamps();
+    }
+
+    public function isValidForUser($userId)
+    {
+        return !$this->users()->where('user_id', $userId)->exists();
+    }
 }

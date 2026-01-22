@@ -33,6 +33,10 @@ class CouponController extends Controller
             return response()->json(['message' => 'This coupon has reached its usage limit.'], 400);
         }
 
+        if (auth()->check() && !$coupon->isValidForUser(auth()->id())) {
+            return response()->json(['message' => 'You have already redeemed this code.'], 400);
+        }
+
         // Calculate Discount
         $discountAmount = 0;
         if ($coupon->type === 'fixed') {
