@@ -62,14 +62,31 @@ class ProfileController extends Controller
         // Handle Avatar Upload
         if ($request->hasFile('avatar')) {
             try {
-                // Upload to Cloudinary and get the secure URL
-                $response = $request->file('avatar')->storeOnCloudinary('avatars');
-                $path = $response->getSecurePath();
-                $request->user()->avatar_path = $path;
+                // Upload to Cloudinary using the proper method
+                $cloudinaryResponse = \CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary::upload(
+                    $request->file('avatar')->getRealPath(),
+                    [
+                        'folder' => 'avatars',
+                        'resource_type' => 'auto'
+                    ]
+                );
+                
+                // Get the secure URL from the Cloudinary response
+                $avatarPath = $cloudinaryResponse->getSecurePath() ?? $cloudinaryResponse['secure_url'] ?? null;
+                
+                if ($avatarPath) {
+                    $request->user()->avatar_path = $avatarPath;
+                } else {
+                    throw new \Exception('Failed to get avatar URL from Cloudinary');
+                }
             } catch (\Exception $e) {
-                // Fallback to public storage if Cloudinary fails (e.g. no credentials)
-                $path = $request->file('avatar')->store('avatars', 'public');
-                $request->user()->avatar_path = $path;
+                // Fallback to public storage if Cloudinary fails
+                try {
+                    $path = $request->file('avatar')->store('avatars', 'public');
+                    $request->user()->avatar_path = $path;
+                } catch (\Exception $fallbackError) {
+                    return back()->withErrors(['avatar' => 'Failed to upload avatar: ' . $fallbackError->getMessage()]);
+                }
             }
         } elseif ($request->filled('default_avatar')) {
             $request->user()->avatar_path = $request->default_avatar;

@@ -37,24 +37,35 @@ class OnboardingController extends Controller
         $user = $request->user();
 
         if ($request->hasFile('avatar')) {
-            if ($user->avatar_path) {
-                Storage::disk('public')->delete($user->avatar_path);
+            try {
+                // Upload to Cloudinary using the proper method
+                $cloudinaryResponse = \CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary::upload(
+                    $request->file('avatar')->getRealPath(),
+                    [
+                        'folder' => 'avatars',
+                        'resource_type' => 'auto'
+                    ]
+                );
+                
+                // Get the secure URL from the Cloudinary response
+                $avatarPath = $cloudinaryResponse->getSecurePath() ?? $cloudinaryResponse['secure_url'] ?? null;
+                
+                if ($avatarPath) {
+                    $user->avatar_path = $avatarPath;
+                } else {
+                    throw new \Exception('Failed to get avatar URL from Cloudinary');
+                }
+            } catch (\Exception $e) {
+                // Fallback to public storage if Cloudinary fails
+                try {
+                    $path = $request->file('avatar')->store('avatars', 'public');
+                    $user->avatar_path = $path;
+                } catch (\Exception $fallbackError) {
+                    return back()->withErrors(['avatar' => 'Failed to upload avatar: ' . $fallbackError->getMessage()]);
+                }
             }
-            $path = $request->file('avatar')->store('avatars', 'public');
-            $user->avatar_path = $path;
         } elseif ($request->default_avatar) {
-            // If default avatar is selected (and no new file uploaded), separate logic if needed.
-            // Typically we might download it or just save the URL.
-            // Given 'avatar_path' is usually a relative local path, lets prepend a flag or just save the full URL if we support it.
-            // Our User model accessor `imageUrl()` assumes 'storage/' prefix if not empty.
-            // We should modify User model or just download it.
-            // For simplicity, let's enable saving external URLs or special handling.
-
-            // Quick fix: User model 'imageUrl' handles external?
-            // Checking User model:
-            // return $this->avatar_path ? asset('storage/' . $this->avatar_path) : ...
-            // We need to support external URLs in User model or save these defaults locally?
-            // Let's assume we save the string and update User model to check if it's a URL.
+            // Save the default avatar URL
             $user->avatar_path = $request->default_avatar;
         }
 
@@ -62,7 +73,7 @@ class OnboardingController extends Controller
         $user->last_name = $request->last_name;
         $user->save();
 
-        return back(); // Stay on page, frontend will advance step or we can return specialized response
+        return back();
     }
 
     /**

@@ -41,11 +41,12 @@ class OrderShippedNotification extends Notification
     {
         return [
             'title' => 'Order Shipped!',
-            'message' => 'Your order #' . $this->order->id . ' has been shipped.',
-            'action_url' => url('/dashboard/orders/' . $this->order->id),
+            'message' => 'Your order #' . $this->order->order_number . ' has been shipped.',
+            'action_url' => route('orders.index'),
             'type' => 'order_shipped',
             'data' => [
                 'order_id' => $this->order->id,
+                'order_number' => $this->order->order_number,
                 'tracking_number' => $this->order->tracking_number
             ]
         ];

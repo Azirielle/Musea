@@ -50,15 +50,45 @@ class TransactionController extends Controller
             'courier' => 'required|string|max:255',
         ]);
 
-        $order->update([
-            'status' => 'shipped',
-            'tracking_number' => $validated['tracking_number'],
-            'courier' => $validated['courier'],
-            'shipped_at' => now(),
-        ]);
+        try {
+            DB::beginTransaction();
 
-        $order->user->notify(new \App\Notifications\OrderShippedNotification($order));
+            $order->update([
+                'status' => 'shipped',
+                'tracking_number' => $validated['tracking_number'],
+                'courier' => $validated['courier'],
+                'shipped_at' => now(),
+            ]);
 
-        return back()->with('success', 'Order marked as shipped.');
+            // Release funds to artists immediately when marked as shipped
+            $commissionRate = Setting::where('key', 'commission_rate')->value('value') ?? 10;
+
+            foreach ($order->items as $item) {
+                if ($item->artwork && $item->artwork->artist) {
+                    $artist = $item->artwork->artist;
+
+                    // Calculate artist share: (Price * Quantity) - Commission
+                    $totalItemPrice = $item->price_each * $item->quantity;
+                    $commission = $totalItemPrice * ($commissionRate / 100);
+                    $artistShare = $totalItemPrice - $commission;
+
+                    // Update Artist Balance
+                    $artist->increment('balance', $artistShare);
+
+                    // Notify Artist
+                    $artist->notify(new \App\Notifications\FundsReleasedNotification($order));
+                }
+            }
+
+            // Notify buyer that order is shipped
+            $order->user->notify(new \App\Notifications\OrderShippedNotification($order));
+
+            DB::commit();
+
+            return back()->with('success', 'Order marked as shipped and funds released to artists.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('error', 'Error marking order as shipped: ' . $e->getMessage());
+        }
     }
 }
