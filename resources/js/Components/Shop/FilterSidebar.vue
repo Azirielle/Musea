@@ -51,8 +51,6 @@ const selectedSize = ref(
 const isUpdating = ref(false);
 
 const applyFilters = () => {
-    if (isUpdating.value) return;
-
     const payload = {
         price_min: priceRange.value[0],
         price_max: priceRange.value[1],
@@ -68,13 +66,11 @@ const applyFilters = () => {
         size: selectedSize.value
     };
     
-    // Comparison Logic (Simplified for brevity, verify match)
     emit('update', payload);
 };
 
 // Update watch logic to sync refs from props
 watch(() => props.filters, (newFilters) => {
-    isUpdating.value = true;
     const getArray = (val) => Array.isArray(val) ? val : (val ? [val] : []);
     
     selectedCategory.value = getArray(newFilters.category);
@@ -86,12 +82,12 @@ watch(() => props.filters, (newFilters) => {
     selectedOrientation.value = getArray(newFilters.orientation);
     selectedArtists.value = getArray(newFilters.artist_id);
     selectedSize.value = getArray(newFilters.size);
-    
-    setTimeout(() => isUpdating.value = false, 100);
 }, { deep: true });
 
 watch([selectedCategory, selectedStyle, selectedSubject, selectedMedium, selectedFraming, readyToHang, selectedOrientation, selectedArtists, selectedSize], () => {
-    applyFilters();
+    if (!isUpdating.value) {
+        applyFilters();
+    }
 }, { deep: true });
 
 
