@@ -31,16 +31,39 @@ class JournalController extends Controller
             'content' => 'required|string',
             'image' => 'nullable|image|max:5120', // 5MB max
             'author_name' => 'nullable|string|max:255',
-            'published_at' => 'nullable|boolean', // We'll accept boolean from frontend and convert
+            'published_at' => 'nullable|boolean',
         ]);
 
         $url = null;
         if ($request->hasFile('image')) {
             try {
-                $path = $request->file('image')->store('journal', 'public');
-                $url = Storage::url($path);
+                // Try Cloudinary first
+                $cloudinaryResponse = \CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary::upload(
+                    $request->file('image')->getRealPath(),
+                    [
+                        'folder' => 'journal',
+                        'resource_type' => 'auto'
+                    ]
+                );
+
+                // Get the secure URL
+                if (is_object($cloudinaryResponse) && method_exists($cloudinaryResponse, 'getSecurePath')) {
+                    $url = $cloudinaryResponse->getSecurePath();
+                } elseif (is_array($cloudinaryResponse) && isset($cloudinaryResponse['secure_url'])) {
+                    $url = $cloudinaryResponse['secure_url'];
+                }
+
+                if (!$url) {
+                    throw new \Exception('Failed to get URL from Cloudinary response');
+                }
             } catch (\Exception $e) {
-                return back()->withErrors(['image' => 'Upload failed: ' . $e->getMessage()]);
+                // Fallback to local storage if Cloudinary fails
+                try {
+                    $path = $request->file('image')->store('journal', 'public');
+                    $url = Storage::url($path);
+                } catch (\Exception $fallbackError) {
+                    return back()->withErrors(['image' => 'Upload failed: ' . $fallbackError->getMessage()]);
+                }
             }
         }
 
@@ -85,17 +108,42 @@ class JournalController extends Controller
 
         if ($request->hasFile('image')) {
             try {
-                // Delete old image if exists and is local
+                // Delete old image if it's local storage (not Cloudinary)
                 if ($journal->image_url && Str::startsWith($journal->image_url, '/storage/')) {
                     $oldPath = str_replace('/storage/', '', $journal->image_url);
                     Storage::disk('public')->delete($oldPath);
                 }
 
-                $path = $request->file('image')->store('journal', 'public');
-                $data['image_url'] = Storage::url($path);
+                // Try Cloudinary first
+                $cloudinaryResponse = \CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary::upload(
+                    $request->file('image')->getRealPath(),
+                    [
+                        'folder' => 'journal',
+                        'resource_type' => 'auto'
+                    ]
+                );
 
+                // Get the secure URL
+                $url = null;
+                if (is_object($cloudinaryResponse) && method_exists($cloudinaryResponse, 'getSecurePath')) {
+                    $url = $cloudinaryResponse->getSecurePath();
+                } elseif (is_array($cloudinaryResponse) && isset($cloudinaryResponse['secure_url'])) {
+                    $url = $cloudinaryResponse['secure_url'];
+                }
+
+                if ($url) {
+                    $data['image_url'] = $url;
+                } else {
+                    throw new \Exception('Failed to get URL from Cloudinary response');
+                }
             } catch (\Exception $e) {
-                return back()->withErrors(['image' => 'Upload failed: ' . $e->getMessage()]);
+                // Fallback to local storage if Cloudinary fails
+                try {
+                    $path = $request->file('image')->store('journal', 'public');
+                    $data['image_url'] = Storage::url($path);
+                } catch (\Exception $fallbackError) {
+                    return back()->withErrors(['image' => 'Upload failed: ' . $fallbackError->getMessage()]);
+                }
             }
         }
 
