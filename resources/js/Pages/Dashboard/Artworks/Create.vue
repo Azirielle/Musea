@@ -14,7 +14,7 @@ import { computed } from 'vue';
 const form = useForm({
     title: '',
     description: '',
-    category: 'Paintings', // Default to first valid category key
+    category: 'Painting', // Default to first valid category key
     style: '',
     subject: '',
     medium: '',

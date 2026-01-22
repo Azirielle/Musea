@@ -1,5 +1,5 @@
 export const categories = {
-    "Paintings": {
+    "Painting": {
         "Style": [
             "Fine Art",
             "Abstract",
@@ -67,7 +67,7 @@ export const categories = {
             "Casting"
         ]
     },
-    "Drawings": {
+    "Drawing": {
         "Style": [
             "Graffiti",
             "Abstract",

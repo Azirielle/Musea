@@ -1,7 +1,7 @@
 <?php
 
 return [
-    'Paintings' => [
+    'Painting' => [
         'Style' => [
             'Fine Art',
             'Abstract',
@@ -70,7 +70,7 @@ return [
             'Casting',
         ],
     ],
-    'Drawings' => [
+    'Drawing' => [
         'Style' => [
             'Graffiti',
             'Abstract',
