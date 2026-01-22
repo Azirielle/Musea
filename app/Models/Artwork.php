@@ -12,6 +12,9 @@ class Artwork extends Model
         'description',
         'category',
         'subcategory',
+        'style',
+        'subject',
+        'medium',
         'ready_to_hang',
         'framing',
         'price',
@@ -59,9 +62,14 @@ class Artwork extends Model
         }
 
         try {
+            // Ensure we have a valid value before asking Cloudinary
+            if (empty($value))
+                return 'https://placehold.co/600x400/png?text=No+Image';
+
             return \CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary::getUrl($value);
         } catch (\Exception $e) {
-            // Fallback if Cloudinary fails or ID is invalid, return as is or local
+            // Fallback if Cloudinary fails or ID is invalid
+            // check if file exists in storage locally if needed, or just return storage URL
             return asset('storage/' . $value);
         }
     }

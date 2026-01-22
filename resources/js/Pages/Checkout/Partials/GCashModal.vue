@@ -111,7 +111,7 @@ const verifyOtp = () => {
                             v-model="otp"
                             type="text" 
                             maxlength="6"
-                            class="w-32 text-center text-2xl tracking-[0.5em] border-b-2 border-gray-300 focus:border-[#007DFE] outline-none py-2 font-mono"
+                            class="w-64 text-center text-2xl tracking-[0.5em] border-b-2 border-gray-300 focus:border-[#007DFE] outline-none py-2 font-mono"
                             placeholder="000000"
                         />
                     </div>

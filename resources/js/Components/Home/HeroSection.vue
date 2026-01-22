@@ -109,7 +109,7 @@ onUnmounted(() => {
             <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] bg-accent/5 rounded-full blur-[100px]"></div>
 
             <!-- Tilted Grid Container -->
-            <div ref="gridRef" class="w-full h-full p-8 grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 content-center transform -rotate-6 scale-110 origin-center opacity-90 hover:opacity-100 transition-opacity duration-700">
+            <div ref="gridRef" class="w-full h-full p-8 grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 content-center transform rotate-0 scale-100 md:-rotate-6 md:scale-110 origin-center opacity-90 hover:opacity-100 transition-opacity duration-700">
                 <div 
                     v-for="art in heroArtworks" 
                     :key="art.id" 

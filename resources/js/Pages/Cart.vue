@@ -73,9 +73,9 @@ const handleCheckout = () => {
                             <span>Subtotal</span>
                             <span>₱{{ total }}</span>
                         </div>
-                        <div class="flex justify-between mb-6 text-gray-600">
+                        <div class="flex justify-between items-center mb-6 text-gray-600 gap-4">
                             <span>Shipping</span>
-                            <span>Calculated at checkout</span>
+                            <span class="text-right">Calculated at checkout</span>
                         </div>
                         <div class="border-t pt-4 flex justify-between font-bold text-lg mb-6">
                             <span>Total</span>

@@ -246,6 +246,8 @@ const formatPrice = (price) => {
                                     <Link 
                                         v-if="link.url" 
                                         :href="link.url" 
+                                        preserve-scroll
+                                        preserve-state
                                         class="flex items-center justify-center text-sm font-bold transition-all rounded-full"
                                         :class="[
                                             link.label.includes('Previous') || link.label.includes('Next') 

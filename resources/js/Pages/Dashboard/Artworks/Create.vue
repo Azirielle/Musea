@@ -8,11 +8,17 @@ import TextInput from '@/Components/TextInput.vue';
 import Checkbox from '@/Components/Checkbox.vue';
 import { ref, watch } from 'vue';
 
+import { categories } from '@/Constants/Categories';
+import { computed } from 'vue';
+
 const form = useForm({
     title: '',
     description: '',
-    category: 'Painting',
-    subcategory: '',
+    category: 'Paintings', // Default to first valid category key
+    style: '',
+    subject: '',
+    medium: '',
+    subcategory: '', // Legacy/Optional
     ready_to_hang: false,
     framing: 'Unframed',
     width: '',
@@ -24,23 +30,15 @@ const form = useForm({
     image: null,
 });
 
-// Category to Subcategory Mapping
-// Ideally this comes from the backend or the Enum, but for frontend responsiveness we define it here.
-const subcategories = {
-    'Painting': ['Oil', 'Acrylic', 'Watercolor', 'Abstract', 'Portrait'],
-    'Digital': ['3D Render', 'Vector', 'AI Art', 'Pixel Art'],
-    'Sculpture': ['Metal', 'Wood', 'Resin', 'Ceramic'],
-    'Photography': [],
-    'Mixed Media': [],
-    'Drawing': ['Graphite', 'Charcoal'],
-    'Other': []
-};
+const availableOptions = computed(() => {
+    return categories[form.category] || null;
+});
 
-const availableSubcategories = ref(subcategories['Painting']);
-
-watch(() => form.category, (newCategory) => {
-    availableSubcategories.value = subcategories[newCategory] || [];
-    form.subcategory = ''; // Reset subcategory when category changes
+// Watch category to reset fields
+watch(() => form.category, () => {
+    form.style = '';
+    form.subject = '';
+    form.medium = '';
 });
 
 const submit = () => {
@@ -97,26 +95,59 @@ const handleImageUpload = (e) => {
                                         v-model="form.category"
                                         required
                                     >
-                                        <option v-for="(subs, cat) in subcategories" :key="cat" :value="cat">{{ cat }}</option>
+                                        <option v-for="(opts, cat) in categories" :key="cat" :value="cat">{{ cat }}</option>
                                     </select>
                                     <InputError class="mt-2" :message="form.errors.category" />
                                 </div>
 
-                                <!-- Subcategory -->
-                                <div>
-                                    <InputLabel for="subcategory" value="Medium / Style" />
-                                    <select
-                                        id="subcategory"
-                                        class="mt-1 block w-full border-gray-300 focus:border-[#CBA35C] focus:ring-[#CBA35C] rounded-md shadow-sm disabled:bg-gray-100"
-                                        v-model="form.subcategory"
-                                        :disabled="availableSubcategories.length === 0"
-                                    >
-                                        <option value="" disabled>Select Subcategory</option>
-                                        <option v-for="sub in availableSubcategories" :key="sub" :value="sub">{{ sub }}</option>
-                                    </select>
-                                    <InputError class="mt-2" :message="form.errors.subcategory" />
+                                <!-- Dynamic Fields based on Category -->
+                                <div class="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4" v-if="availableOptions">
+                                    
+                                    <!-- Style -->
+                                    <div v-if="availableOptions.Style">
+                                        <InputLabel for="style" value="Style" />
+                                        <select
+                                            id="style"
+                                            class="mt-1 block w-full border-gray-300 focus:border-[#CBA35C] focus:ring-[#CBA35C] rounded-md shadow-sm"
+                                            v-model="form.style"
+                                            required
+                                        >
+                                            <option value="" disabled>Select Style</option>
+                                            <option v-for="opt in availableOptions.Style" :key="opt" :value="opt">{{ opt }}</option>
+                                        </select>
+                                        <InputError class="mt-2" :message="form.errors.style" />
+                                    </div>
+
+                                    <!-- Subject -->
+                                    <div v-if="availableOptions.Subject">
+                                        <InputLabel for="subject" value="Subject" />
+                                        <select
+                                            id="subject"
+                                            class="mt-1 block w-full border-gray-300 focus:border-[#CBA35C] focus:ring-[#CBA35C] rounded-md shadow-sm"
+                                            v-model="form.subject"
+                                            required
+                                        >
+                                            <option value="" disabled>Select Subject</option>
+                                            <option v-for="opt in availableOptions.Subject" :key="opt" :value="opt">{{ opt }}</option>
+                                        </select>
+                                        <InputError class="mt-2" :message="form.errors.subject" />
+                                    </div>
+
+                                    <!-- Medium/Method -->
+                                    <div v-if="availableOptions.Medium || availableOptions.Method">
+                                        <InputLabel for="medium" :value="form.category === 'Sculpture' ? 'Method' : 'Medium'" />
+                                        <select
+                                            id="medium"
+                                            class="mt-1 block w-full border-gray-300 focus:border-[#CBA35C] focus:ring-[#CBA35C] rounded-md shadow-sm"
+                                            v-model="form.medium"
+                                            required
+                                        >
+                                            <option value="" disabled>Select {{ form.category === 'Sculpture' ? 'Method' : 'Medium' }}</option>
+                                            <option v-for="opt in (availableOptions.Medium || availableOptions.Method)" :key="opt" :value="opt">{{ opt }}</option>
+                                        </select>
+                                        <InputError class="mt-2" :message="form.errors.medium" />
+                                    </div>
                                 </div>
-                            </div>
                             
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <!-- Framing -->

@@ -33,11 +33,26 @@ class ShopController extends Controller
             $query->whereIn('category', $categories);
         }
 
-        // Subcategory (Multiple support)
-        if ($request->filled('subcategory')) {
-            $subcategories = (array) $request->input('subcategory');
-            $query->whereIn('subcategory', $subcategories);
+        // Style
+        if ($request->filled('style')) {
+            $styles = (array) $request->input('style');
+            $query->whereIn('style', $styles);
         }
+
+        // Subject
+        if ($request->filled('subject')) {
+            $subjects = (array) $request->input('subject');
+            $query->whereIn('subject', $subjects);
+        }
+
+        // Medium
+        if ($request->filled('medium')) {
+            $mediums = (array) $request->input('medium');
+            $query->whereIn('medium', $mediums);
+        }
+
+        // Legacy Subcategory (Optional, for backward compat if needed)
+        // if ($request->filled('subcategory')) { ... }
 
         // Ready to Hang
         if ($request->boolean('ready_to_hang')) {
@@ -113,7 +128,7 @@ class ShopController extends Controller
                 break;
         }
 
-        $artworks = $query->paginate(12)->withQueryString();
+        $artworks = $query->paginate(12)->withQueryString()->setPath(route('shop.index'));
 
         // Recommendations (Basic Logic: Same category as search or random if empty)
         $recommendations = [];
