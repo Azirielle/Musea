@@ -88,7 +88,7 @@ if (config('app.type') !== 'admin') {
         // Fetch Hero Artworks for the grid (6 random active artworks with images)
         $heroArtworks = \App\Models\Artwork::where('status', 'active')
             ->where('stock', '>', 0)
-            ->whereNotNull('image_path')
+            ->whereNotNull('image_url')
             ->with('artist')
             ->inRandomOrder()
             ->take(6)
