@@ -10,6 +10,9 @@ const props = defineProps({
 
 const emit = defineEmits(['update']);
 
+// Flag to prevent circular dependency: props update -> watch -> emit -> props update
+const isUpdatingFromProps = ref(false);
+
 // Local state initialized from props
 const priceRange = ref([
     props.filters.price_min ? parseInt(props.filters.price_min) : props.minPrice, 
@@ -18,9 +21,7 @@ const priceRange = ref([
 
 import { categories } from '@/Constants/Categories';
 
-// ... (props defined above, keep checks)
-
-// New Refs
+// Filter Refs
 const selectedCategory = ref(
     Array.isArray(props.filters.category) ? props.filters.category : (props.filters.category ? [props.filters.category] : [])
 );
@@ -48,14 +49,21 @@ const selectedArtists = ref(
 const selectedSize = ref(
     Array.isArray(props.filters.size) ? props.filters.size : (props.filters.size ? [props.filters.size] : [])
 );
-const isUpdating = ref(false);
+
+// Artist search
+const artistSearch = ref('');
+const filteredArtists = computed(() => {
+    if (!props.artists) return [];
+    if (!artistSearch.value) return props.artists;
+    const search = artistSearch.value.toLowerCase();
+    return props.artists.filter(a => a.name.toLowerCase().includes(search));
+});
 
 const applyFilters = () => {
     const payload = {
         price_min: priceRange.value[0],
         price_max: priceRange.value[1],
         category: selectedCategory.value,
-        // subcategory: selectedSubcategory.value, // Removed/Legacy
         style: selectedStyle.value,
         subject: selectedSubject.value,
         medium: selectedMedium.value,
@@ -69,8 +77,11 @@ const applyFilters = () => {
     emit('update', payload);
 };
 
-// Update watch logic to sync refs from props
+// Sync local refs from props (e.g., when URL changes or page refreshes)
+// Uses flag to prevent triggering applyFilters
 watch(() => props.filters, (newFilters) => {
+    isUpdatingFromProps.value = true;
+    
     const getArray = (val) => Array.isArray(val) ? val : (val ? [val] : []);
     
     selectedCategory.value = getArray(newFilters.category);
@@ -82,14 +93,28 @@ watch(() => props.filters, (newFilters) => {
     selectedOrientation.value = getArray(newFilters.orientation);
     selectedArtists.value = getArray(newFilters.artist_id);
     selectedSize.value = getArray(newFilters.size);
+    priceRange.value = [
+        newFilters.price_min ? parseInt(newFilters.price_min) : props.minPrice,
+        newFilters.price_max ? parseInt(newFilters.price_max) : props.maxPrice
+    ];
+    
+    // Reset flag after a tick to allow Vue to process the updates
+    setTimeout(() => {
+        isUpdatingFromProps.value = false;
+    }, 0);
 }, { deep: true });
 
-watch([selectedCategory, selectedStyle, selectedSubject, selectedMedium, selectedFraming, readyToHang, selectedOrientation, selectedArtists, selectedSize], () => {
-    if (!isUpdating.value) {
-        applyFilters();
-    }
-}, { deep: true });
-
+// Watch for user-initiated filter changes and emit to parent
+// Only emit if NOT updating from props (prevents infinite loop)
+watch(
+    [selectedCategory, selectedStyle, selectedSubject, selectedMedium, selectedFraming, readyToHang, selectedOrientation, selectedArtists, selectedSize, priceRange],
+    () => {
+        if (!isUpdatingFromProps.value) {
+            applyFilters();
+        }
+    },
+    { deep: true }
+);
 
 </script>
 
