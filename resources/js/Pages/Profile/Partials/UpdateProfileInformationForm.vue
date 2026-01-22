@@ -167,35 +167,24 @@ const submit = () => {
             <div class="space-y-4">
                 <InputLabel value="Selected Identity" />
                 <div class="flex items-center gap-6">
-                    <div class="relative group cursor-pointer" @click="$refs.fileInput.click()">
-                        <div class="w-24 h-24 rounded-full bg-gray-50 flex items-center justify-center overflow-hidden border-2 border-dashed border-[#CBA35C] group-hover:border-solid transition-all shadow-sm">
+                    <div class="relative group">
+                        <div class="w-24 h-24 rounded-full bg-gray-50 flex items-center justify-center overflow-hidden border-2 border-dashed border-divider shadow-sm">
                             <img 
                                 v-if="avatarPreview" 
                                 :src="avatarPreview" 
                                 class="w-full h-full object-cover" 
                                 alt="Avatar Preview"
                             />
-                            <span v-else class="text-gray-400 text-3xl">+</span>
-                        </div>
-                        <div class="absolute inset-0 flex items-center justify-center bg-black/40 rounded-full opacity-0 group-hover:opacity-100 transition-opacity z-10">
-                            <span class="text-white text-[10px] font-bold tracking-widest uppercase">Upload</span>
+                            <span v-else class="text-gray-400 text-3xl">?</span>
                         </div>
                         <!-- Verification Badge -->
                         <div class="absolute -bottom-1 -right-1 z-20 bg-white rounded-full p-1 shadow-sm border border-gray-100" v-if="user.role !== 'member' || user.is_verified">
                              <UserBadge :role="user.role" :is-verified="!!user.is_verified" />
                         </div>
-
-                        <input 
-                            type="file" 
-                            ref="fileInput" 
-                            class="hidden" 
-                            accept="image/*"
-                            @change="handleFileChange"
-                        />
                     </div>
                     <div class="flex-1">
-                        <p class="text-xs font-bold text-ink mb-1">Custom Portrait</p>
-                        <p class="text-[11px] text-ink-light leading-relaxed">Choose a custom image from your device or select from our curated presets below.</p>
+                        <p class="text-xs font-bold text-ink mb-1">Your Identity</p>
+                        <p class="text-[11px] text-ink-light leading-relaxed">Select from our curated presets below.</p>
                     </div>
                 </div>
 
