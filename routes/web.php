@@ -71,6 +71,27 @@ if (config('app.type') !== 'admin') {
             }
         }
 
+        // Fallback for Guests or Empty Personalization: "Trending Now"
+        if (collect($recommendedArtworks)->isEmpty()) {
+            $recommendedArtworks = \App\Models\Artwork::where('status', 'active')
+                ->where('stock', '>', 0)
+                ->inRandomOrder()
+                ->take(12)
+                ->with('artist')
+                ->get()
+                ->map(function ($artwork) {
+                    return [
+                        'id' => $artwork->id,
+                        'title' => $artwork->title,
+                        'artist' => $artwork->artist ? $artwork->artist->first_name . ' ' . $artwork->artist->last_name : 'Musea Artist',
+                        'price' => number_format((float) $artwork->price, 0),
+                        'image' => $artwork->image_url ?? 'https://placehold.co/800x600/f3f4f6/1a1a1a?text=Musea+Artwork',
+                        'category' => $artwork->category instanceof \BackedEnum ? $artwork->category->value : $artwork->category,
+                        'stock' => $artwork->stock
+                    ];
+                })->values();
+        }
+
         // Fetch Featured Artwork for Hero
         $featuredArtwork = \App\Models\Artwork::where('status', 'active')
             ->where('stock', '>', 0)
