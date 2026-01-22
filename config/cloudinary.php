@@ -2,7 +2,7 @@
 
 /*
  * This file allows you to configure your Cloudinary credentials.
- * It reads the CLOUDINARY_URL, CLOUDINARY_CLOUD_NAME, etc. from your .env file.
+ * It reads the CLOUDINARY_URL from your .env file.
  */
 
 return [
@@ -12,19 +12,18 @@ return [
     | Cloudinary Configuration
     |--------------------------------------------------------------------------
     |
-    | Here you may configure your Cloudinary settings. Cloudinary is a cloud
-    | service that offers a solution to a web application's entire image
-    | management pipeline.
+    | Cloudinary URL contains all credentials in the format:
+    | cloudinary://API_KEY:API_SECRET@CLOUD_NAME
     |
     */
 
-    'cloud_url' => 'cloudinary://112719694583157:yGB2snsePNfMtODwrtjesYI9Jnw@du6bc1wjb',
+    'cloud_url' => env('CLOUDINARY_URL', 'cloudinary://112719694583157:yGB2snsePNfMtODwrtjesYI9Jnw@du6bc1wjb'),
 
-    'cloud_name' => env('CLOUDINARY_CLOUD_NAME'),
+    'cloud_name' => env('CLOUDINARY_CLOUD_NAME', 'du6bc1wjb'),
 
-    'api_key' => env('CLOUDINARY_API_KEY'),
+    'api_key' => env('CLOUDINARY_API_KEY', '112719694583157'),
 
-    'api_secret' => env('CLOUDINARY_API_SECRET'),
+    'api_secret' => env('CLOUDINARY_API_SECRET', 'yGB2snsePNfMtODwrtjesYI9Jnw'),
 
     'secure' => true, // Force HTTPS
 

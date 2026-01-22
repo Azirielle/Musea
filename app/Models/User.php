@@ -115,14 +115,24 @@ class User extends Authenticatable
     {
         $path = $this->avatar_path ?: $this->avatar_url;
 
-        if ($path && (str_starts_with($path, 'http') || str_starts_with($path, 'https'))) {
+        // No path - use UI Avatars as fallback
+        if (!$path) {
+            return 'https://ui-avatars.com/api/?name=' . urlencode($this->first_name . ' ' . $this->last_name) . '&color=7F9CF5&background=EBF4FF';
+        }
+
+        // Already a full URL (Cloudinary or external)
+        if (str_starts_with($path, 'http://') || str_starts_with($path, 'https://')) {
             return $path;
         }
 
-        if ($path && Storage::disk('public')->exists($path)) {
+        // Local path - check if file exists
+        if (Storage::disk('public')->exists($path)) {
             return asset('storage/' . $path);
         }
 
+        // Path exists in DB but file doesn't exist on disk
+        // This can happen on ephemeral filesystems like Render
+        // Fall back to UI Avatars
         return 'https://ui-avatars.com/api/?name=' . urlencode($this->first_name . ' ' . $this->last_name) . '&color=7F9CF5&background=EBF4FF';
     }
 

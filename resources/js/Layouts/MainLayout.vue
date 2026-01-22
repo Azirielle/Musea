@@ -6,6 +6,10 @@ import Footer from '@/Components/Footer.vue';
 import SplashScreen from '@/Components/SplashScreen.vue';
 import MobileNavDock from '@/Components/MobileNavDock.vue';
 import AuthModal from '@/Components/AuthModal.vue';
+import { categories } from '@/Constants/Categories';
+
+// Get category names for search suggestions
+const discoverCategories = computed(() => Object.keys(categories));
 
 const props = defineProps({
     withHeaderPadding: {
@@ -310,7 +314,7 @@ onUnmounted(() => {
                                         <p class="text-[10px] font-bold uppercase tracking-widest text-ink-light/60 mb-3 px-1">Discover more</p>
                                         <div class="flex flex-wrap gap-2">
                                             <button 
-                                                v-for="tag in ['Painting', 'Digital', 'Sculpture', 'Photography', 'Mixed Media', 'Drawing']" 
+                                                v-for="tag in discoverCategories" 
                                                 :key="tag" 
                                                 @click="handleSearch(tag)"
                                                 class="px-4 py-2 bg-zinc-50 hover:bg-ink hover:text-white rounded-full text-xs font-bold transition-all border border-divider"
