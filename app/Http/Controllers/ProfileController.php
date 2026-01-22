@@ -109,15 +109,17 @@ class ProfileController extends Controller
                 }
 
                 // Force config into SDK
-                \Cloudinary\Configuration\Configuration::instance($cloudinaryUrl);
+                // \Cloudinary\Configuration\Configuration::instance($cloudinaryUrl); // Not needed if we instantiate directly below
 
-                Log::info('Attempting Cloudinary upload (Manual)', [
+                Log::info('Attempting Cloudinary upload (Native SDK)', [
                     'user_id' => $request->user()->id,
                     'url' => substr($cloudinaryUrl, 0, 25) . '...',
                 ]);
 
-                // Upload to Cloudinary using v3 API
-                $cloudinaryResponse = \CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary::upload(
+                // USE NATIVE SDK - Bypass Laravel Wrapper completely
+                $cloudinary = new \Cloudinary\Cloudinary($cloudinaryUrl);
+
+                $cloudinaryResponse = $cloudinary->uploadApi()->upload(
                     $file->getRealPath(),
                     [
                         'folder' => 'avatars',
