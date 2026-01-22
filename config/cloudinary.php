@@ -19,13 +19,25 @@ return [
 
     'cloud_url' => env('CLOUDINARY_URL', 'cloudinary://112719694583157:yGB2snsePNfMtODwrtjesYI9Jnw@du6bc1wjb'),
 
+    /**
+     * Legacy Keys (Top-Level)
+     */
     'cloud_name' => env('CLOUDINARY_CLOUD_NAME', 'du6bc1wjb'),
-
     'api_key' => env('CLOUDINARY_API_KEY', '112719694583157'),
-
     'api_secret' => env('CLOUDINARY_API_SECRET', 'yGB2snsePNfMtODwrtjesYI9Jnw'),
+    'secure' => true,
 
-    'secure' => true, // Force HTTPS
+    /**
+     * V2/V3 SDK Compatible Structure
+     */
+    'cloud' => [
+        'cloud_name' => env('CLOUDINARY_CLOUD_NAME', 'du6bc1wjb'),
+        'api_key' => env('CLOUDINARY_API_KEY', '112719694583157'),
+        'api_secret' => env('CLOUDINARY_API_SECRET', 'yGB2snsePNfMtODwrtjesYI9Jnw'),
+    ],
+    'url' => [
+        'secure' => true,
+    ],
 
     /*
     |--------------------------------------------------------------------------
