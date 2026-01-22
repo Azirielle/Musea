@@ -59,25 +59,9 @@ class OrderController extends Controller
         try {
             DB::beginTransaction();
 
-            $commissionRate = Setting::where('key', 'commission_rate')->value('value') ?? 10;
-
-            // Release funds to artists
-            foreach ($order->items as $item) {
-                if ($item->artwork && $item->artwork->artist) {
-                    $artist = $item->artwork->artist;
-
-                    // Calculate artist share: (Price * Quantity) - Commission
-                    $totalItemPrice = $item->price_each * $item->quantity;
-                    $commission = $totalItemPrice * ($commissionRate / 100);
-                    $artistShare = $totalItemPrice - $commission;
-
-                    // Update Artist Balance
-                    $artist->increment('balance', $artistShare);
-
-                    // Notify Artist
-                    $artist->notify(new \App\Notifications\FundsReleasedNotification($order));
-                }
-            }
+            // Note: Funds are released to artists when admin marks order as shipped
+            // (in Admin\TransactionController@ship), so we don't pay them again here.
+            // We only update the order status to completed.
 
             // Update Order Status
             $order->update([
@@ -87,7 +71,7 @@ class OrderController extends Controller
 
             DB::commit();
 
-            return back()->with('success', 'Order confirmed! Funds have been released to the artists.');
+            return back()->with('success', 'Order marked as completed! Thank you for confirming.');
 
         } catch (\Exception $e) {
             DB::rollBack();

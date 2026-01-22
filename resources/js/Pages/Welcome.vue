@@ -29,6 +29,10 @@ const props = defineProps({
     featuredArtwork: {
         type: Object,
         default: null
+    },
+    heroArtworks: {
+        type: Array,
+        default: () => []
     }
 });
 </script>
@@ -41,7 +45,7 @@ const props = defineProps({
          If standard behavior is preferred, remove the prop. -->
     <MainLayout :with-header-padding="false">
         
-        <HeroSection :featured="featuredArtwork" />
+        <HeroSection :featured="featuredArtwork" :artworks="heroArtworks" />
 
         <div class="bg-canvas py-32 px-6" id="feed">
             <div class="max-w-[1400px] mx-auto">

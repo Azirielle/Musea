@@ -85,6 +85,28 @@ if (config('app.type') !== 'admin') {
             'link' => route('shop.show', $featuredArtwork->id)
         ] : null;
 
+        // Fetch Hero Artworks for the grid (6 random active artworks with images)
+        $heroArtworks = \App\Models\Artwork::where('status', 'active')
+            ->where('stock', '>', 0)
+            ->whereNotNull('image_path')
+            ->with('artist')
+            ->inRandomOrder()
+            ->take(6)
+            ->get()
+            ->map(function ($artwork, $index) {
+                // Alternate aspect ratios for visual variety
+                $aspects = ['aspect-[3/4]', 'aspect-square', 'aspect-[3/4]', 'aspect-[4/3]', 'aspect-square', 'aspect-[3/4]'];
+                return [
+                    'id' => $artwork->id,
+                    'src' => $artwork->image_url,
+                    'title' => $artwork->title,
+                    'artist' => $artwork->artist ? $artwork->artist->first_name . ' ' . $artwork->artist->last_name : 'Musea Artist',
+                    'aspect' => $aspects[$index] ?? 'aspect-square',
+                    'link' => route('shop.show', $artwork->id),
+                ];
+            });
+
+
         // Fetch Featured Artists (Meet the Community)
         $featuredArtistsQuery = \App\Models\User::where('is_featured', true);
         if ($featuredArtistsQuery->count() === 0) {
@@ -159,6 +181,7 @@ if (config('app.type') !== 'admin') {
             'canLogin' => Route::has('login'),
             'canRegister' => Route::has('register'),
             'featuredArtwork' => $featuredArtworkData,
+            'heroArtworks' => $heroArtworks,
             'recommendedArtworks' => $recommendedArtworks,
             'featuredArtists' => $featuredArtists,
             'staffPicks' => $staffPicks,

@@ -1,11 +1,21 @@
 <script setup>
-import { onMounted, ref, onUnmounted } from 'vue';
+import { onMounted, ref, onUnmounted, computed } from 'vue';
 import { Link } from '@inertiajs/vue3';
 import gsap from 'gsap';
 
-// Placeholder artwork data for the grid
-// Ideally this would come from props, but for the hero we want a curated look.
-const heroArtworks = [
+const props = defineProps({
+    featured: {
+        type: Object,
+        default: null
+    },
+    artworks: {
+        type: Array,
+        default: () => []
+    }
+});
+
+// Fallback placeholder artworks if none provided from backend
+const fallbackArtworks = [
     { id: 1, src: 'https://images.unsplash.com/photo-1579783902614-a3fb39279c23?auto=format&fit=crop&q=80&w=600', aspect: 'aspect-[3/4]', title: 'Abstract Harmony' },
     { id: 2, src: 'https://images.unsplash.com/photo-1549887552-93f964db3309?auto=format&fit=crop&q=80&w=600', aspect: 'aspect-square', title: 'Mountain Vista' },
     { id: 3, src: 'https://images.unsplash.com/photo-1578301978018-3528b291a27e?auto=format&fit=crop&q=80&w=600', aspect: 'aspect-[3/4]', title: 'Golden Hour' },
@@ -13,6 +23,19 @@ const heroArtworks = [
     { id: 5, src: 'https://images.unsplash.com/photo-1576769267415-9642010aa962?auto=format&fit=crop&q=80&w=600', aspect: 'aspect-square', title: 'Detailed Texture' },
     { id: 6, src: 'https://images.unsplash.com/photo-1536924940846-227afb31e2a5?auto=format&fit=crop&q=80&w=600', aspect: 'aspect-[3/4]', title: 'Color Splash' },
 ];
+
+// Use backend artworks if available, otherwise fallback to placeholders
+const heroArtworks = computed(() => {
+    if (props.artworks && props.artworks.length >= 6) {
+        return props.artworks;
+    }
+    // Mix available artworks with fallbacks if we have some but not enough
+    if (props.artworks && props.artworks.length > 0) {
+        const needed = 6 - props.artworks.length;
+        return [...props.artworks, ...fallbackArtworks.slice(0, needed)];
+    }
+    return fallbackArtworks;
+});
 
 const gridRef = ref(null);
 let ctx;
@@ -110,22 +133,26 @@ onUnmounted(() => {
 
             <!-- Tilted Grid Container -->
             <div ref="gridRef" class="w-full h-full p-8 grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6 content-center transform rotate-0 scale-100 md:-rotate-6 md:scale-110 origin-center opacity-90 hover:opacity-100 transition-opacity duration-700">
-                <div 
+                <Link 
                     v-for="art in heroArtworks" 
                     :key="art.id" 
-                    class="art-card relative overflow-hidden rounded-xl shadow-xl transition-transform hover:scale-105 hover:z-20 cursor-default"
+                    :href="art.link || `/shop/${art.id}`"
+                    class="art-card relative overflow-hidden rounded-xl shadow-xl transition-transform hover:scale-105 hover:z-20 cursor-pointer"
                     :class="art.aspect"
                 >
                     <img 
                         :src="art.src" 
                         :alt="art.title" 
                         class="w-full h-full object-cover"
+                        @error="(e) => e.target.src = 'https://placehold.co/600x800/f3f4f6/1a1a1a?text=Artwork'"
                     />
                     <!-- Overlay on hover -->
-                    <div class="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                        <span class="text-white text-xs font-bold tracking-widest uppercase border border-white/50 px-3 py-1 rounded-full backdrop-blur-sm">View</span>
+                    <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-end p-4">
+                        <p class="text-white text-xs font-bold truncate w-full text-center mb-1">{{ art.title }}</p>
+                        <p v-if="art.artist" class="text-white/70 text-[10px] truncate w-full text-center">by {{ art.artist }}</p>
+                        <span class="mt-2 text-white text-[10px] font-bold tracking-widest uppercase border border-white/50 px-3 py-1 rounded-full backdrop-blur-sm">View</span>
                     </div>
-                </div>
+                </Link>
             </div>
         </div>
     </section>

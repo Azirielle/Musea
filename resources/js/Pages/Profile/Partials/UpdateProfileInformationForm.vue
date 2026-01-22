@@ -60,11 +60,42 @@ const defaultAvatars = [
 const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
+        // Debug: Log file details
+        console.log('[Avatar Upload Debug] File selected:', {
+            name: file.name,
+            type: file.type,
+            size: file.size,
+            sizeKB: (file.size / 1024).toFixed(2) + ' KB',
+            sizeMB: (file.size / (1024 * 1024)).toFixed(2) + ' MB',
+            lastModified: new Date(file.lastModified).toISOString(),
+        });
+
+        // Validate file size (2MB limit matches backend validation)
+        const maxSizeMB = 2;
+        if (file.size > maxSizeMB * 1024 * 1024) {
+            alert(`File is too large! Maximum size is ${maxSizeMB}MB. Your file is ${(file.size / (1024 * 1024)).toFixed(2)}MB.`);
+            e.target.value = ''; // Reset input
+            return;
+        }
+
+        // Validate file type
+        const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (!validTypes.includes(file.type)) {
+            alert(`Invalid file type: ${file.type}. Please upload a JPEG, PNG, GIF, or WebP image.`);
+            e.target.value = ''; // Reset input
+            return;
+        }
+
         form.avatar = file;
         form.default_avatar = null;
         const reader = new FileReader();
         reader.onload = (e) => {
             avatarPreview.value = e.target.result;
+            console.log('[Avatar Upload Debug] Preview loaded successfully');
+        };
+        reader.onerror = (error) => {
+            console.error('[Avatar Upload Debug] FileReader error:', error);
+            alert('Failed to read the file. Please try again.');
         };
         reader.readAsDataURL(file);
     }
@@ -74,9 +105,18 @@ const selectDefaultAvatar = (url) => {
     form.default_avatar = url;
     form.avatar = null;
     avatarPreview.value = url;
+    console.log('[Avatar Debug] Default avatar selected:', url);
 };
 
 const submit = () => {
+    console.log('[Avatar Upload Debug] Submitting form:', {
+        hasAvatar: !!form.avatar,
+        avatarName: form.avatar?.name,
+        avatarSize: form.avatar?.size,
+        hasDefaultAvatar: !!form.default_avatar,
+        defaultAvatar: form.default_avatar,
+    });
+
     // When uploading files via Inertia to a PUT/PATCH route, we must use POST
     // and spoof the method using _method field in the data.
     form.transform((data) => ({
@@ -85,8 +125,18 @@ const submit = () => {
     })).post(route('profile.update'), {
         preserveScroll: true,
         onSuccess: () => {
-             // Optional: handle success visuals
-        }
+            console.log('[Avatar Upload Debug] Upload successful!');
+        },
+        onError: (errors) => {
+            console.error('[Avatar Upload Debug] Upload failed with errors:', errors);
+            // Show more detailed error for avatar issues
+            if (errors.avatar) {
+                console.error('[Avatar Upload Debug] Avatar specific error:', errors.avatar);
+            }
+        },
+        onProgress: (progress) => {
+            console.log('[Avatar Upload Debug] Upload progress:', progress.percentage + '%');
+        },
     });
 };
 </script>
