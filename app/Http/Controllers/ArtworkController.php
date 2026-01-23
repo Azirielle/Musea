@@ -62,12 +62,12 @@ class ArtworkController extends Controller
             // Stored in artworks.medium (UI labels it "Method" for Sculpture)
             'medium' => ['required', 'string', Rule::in($mediumOrMethodValues)],
             // 'subcategory' => 'nullable|string',
-            'price' => 'required|numeric|min:0',
-            'width' => 'required|numeric|min:0',
-            'height' => 'required|numeric|min:0',
-            'depth' => 'nullable|numeric|min:0',
+            'price' => 'required|numeric|min:0|max:99999999', // Max 99 Million (fits decimal 10,2)
+            'width' => 'required|numeric|min:0|max:5000',     // Reasonable physical limit
+            'height' => 'required|numeric|min:0|max:5000',    // Reasonable physical limit
+            'depth' => 'nullable|numeric|min:0|max:5000',     // Reasonable physical limit
             'unit' => 'required|string',
-            'stock' => 'required|integer|min:1',
+            'stock' => 'required|integer|min:1|max:10000',    // Prevent massive numbers
             // 'ready_to_hang' => 'boolean',
             // 'framing' => 'string',
             'image' => 'required|image|max:10240', // Max 10MB

@@ -35,8 +35,8 @@ class RegisteredUserController extends Controller
             'last_name' => ['required', 'string', 'max:100', 'regex:/^[a-zA-Z. ]+$/', 'not_regex:/^\s/'],
             'email' => 'required|string|lowercase|email|max:255|unique:' . User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'address' => 'required|string|max:255',
-            'contact_number' => ['required', 'string', 'phone:INTERNATIONAL'], // dynamic international format
+            'address' => ['required', 'string', 'min:5', 'max:255', 'regex:/[a-zA-Z0-9]/'], // Must contain at least one alphanumeric char
+            'contact_number' => ['required', 'string', 'max:20', 'phone:INTERNATIONAL'], // dynamic international format with length limit
         ]);
 
         $user = User::create([

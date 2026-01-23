@@ -170,14 +170,23 @@ class ShopController extends Controller
         if (!$query)
             return response()->json([]);
 
-        $artworks = \App\Models\Artwork::where('title', 'like', "%{$query}%")
-            ->where('status', 'active')
-            ->take(20)
+        $artworks = \App\Models\Artwork::where('status', 'active')
+            ->where(function ($q) use ($query) {
+                $q->where('title', 'like', "%{$query}%")
+                    ->orWhere('description', 'like', "%{$query}%")
+                    ->orWhere('style', 'like', "%{$query}%")
+                    ->orWhere('subject', 'like', "%{$query}%");
+            })
+            ->take(10)
             ->get(['id', 'title', 'image_url', 'price']);
 
-        $artists = \App\Models\User::where('first_name', 'like', "%{$query}%")
-            ->orWhere('last_name', 'like', "%{$query}%")
-            ->take(20)
+        $artists = \App\Models\User::where('role', 'artist')
+            ->where(function ($q) use ($query) {
+                $q->where('first_name', 'like', "%{$query}%")
+                    ->orWhere('last_name', 'like', "%{$query}%")
+                    ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%{$query}%"]);
+            })
+            ->take(5)
             ->get(); // Get full model to use imageUrl() helper
 
         return response()->json([

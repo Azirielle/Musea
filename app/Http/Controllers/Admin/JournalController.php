@@ -29,7 +29,7 @@ class JournalController extends Controller
             'title' => 'required|string|max:255',
             'excerpt' => 'nullable|string|max:500',
             'content' => 'required|string',
-            'image' => 'nullable|image|max:5120', // 5MB max
+            'image' => 'nullable|image|max:65536', // 64MB max (matching Dockerfile config)
             'author_name' => 'nullable|string|max:255',
             'published_at' => 'nullable|boolean',
         ]);

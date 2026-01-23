@@ -35,6 +35,7 @@ if (config('app.type') !== 'admin') {
             $interests = auth()->user()->interests->pluck('name');
             if ($interests->isNotEmpty()) {
                 $recommendedArtworks = \App\Models\Artwork::where('stock', '>', 0)
+                    ->where('status', 'active') // Fix: Only show approved artworks
                     ->where(function ($query) use ($interests) {
                         foreach ($interests as $interest) {
                             $query->orWhere('category', 'LIKE', "%{$interest}%");

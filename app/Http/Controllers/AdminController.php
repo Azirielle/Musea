@@ -79,6 +79,8 @@ class AdminController extends Controller
                 'pendingVerifications' => \App\Models\User::where('verification_status', \App\Models\User::VERIFICATION_PENDING)->count(),
                 'pendingWithdrawals' => \App\Models\WithdrawalRequest::where('status', 'pending')->count(),
                 'activeArtists' => \App\Models\User::has('artworks')->count(),
+                'lastUpdated' => now()->diffForHumans(),
+                'systemStatus' => \Illuminate\Support\Facades\DB::connection()->getPdo() ? 'Operational' : 'Error',
             ],
             'trends' => [
                 'sales' => [

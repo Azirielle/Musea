@@ -8,6 +8,11 @@ RUN apt-get update && apt-get install -y \
 # 3. INSTALL MYSQL DRIVER
 RUN docker-php-ext-install pdo pdo_mysql
 
+# 3.1 Configure PHP Limits
+RUN echo "upload_max_filesize = 64M" > /usr/local/etc/php/conf.d/uploads.ini \
+    && echo "post_max_size = 64M" >> /usr/local/etc/php/conf.d/uploads.ini \
+    && echo "memory_limit = 256M" >> /usr/local/etc/php/conf.d/uploads.ini
+
 # 4. Install Node.js
 RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
     apt-get install -y nodejs

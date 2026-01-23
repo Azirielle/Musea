@@ -60,6 +60,21 @@ class UserController extends Controller
             ]);
         });
 
+        // 2b. Sales (As Artist)
+        // Find OrderItems where the artwork belongs to this user
+        \App\Models\OrderItem::whereHas('artwork', function ($q) use ($user) {
+            $q->where('artist_id', $user->id);
+        })->with(['artwork', 'order'])->latest()->take(10)->get()->each(function ($item) use ($activities) {
+            $activities->push([
+                'id' => 'sale_' . $item->id,
+                'title' => "Sold Artwork: {$item->artwork->title}",
+                'details' => "Earned: ₱" . number_format($item->price, 2),
+                'type' => 'sale', // New type for styling
+                'timestamp' => $item->created_at->diffForHumans(),
+                'created_at' => $item->created_at
+            ]);
+        });
+
         // 3. Artworks Uploaded
         $user->artworks()->latest()->take(5)->get()->each(function ($artwork) use ($activities) {
             $activities->push([
@@ -72,7 +87,7 @@ class UserController extends Controller
         });
 
         // 4. Verification
-        if ($user->verification_status === 'verified' && $user->email_verified_at) {
+        if ($user->is_verified || $user->verification_status === 'approved') {
             $activities->push([
                 'id' => 'ver_' . $user->id,
                 'title' => 'Identity Verified',

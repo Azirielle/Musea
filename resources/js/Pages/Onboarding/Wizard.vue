@@ -21,7 +21,6 @@ const profileForm = useForm({
     default_avatar: null,
 });
 
-const fileInput = ref(null);
 const avatarPreview = ref(props.user.avatar_path ? (props.user.avatar_path.startsWith('http') ? props.user.avatar_path : `/storage/${props.user.avatar_path}`) : null);
 
 const defaultAvatars = [
@@ -51,24 +50,10 @@ const defaultAvatars = [
     'https://api.dicebear.com/7.x/avataaars/svg?seed=Lucas',
 ];
 
-const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-        profileForm.avatar = file;
-        profileForm.default_avatar = null; // Clear default selection
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            avatarPreview.value = e.target.result;
-        };
-        reader.readAsDataURL(file);
-    }
-};
-
 const selectDefaultAvatar = (url) => {
     profileForm.default_avatar = url;
-    profileForm.avatar = null; // Clear file upload
+    profileForm.avatar = null; // Clear file upload (if any remnant)
     avatarPreview.value = url;
-     // Reset file input if needed, though not strictly necessary as form.avatar is null
 };
 
 const submitProfile = () => {
@@ -153,30 +138,20 @@ const nextStep = () => {
             >
                 <div v-if="step === 2" class="w-full">
                     <h2 class="text-3xl font-bold font-serif mb-2 text-center">Tell us about you</h2>
-                    <p class="text-gray-500 text-center mb-8">Upload a photo and confirm your name.</p>
+                    <p class="text-gray-500 text-center mb-8">Choose an identity and confirm your name.</p>
                     
                     <form @submit.prevent="submitProfile" class="flex flex-col items-center">
-                        <!-- Avatar Upload -->
-                        <div class="relative group mb-8 cursor-pointer" @click="$refs.fileInput.click()">
-                            <div class="w-28 h-28 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border-2 border-dashed border-accent group-hover:border-solid transition-all">
+                        <!-- Avatar Display (No Upload) -->
+                        <div class="relative group mb-8">
+                            <div class="w-28 h-28 rounded-full bg-gray-100 flex items-center justify-center overflow-hidden border-2 border-dashed border-accent transition-all">
                                 <img 
                                     v-if="avatarPreview" 
                                     :src="avatarPreview" 
                                     class="w-full h-full object-cover" 
                                     alt="Avatar Preview"
                                 />
-                                <span v-else class="text-gray-400 text-4xl">+</span>
+                                <span v-else class="text-gray-400 text-4xl">?</span>
                             </div>
-                            <div class="absolute inset-0 flex items-center justify-center bg-black/30 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                                <span class="text-white text-xs font-bold">UPLOAD</span>
-                            </div>
-                            <input 
-                                type="file" 
-                                ref="fileInput" 
-                                class="hidden" 
-                                accept="image/*"
-                                @change="handleFileChange"
-                            />
                         </div>
 
                         <!-- Default Avatars Selection -->

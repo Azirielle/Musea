@@ -83,7 +83,7 @@ const doughnutOptions = {
                 </div>
                 <div class="flex items-center gap-2">
                     <span class="text-xs font-medium text-slate-500 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-full border border-slate-200 dark:border-slate-700 shadow-sm">
-                        Last updated: Just now
+                        Last updated: {{ stats.lastUpdated }}
                     </span>
                     <Link :href="route('admin.reports.index')" class="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg shadow-sm transition-all focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
@@ -267,14 +267,14 @@ const doughnutOptions = {
                      <div class="flex items-center justify-between mt-4">
                         <div>
                              <p class="text-slate-400 text-xs uppercase tracking-wider">System Status</p>
-                             <p class="text-emerald-400 font-medium flex items-center gap-2 mt-1">
-                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                                Operational
+                             <p :class="stats.systemStatus === 'Operational' ? 'text-emerald-400' : 'text-red-400'" class="font-medium flex items-center gap-2 mt-1">
+                                <span class="w-2 h-2 rounded-full animate-pulse" :class="stats.systemStatus === 'Operational' ? 'bg-emerald-400' : 'bg-red-400'"></span>
+                                {{ stats.systemStatus }}
                              </p>
                         </div>
                         <div>
                              <p class="text-slate-400 text-xs uppercase tracking-wider">Database</p>
-                             <p class="text-white font-medium mt-1">Connected</p>
+                             <p class="text-white font-medium mt-1">{{ stats.systemStatus === 'Operational' ? 'Connected' : 'Disconnected' }}</p>
                         </div>
                         <div>
                              <p class="text-slate-400 text-xs uppercase tracking-wider">Cache</p>

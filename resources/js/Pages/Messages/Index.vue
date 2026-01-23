@@ -251,7 +251,7 @@ watch(() => props.conversations, (newVal) => {
                                     class="flex-1 bg-canvas border-divider rounded-full px-6 py-3 text-sm focus:ring-accent focus:border-accent text-ink"
                                 />
                                 <button type="submit" :disabled="!messageBody.trim()" class="bg-accent text-white p-3 rounded-full hover:opacity-90 transition disabled:opacity-50 disabled:grayscale">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 transform rotate-90" fill="currentColor" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
                                 </button>
                             </form>
                         </div>

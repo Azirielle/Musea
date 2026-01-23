@@ -5,6 +5,7 @@ import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import Footer from '@/Components/Footer.vue';
 import SplashScreen from '@/Components/SplashScreen.vue';
 import MobileNavDock from '@/Components/MobileNavDock.vue';
+import MobileHeader from '@/Layouts/MobileHeader.vue';
 import AuthModal from '@/Components/AuthModal.vue';
 import { categories } from '@/Constants/Categories';
 
@@ -170,8 +171,9 @@ onUnmounted(() => {
 <template>
     <div class="min-h-screen bg-canvas">
         <SplashScreen />
+        <MobileHeader />
         <header 
-            class="fixed top-0 left-0 w-full z-[100] transition-all duration-500"
+            class="hidden md:block fixed top-0 left-0 w-full z-[100] transition-all duration-500"
             :class="[
                 isScrolled ? 'bg-white/80 backdrop-blur-xl border-b border-divider shadow-sm py-2' : 'bg-transparent py-4'
             ]"
@@ -253,7 +255,10 @@ onUnmounted(() => {
                                         @focus="showSuggestions = true"
                                         @keyup.enter="handleSearch"
                                     />
-
+                                    <svg v-if="isLoading" class="animate-spin h-4 w-4 text-accent" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
                                 </div>
 
                                 
@@ -442,7 +447,7 @@ onUnmounted(() => {
             </div>
         </header>
 
-        <main :class="withHeaderPadding ? 'pt-[96px] md:pt-[140px]' : ''">
+        <main :class="withHeaderPadding ? 'pt-[56px] md:pt-[140px]' : ''">
             <slot />
         </main>
         <Footer />

@@ -38,11 +38,29 @@ const validateName = (field) => {
     }
 };
 
+const validateAddress = () => {
+    const value = form.address;
+    if (!value) return;
+
+    if (value.length < 5) {
+        form.setError('address', 'Address must be at least 5 characters long.');
+        return;
+    }
+
+    // Must contain at least one alphanumeric character (not just symbols)
+    if (!/[a-zA-Z0-9]/.test(value)) {
+        form.setError('address', 'Address must contain at least one letter or number.');
+    } else {
+        form.clearErrors('address');
+    }
+};
+
 const submit = () => {
     validateName('first_name');
     validateName('last_name');
+    validateAddress();
 
-    if (form.errors.first_name || form.errors.last_name) {
+    if (form.errors.first_name || form.errors.last_name || form.errors.address) {
         return;
     }
 
@@ -117,6 +135,7 @@ const submit = () => {
                     required
                     autocomplete="street-address"
                     placeholder="Full Address"
+                    @input="validateAddress"
                 />
                 <InputError class="mt-2" :message="form.errors.address" />
             </div>
@@ -129,9 +148,11 @@ const submit = () => {
                     class="mt-1 block w-full bg-white border border-divider focus-within:border-accent focus-within:ring-1 focus-within:ring-accent rounded-lg overflow-hidden transition-colors duration-300 [&_.vti__dropdown]:bg-white [&_.vti__dropdown]:hover:bg-gray-50 [&_.vti__input]:bg-transparent [&_.vti__input]:placeholder-ink-light/30"
                     mode="international"
                     :validCharactersOnly="true"
+                    :maxLen="20"
                     :inputOptions="{
                         showDialCode: true,
-                        placeholder: 'Enter phone number'
+                        placeholder: 'Enter phone number',
+                        maxlength: 20
                     }"
                 ></VueTelInput>
                 <InputError class="mt-2" :message="form.errors.contact_number" />

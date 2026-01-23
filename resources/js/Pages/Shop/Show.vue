@@ -13,6 +13,10 @@ const props = defineProps({
 import { router } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import Swal from 'sweetalert2';
+import ViewInRoomModal from '@/Components/Shop/ViewInRoomModal.vue';
+import ARButton from '@/Components/Artwork/ARButton.vue';
+
+const showRoomModal = ref(false);
 
 // Local state for social interactions to optimize UI responsiveness
 const following = ref(props.isFollowing);
@@ -199,6 +203,13 @@ const backLabel = fromSource === 'messages' ? 'Back to Inbox' : 'Back to Collect
                                 Sold Out
                             </button>
                         </div>
+                        
+                        <!-- Mobile AR Button -->
+                        <ARButton 
+                            :artworkImage="artwork.image_url"
+                            :modelUrl="artwork.model_url" 
+                            :category="artwork.category"
+                        />
                     </div>
                 </div>
             </div>
@@ -210,7 +221,7 @@ const backLabel = fromSource === 'messages' ? 'Back to Inbox' : 'Back to Collect
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
                 <!-- Write Review -->
-                <div class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm h-fit">
+                <div v-if="$page.props.auth.user" class="bg-white p-6 rounded-xl border border-gray-100 shadow-sm h-fit">
                     <h3 class="text-lg font-bold mb-4">Leave a Review</h3>
                     <form @submit.prevent="submitReview" class="space-y-4">
                         <div>
@@ -231,6 +242,16 @@ const backLabel = fromSource === 'messages' ? 'Back to Inbox' : 'Back to Collect
                         </div>
                         <button type="submit" class="w-full bg-black text-white py-2 rounded-lg font-bold hover:bg-gray-800">Submit Review</button>
                     </form>
+                </div>
+                <div v-else class="bg-white p-8 rounded-xl border border-dashed border-gray-300 shadow-sm h-fit flex flex-col items-center justify-center text-center">
+                    <div class="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                    </div>
+                    <h3 class="text-lg font-bold mb-2">Have you collected this piece?</h3>
+                    <p class="text-sm text-gray-500 mb-4">Log in to leave a review and share your collection.</p>
+                    <Link :href="route('login')" class="px-6 py-2 bg-black text-white rounded-full text-sm font-bold hover:bg-gray-800 transition-colors">
+                        Log In to Review
+                    </Link>
                 </div>
 
                 <!-- Reviews List -->
@@ -257,5 +278,14 @@ const backLabel = fromSource === 'messages' ? 'Back to Inbox' : 'Back to Collect
                 </div>
             </div>
         </div>
+
+        
+        <ViewInRoomModal 
+            :isOpen="showRoomModal" 
+            :imageUrl="artwork.image_url" 
+            :framingStatus="artwork.framing || 'Unframed'" 
+            :category="artwork.category"
+            @close="showRoomModal = false"
+        />
     </MainLayout>
 </template>

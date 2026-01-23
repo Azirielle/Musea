@@ -25,7 +25,7 @@ class CheckoutController extends Controller
             'contact' => 'required|array',
             'contact.name' => 'required|string',
             'contact.email' => 'required|email',
-            'contact.phone' => 'nullable|string',
+            'contact.phone' => 'nullable|string|max:20',
             'payment_method' => 'required|string',
         ]);
 
