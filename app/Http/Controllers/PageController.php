@@ -8,7 +8,17 @@ class PageController extends Controller
 {
     public function about()
     {
-        return \Inertia\Inertia::render('About');
+        $team = [
+            ['name' => 'Andrew Adarayan', 'image' => '/images/team/andrew.jpg'],
+            ['name' => 'Christine Joy Almajar', 'image' => '/images/team/christine.jpg'],
+            ['name' => 'Wiss Montoya', 'image' => '/images/team/wiss.jpg'],
+            ['name' => 'Amari Penaranda', 'image' => '/images/team/amari.jpg'],
+            ['name' => 'Lloyd Borigas', 'image' => '/images/team/lloyd.jpg'],
+        ];
+
+        return \Inertia\Inertia::render('About', [
+            'team' => $team
+        ]);
     }
 
     public function contact()

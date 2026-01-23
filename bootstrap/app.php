@@ -30,5 +30,35 @@ return Application::configure(basePath: dirname(__DIR__))
         });
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
+        $exceptions->respond(function (\Illuminate\Http\Response $response) {
+            if ($response->getStatusCode() === 419) {
+                return back()->with([
+                    'message' => 'The page expired, please try again.',
+                ]);
+            }
+            return $response;
+        });
+
+        // Custom Inertia Error Page
+        $exceptions->render(function (\Throwable $e, \Illuminate\Http\Request $request) {
+            $response = new \Symfony\Component\HttpFoundation\Response();
+
+            // If it's an HttpException (404, 403, 500 etc)
+            if ($e instanceof \Symfony\Component\HttpKernel\Exception\HttpExceptionInterface) {
+                $status = $e->getStatusCode();
+            } else {
+                // If it's a generic exception, treat as 500
+                $status = 500;
+            }
+
+            // Only hijack Inertia requests
+            if ($request->inertia()) {
+                return \Inertia\Inertia::render('Error', [
+                    'status' => $status,
+                    'message' => $e->getMessage(),
+                ])->toResponse($request)->setStatusCode($status);
+            }
+
+            return null; // Fallback to default Laravel response if not Inertia
+        });
     })->create();

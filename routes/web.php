@@ -185,17 +185,20 @@ if (config('app.type') !== 'admin') {
             ->groupBy('category')
             ->get()
             ->map(function ($item) {
-                $bgImages = [
-                    'Painting' => 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?auto=format&fit=crop&q=80&w=400',
-                    'Sculpture' => 'https://images.unsplash.com/photo-1554188248-986adbb73be4?auto=format&fit=crop&q=80&w=400',
-                    'Digital' => 'https://images.unsplash.com/photo-1547891654-e66ed7ebb968?auto=format&fit=crop&q=80&w=400',
-                    'Photography' => 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?auto=format&fit=crop&q=80&w=400',
-                ];
+                // Fetch dynamic background image (latest active artwork in this category)
+                $artwork = \App\Models\Artwork::where('category', $item->category)
+                    ->where('status', 'active')
+                    ->whereNotNull('image_url')
+                    ->latest()
+                    ->first();
+
                 $categoryName = $item->category instanceof \BackedEnum ? $item->category->value : $item->category;
+
                 return [
                     'name' => $categoryName,
                     'count' => $item->count,
-                    'image' => $bgImages[$categoryName] ?? 'https://placehold.co/400x300/333/FFF?text=' . $categoryName,
+                    // Use artwork image if available, else fallback to a nice Unsplash placeholder
+                    'image' => $artwork ? $artwork->image_url : 'https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?auto=format&fit=crop&q=80&w=400',
                 ];
             });
 

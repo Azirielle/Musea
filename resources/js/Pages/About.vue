@@ -1,6 +1,10 @@
 <script setup>
 import { Head } from '@inertiajs/vue3';
 import MainLayout from '@/Layouts/MainLayout.vue';
+
+defineProps({
+    team: Array
+});
 </script>
 
 <template>
@@ -67,44 +71,16 @@ import MainLayout from '@/Layouts/MainLayout.vue';
                 <h2 class="text-3xl font-bold text-[#1A1A1A] mb-10">Meet the Team</h2>
                 
                 <div class="grid grid-cols-2 md:grid-cols-5 gap-8 justify-items-center">
-                    <!-- Andrew -->
-                    <div class="flex flex-col items-center">
+                    <div v-for="member in team" :key="member.name" class="flex flex-col items-center">
                         <div class="relative w-32 h-32 md:w-40 md:h-40 overflow-hidden rounded-full mb-4 border-2 border-gray-100 shadow-sm">
-                            <img src="/images/team/andrew.jpg" alt="Andrew Adarayan" class="w-full h-full object-cover">
+                            <img 
+                                :src="member.image" 
+                                :alt="member.name" 
+                                class="w-full h-full object-cover"
+                                @error="$event.target.src = `https://ui-avatars.com/api/?name=${member.name}&background=random`"
+                            >
                         </div>
-                        <h4 class="text-lg font-serif font-medium text-ink">Andrew Adarayan</h4>
-                    </div>
-
-                    <!-- Christine -->
-                    <div class="flex flex-col items-center">
-                        <div class="relative w-32 h-32 md:w-40 md:h-40 overflow-hidden rounded-full mb-4 border-2 border-gray-100 shadow-sm">
-                            <img src="/images/team/christine.jpg" alt="Christine Joy Almajar" class="w-full h-full object-cover">
-                        </div>
-                        <h4 class="text-lg font-serif font-medium text-ink">Christine Joy Almajar</h4>
-                    </div>
-
-                    <!-- Wiss -->
-                    <div class="flex flex-col items-center">
-                        <div class="relative w-32 h-32 md:w-40 md:h-40 overflow-hidden rounded-full mb-4 border-2 border-gray-100 shadow-sm">
-                            <img src="/images/team/wiss.jpg" alt="Wiss Montoya" class="w-full h-full object-cover">
-                        </div>
-                        <h4 class="text-lg font-serif font-medium text-ink">Wiss Montoya</h4>
-                    </div>
-
-                    <!-- Amari -->
-                    <div class="flex flex-col items-center">
-                        <div class="relative w-32 h-32 md:w-40 md:h-40 overflow-hidden rounded-full mb-4 border-2 border-gray-100 shadow-sm">
-                            <img src="/images/team/amari.jpg" alt="Amari Penaranda" class="w-full h-full object-cover">
-                        </div>
-                        <h4 class="text-lg font-serif font-medium text-ink">Amari Penaranda</h4>
-                    </div>
-
-                    <!-- Lloyd -->
-                    <div class="flex flex-col items-center">
-                        <div class="relative w-32 h-32 md:w-40 md:h-40 overflow-hidden rounded-full mb-4 border-2 border-gray-100 shadow-sm">
-                            <img src="/images/team/lloyd.jpg" alt="Lloyd Borigas" class="w-full h-full object-cover">
-                        </div>
-                        <h4 class="text-lg font-serif font-medium text-ink">Lloyd Borigas</h4>
+                        <h4 class="text-lg font-serif font-medium text-ink text-center">{{ member.name }}</h4>
                     </div>
                 </div>
             </div>
