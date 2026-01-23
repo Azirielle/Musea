@@ -27,6 +27,10 @@ const form = useForm({
     bio: user.bio,
 });
 
+
+
+const avatarPreview = ref(user.avatar);
+
 const defaultAvatars = [
     'https://api.dicebear.com/7.x/avataaars/svg?seed=Felix',
     'https://api.dicebear.com/7.x/avataaars/svg?seed=Aneka',
