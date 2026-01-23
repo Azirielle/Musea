@@ -30,25 +30,33 @@ class ShopController extends Controller
         // Category / Medium (Multiple support)
         if ($request->filled('category')) {
             $categories = (array) $request->input('category');
-            $query->whereIn('category', $categories);
+            if (!empty($categories)) {
+                $query->whereIn('category', $categories);
+            }
         }
 
         // Style
         if ($request->filled('style')) {
             $styles = (array) $request->input('style');
-            $query->whereIn('style', $styles);
+            if (!empty($styles)) {
+                $query->whereIn('style', $styles);
+            }
         }
 
         // Subject
         if ($request->filled('subject')) {
             $subjects = (array) $request->input('subject');
-            $query->whereIn('subject', $subjects);
+            if (!empty($subjects)) {
+                $query->whereIn('subject', $subjects);
+            }
         }
 
         // Medium
         if ($request->filled('medium')) {
             $mediums = (array) $request->input('medium');
-            $query->whereIn('medium', $mediums);
+            if (!empty($mediums)) {
+                $query->whereIn('medium', $mediums);
+            }
         }
 
         // Legacy Subcategory (Optional, for backward compat if needed)
@@ -62,13 +70,17 @@ class ShopController extends Controller
         // Framing status
         if ($request->filled('framing')) {
             $framing = (array) $request->input('framing');
-            $query->whereIn('framing', $framing);
+            if (!empty($framing)) {
+                $query->whereIn('framing', $framing);
+            }
         }
 
         // Artist ID (Multiple support)
         if ($request->filled('artist_id')) {
             $artistIds = (array) $request->input('artist_id');
-            $query->whereIn('artist_id', $artistIds);
+            if (!empty($artistIds)) {
+                $query->whereIn('artist_id', $artistIds);
+            }
         }
 
         // Price Range
@@ -82,35 +94,39 @@ class ShopController extends Controller
         // Orientation
         if ($request->filled('orientation')) {
             $orientation = (array) $request->input('orientation');
-            $query->whereIn('orientation', $orientation);
+            if (!empty($orientation)) {
+                $query->whereIn('orientation', $orientation);
+            }
         }
 
         // Size Filter
         if ($request->filled('size')) {
             $sizes = (array) $request->input('size');
-            $query->where(function ($q) use ($sizes) {
-                foreach ($sizes as $size) {
-                    $w = "CASE WHEN unit = 'in' THEN width * 2.54 ELSE width END";
-                    $h = "CASE WHEN unit = 'in' THEN height * 2.54 ELSE height END";
-                    // Correct logic for max dimension in SQLite/MySQL compatible way
-                    $maxDimSql = "CASE WHEN ($w) > ($h) THEN ($w) ELSE ($h) END";
+            if (!empty($sizes)) {
+                $query->where(function ($q) use ($sizes) {
+                    foreach ($sizes as $size) {
+                        $w = "CASE WHEN unit = 'in' THEN width * 2.54 ELSE width END";
+                        $h = "CASE WHEN unit = 'in' THEN height * 2.54 ELSE height END";
+                        // Correct logic for max dimension in SQLite/MySQL compatible way
+                        $maxDimSql = "CASE WHEN ($w) > ($h) THEN ($w) ELSE ($h) END";
 
-                    switch ($size) {
-                        case 'Small':
-                            $q->orWhereRaw("($maxDimSql) < 40");
-                            break;
-                        case 'Medium':
-                            $q->orWhereRaw("($maxDimSql) >= 40 AND ($maxDimSql) < 80");
-                            break;
-                        case 'Large':
-                            $q->orWhereRaw("($maxDimSql) >= 80 AND ($maxDimSql) < 120");
-                            break;
-                        case 'Extra Large':
-                            $q->orWhereRaw("($maxDimSql) >= 120");
-                            break;
+                        switch ($size) {
+                            case 'Small':
+                                $q->orWhereRaw("($maxDimSql) < 40");
+                                break;
+                            case 'Medium':
+                                $q->orWhereRaw("($maxDimSql) >= 40 AND ($maxDimSql) < 80");
+                                break;
+                            case 'Large':
+                                $q->orWhereRaw("($maxDimSql) >= 80 AND ($maxDimSql) < 120");
+                                break;
+                            case 'Extra Large':
+                                $q->orWhereRaw("($maxDimSql) >= 120");
+                                break;
+                        }
                     }
-                }
-            });
+                });
+            }
         }
 
         // Sorting
