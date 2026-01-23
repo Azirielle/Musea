@@ -57,13 +57,11 @@ class JournalController extends Controller
                     throw new \Exception('Failed to get URL from Cloudinary response');
                 }
             } catch (\Exception $e) {
-                // Fallback to local storage if Cloudinary fails
-                try {
-                    $path = $request->file('image')->store('journal', 'public');
-                    $url = Storage::url($path);
-                } catch (\Exception $fallbackError) {
-                    return back()->withErrors(['image' => 'Upload failed: ' . $fallbackError->getMessage()]);
-                }
+                // DEBUGGING: Stop and show the error immediately
+                dd("CLOUDINARY UPLOAD FAILED: " . $e->getMessage());
+
+                // Fallback removed for debugging
+                // return back()->withErrors(['image' => 'Upload failed: ' . $e->getMessage()]);
             }
         }
 
@@ -137,13 +135,8 @@ class JournalController extends Controller
                     throw new \Exception('Failed to get URL from Cloudinary response');
                 }
             } catch (\Exception $e) {
-                // Fallback to local storage if Cloudinary fails
-                try {
-                    $path = $request->file('image')->store('journal', 'public');
-                    $data['image_url'] = Storage::url($path);
-                } catch (\Exception $fallbackError) {
-                    return back()->withErrors(['image' => 'Upload failed: ' . $fallbackError->getMessage()]);
-                }
+                // DEBUGGING: Stop and show the error immediately
+                dd("CLOUDINARY UPDATE FAILED: " . $e->getMessage());
             }
         }
 

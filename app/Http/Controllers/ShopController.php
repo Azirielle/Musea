@@ -152,6 +152,27 @@ class ShopController extends Controller
             }
         }
 
+        // Search for Artists if query is present
+        $foundArtists = [];
+        if ($request->filled('search') || $request->filled('query')) {
+            $term = $request->input('search') ?? $request->input('query');
+            $foundArtists = \App\Models\User::where('role', 'artist')
+                ->where(function ($q) use ($term) {
+                    $q->where('first_name', 'like', "%{$term}%")
+                        ->orWhere('last_name', 'like', "%{$term}%")
+                        ->orWhereRaw("CONCAT(first_name, ' ', last_name) LIKE ?", ["%{$term}%"]);
+                })
+                ->take(6)
+                ->get()
+                ->map(function ($artist) {
+                    return [
+                        'id' => $artist->id,
+                        'name' => $artist->first_name . ' ' . $artist->last_name,
+                        'avatar' => $artist->imageUrl(),
+                    ];
+                });
+        }
+
         return \Inertia\Inertia::render('Shop/Index', [
             'artworks' => $artworks,
             'filters' => $request->all(),
@@ -161,6 +182,7 @@ class ShopController extends Controller
             })->select('id', 'first_name', 'last_name')->get()->map(function ($u) {
                 return ['id' => $u->id, 'name' => $u->first_name . ' ' . $u->last_name];
             }),
+            'foundArtists' => $foundArtists,
         ]);
     }
 

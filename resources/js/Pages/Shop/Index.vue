@@ -12,6 +12,7 @@ const props = defineProps({
     filters: Object,
     recommendations: { type: Array, default: () => [] },
     artists: { type: Array, default: () => [] },
+    foundArtists: { type: Array, default: () => [] },
 });
 
 const { addToCart } = useCart();
@@ -186,6 +187,28 @@ const formatPrice = (price) => {
                     <!-- Main Grid -->
                     <div class="flex-1">
                         <!-- Active Filters Tags (Optional enhancement could go here) -->
+                        
+                        <!-- Found Artists Section -->
+                        <div v-if="foundArtists && foundArtists.length > 0" class="mb-12">
+                            <div class="flex items-center gap-4 mb-6">
+                                <span class="w-8 h-px bg-accent"></span>
+                                <h2 class="text-xl font-serif font-bold italic text-ink">Participating Artists found</h2>
+                            </div>
+                            <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-6">
+                                <Link 
+                                    v-for="artist in foundArtists" 
+                                    :key="artist.id" 
+                                    :href="route('artists.show', artist.id)"
+                                    class="flex items-center gap-4 p-4 bg-white rounded-xl border border-divider hover:border-accent hover:shadow-md transition-all group"
+                                >
+                                    <img :src="artist.avatar" class="w-12 h-12 rounded-full object-cover">
+                                    <div class="min-w-0">
+                                        <h4 class="font-bold text-ink truncate group-hover:text-accent transition-colors">{{ artist.name }}</h4>
+                                        <span class="text-xs text-accent font-medium uppercase tracking-wider">View Profile</span>
+                                    </div>
+                                </Link>
+                            </div>
+                        </div>
 
                         <div v-if="artworks.data.length === 0" class="text-center py-32 bg-white rounded-3xl border border-dashed border-divider">
                             <svg class="w-12 h-12 mx-auto text-ink-light mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
