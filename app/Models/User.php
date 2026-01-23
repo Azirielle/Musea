@@ -88,6 +88,7 @@ class User extends Authenticatable
             'is_featured' => 'boolean',
             'is_verified' => 'boolean',
             'last_seen_at' => 'datetime',
+            'balance' => 'decimal:2',
         ];
 
     }

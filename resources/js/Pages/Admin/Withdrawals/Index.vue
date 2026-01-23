@@ -25,8 +25,8 @@ const openModal = (request, type) => {
 
 const processRequest = () => {
     const url = modalType.value === 'approve' 
-        ? route('withdrawals.approve', selectedRequest.value.id)
-        : route('withdrawals.reject', selectedRequest.value.id);
+        ? route('admin.withdrawals.approve', selectedRequest.value.id)
+        : route('admin.withdrawals.reject', selectedRequest.value.id);
 
     form.post(url, {
         onSuccess: () => {
